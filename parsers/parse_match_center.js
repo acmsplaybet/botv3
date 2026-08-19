@@ -2,10 +2,14 @@
  * ====================================================================
  * PARSER: STEP 10 - MATCH CENTER (EVENTS, LINE-UPS, IN-MATCH STATS)
  * ====================================================================
- * Extracts complete live & finished match center overlay data:
- * 1. Events: Goals, Cards, Subs, HT/FT/AET/Penalty shootouts
- * 2. Line-ups: Formations, Coaches, Referee, Venue, Starting XI, Substitutes
- * 3. Stats: Real in-match metrics (Shots, Passes, Possession, Attacks, Cards)
+ * Universal, robust parser that extracts ALL match events:
+ * - Goals (Normal, Penalty Scored 'pen-goal.png', Own Goal)
+ * - Penalty Misses ('pen-miss.png')
+ * - VAR Decisions ('var.png')
+ * - Yellow Cards ('ycard_img'), Red Cards ('rcard_img'), 2nd Yellow ('yred_img')
+ * - Substitutions ('subs-arrows.png')
+ * - Scoreboards (HT, FT, AET, Penalty Shootout)
+ * - Line-ups & In-Match Live Stats
  * ====================================================================
  */
 
@@ -34,7 +38,8 @@ async function parseMatchCenter(page, hero = {}) {
     const clicked = await page.evaluate(() => {
       const el = document.getElementById('evhdbte') || 
                  document.querySelector('.lscrsp[onclick*="getFTEvents"]') || 
-                 document.querySelector('.match_res .lscrsp, .match_res');
+                 document.querySelector('.lscrsp[onclick*="getLiveEvents"]') ||
+                 document.querySelector('.match_res .lscrsp, .match_res, .live_score');
       if (el) {
         el.click();
         return true;
@@ -47,20 +52,23 @@ async function parseMatchCenter(page, hero = {}) {
     }
 
     // Wait specifically for event rows or scoreboard
-    const eventsAppeared = await page.waitForSelector('.match-events__row, .match-events__scoreboard, .ft-events', { timeout: 6000 }).then(() => true).catch(() => false);
+    const eventsAppeared = await page.waitForSelector('.ft-events, .match-events', { timeout: 6000 }).then(() => true).catch(() => false);
     if (!eventsAppeared) {
       return matchCenter;
     }
 
     await new Promise(r => setTimeout(r, 1200));
 
-    // 2. PARSE EVENTS TAB
+    // 2. PARSE EVENTS TAB (Universal match event recognition)
     const eventsData = await page.evaluate(() => {
       const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
       const eventsList = [];
       const periods = { ht: '', ft: '', aet: '', penalties: null };
 
-      const rows = Array.from(document.querySelectorAll('.match-events__row, .match-events__scoreboard'));
+      const evSec = document.querySelector('.ft-events__section.match-events, .ft-events__section[data-menu="events"], .match-events');
+      if (!evSec) return { eventsList, periods };
+
+      const rows = Array.from(evSec.querySelectorAll('.match-events__row, .match-events__scoreboard'));
 
       let inPenaltyShootout = false;
 
@@ -102,17 +110,21 @@ async function parseMatchCenter(page, hero = {}) {
         const html = targetSide.innerHTML || '';
         const text = clean(targetSide.innerText);
 
-        const isGoal = html.includes('goal.png') || html.includes('football ball') || text.includes('0 -') || text.includes('1 -') || text.includes('2 -') || text.includes('3 -') || text.includes('4 -') || text.includes('5 -') || text.includes('0-1') || text.includes('1-1') || text.includes('2-1') || text.includes('2-2') || text.includes('2-3') || text.includes('3-3') || text.includes('3-4') || text.includes('4-4') || text.includes('4-5');
+        // Recognition patterns
+        const isGoalNormal = html.includes('goal.png') || html.includes('football ball');
+        const isPenGoal = html.includes('pen-goal.png') || html.includes('scored pen');
+        const isPenMiss = html.includes('pen-miss.png') || html.includes('missed pen');
+        const isVar = html.includes('var.png') || html.includes('VAR logo');
         const isYellowCard = html.includes('ycard_img') || html.includes('ycard') || targetSide.querySelector('.ycard_img');
         const isYellowRed = html.includes('yred_img') || targetSide.querySelector('.yred_img');
         const isRedCard = html.includes('rcard_img') || targetSide.querySelector('.rcard_img');
-        const isSub = html.includes('subs-arrows') || targetSide.querySelector('img[src*="subs"]');
+        const isSub = html.includes('subs-arrows.png') || html.includes('subs-arrows') || targetSide.querySelector('img[src*="subs"]');
 
         let scoreMatch = text.match(/(\d+\s*[-–]\s*\d+)/);
         let scoreAtTime = scoreMatch ? scoreMatch[1].replace(/\s+/g, '') : null;
 
         if (inPenaltyShootout) {
-          const isScored = isGoal || (html.includes('goal') || text.includes('(pen.)') && scoreAtTime);
+          const isScored = isGoalNormal || isPenGoal || text.includes('(pen.)');
           eventsList.push({
             type: 'penalty_kick',
             minute: minStr || 'Pen',
@@ -121,21 +133,48 @@ async function parseMatchCenter(page, hero = {}) {
             score: scoreAtTime,
             team
           });
-        } else if (isGoal) {
-          let isPen = text.toLowerCase().includes('(pen.)') || text.toLowerCase().includes('pen');
+        } else if (isPenGoal || (isGoalNormal && text.toLowerCase().includes('(pen.)'))) {
+          eventsList.push({
+            type: 'goal',
+            minute: minStr,
+            scorer: playerName || 'Goal',
+            assist: null,
+            isPenalty: true,
+            isOwnGoal: false,
+            score: scoreAtTime,
+            team
+          });
+        } else if (isGoalNormal || (scoreAtTime && !isVar && !isPenMiss && !isYellowCard && !isRedCard && !isSub)) {
           let isOwn = text.toLowerCase().includes('(o.g.)') || text.toLowerCase().includes('own goal');
           let assist = '';
           const assistMatch = text.match(/Assists?:\s*([^\n\r]+)/i);
           if (assistMatch) assist = assistMatch[1].trim();
 
+          const finalScorer = playerName || (secondPlayer && !secondPlayer.includes('pen') && !secondPlayer.includes('o.g.') ? secondPlayer : (scoreAtTime ? `Goal (${scoreAtTime})` : 'Goal'));
+
           eventsList.push({
             type: 'goal',
             minute: minStr,
-            scorer: playerName || secondPlayer || (scoreAtTime ? `Goal (${scoreAtTime})` : 'Goal'),
+            scorer: finalScorer,
             assist: assist || (secondPlayer && !secondPlayer.includes('pen') && !secondPlayer.includes('o.g.') ? secondPlayer : null),
-            isPenalty: isPen,
+            isPenalty: false,
             isOwnGoal: isOwn,
             score: scoreAtTime,
+            team
+          });
+        } else if (isPenMiss) {
+          eventsList.push({
+            type: 'penalty_miss',
+            minute: minStr,
+            player: playerName || secondPlayer || 'Penalty Missed',
+            team
+          });
+        } else if (isVar) {
+          eventsList.push({
+            type: 'var',
+            minute: minStr,
+            player: playerName || secondPlayer || 'VAR Review',
+            detail: 'VAR Decision',
             team
           });
         } else if (isYellowRed) {
@@ -162,12 +201,21 @@ async function parseMatchCenter(page, hero = {}) {
             player: playerName || secondPlayer || 'Yellow Card',
             team
           });
-        } else if (isSub || (secondPlayer && secondPlayer !== playerName)) {
+        } else if (isSub || (secondPlayer && secondPlayer !== playerName && !secondPlayer.includes('(pen.)'))) {
           eventsList.push({
             type: 'sub',
             minute: minStr,
             playerIn: playerName || 'Sub In',
             playerOut: secondPlayer || 'Sub Out',
+            team
+          });
+        } else if (playerName) {
+          // Generic fallback for any other unpredicted event
+          eventsList.push({
+            type: 'event',
+            minute: minStr,
+            player: playerName,
+            detail: text,
             team
           });
         }
@@ -274,7 +322,6 @@ async function parseMatchCenter(page, hero = {}) {
             const isVal2 = /^[\d%]+$/.test(next2);
             if (isVal1 && isVal2 && !/^[\d%]+$/.test(l)) {
               const key = l.toLowerCase().replace(/[^a-z0-9]/g, '_');
-              // Avoid duplicate overwrites if already set
               if (!stats[key]) {
                 stats[key] = {
                   label: l,
@@ -294,7 +341,7 @@ async function parseMatchCenter(page, hero = {}) {
       }
     } catch (e) {}
 
-    // Close the overlay modal
+    // Close overlay
     try {
       await page.evaluate(() => {
         const closeBtn = document.querySelector('.ft-events__cls-div, .ft-events__close, img[src*="close"]');

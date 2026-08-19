@@ -4250,6 +4250,58 @@
               ` : ''}</div>
             </div>
           `;
+        } else if (ev.type === 'penalty_miss') {
+          html += `
+            <div class="mc-event-row">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block">
+                  <span class="mc-player-name">${ev.player || 'Player'}</span>
+                  <span class="mc-badge-pill pen-miss">PEN MISSED</span>
+                </div>
+                <div class="mc-event-icon pen-miss" style="color: #ef4444; font-size: 16px;"><i class="fa fa-times-circle"></i></div>
+              ` : ''}</div>
+              <div class="mc-event-min">${ev.minute}'</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-event-icon pen-miss" style="color: #ef4444; font-size: 16px;"><i class="fa fa-times-circle"></i></div>
+                <div class="mc-player-block">
+                  <span class="mc-player-name">${ev.player || 'Player'}</span>
+                  <span class="mc-badge-pill pen-miss">PEN MISSED</span>
+                </div>
+              ` : ''}</div>
+            </div>
+          `;
+        } else if (ev.type === 'var') {
+          html += `
+            <div class="mc-event-row">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block">
+                  <span class="mc-player-name">${ev.player || 'Player'}</span>
+                  <span class="mc-badge-pill var">VAR</span>
+                </div>
+                <div class="mc-event-icon var" style="color: #8b5cf6; font-size: 14px;"><i class="fa fa-tv"></i></div>
+              ` : ''}</div>
+              <div class="mc-event-min">${ev.minute}'</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-event-icon var" style="color: #8b5cf6; font-size: 14px;"><i class="fa fa-tv"></i></div>
+                <div class="mc-player-block">
+                  <span class="mc-player-name">${ev.player || 'Player'}</span>
+                  <span class="mc-badge-pill var">VAR</span>
+                </div>
+              ` : ''}</div>
+            </div>
+          `;
+        } else if (ev.type === 'event') {
+          html += `
+            <div class="mc-event-row">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player || ev.detail || 'Event'}</span></div>
+              ` : ''}</div>
+              <div class="mc-event-min">${ev.minute}'</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player || ev.detail || 'Event'}</span></div>
+              ` : ''}</div>
+            </div>
+          `;
         }
       });
 
@@ -4257,17 +4309,24 @@
     }
 
     function renderMcLineups(mc, hero) {
-      const container = document.getElementById('mcLineupsContent');
-      if (!container) return;
+      const section = document.getElementById('mcLineupsSection');
+      if (!section) return;
 
       const lu = mc.lineups || {};
       const home = lu.home || {};
       const away = lu.away || {};
 
-      document.getElementById('mcVenueText').innerText = lu.venue ? `${lu.venue} (${lu.capacity || ''})` : '-';
-      document.getElementById('mcRefereeText').innerText = lu.referee || '-';
-      document.getElementById('mcHomeFormation').innerText = home.formation || '-';
-      document.getElementById('mcAwayFormation').innerText = away.formation || '-';
+      const venueEl = document.getElementById('mcVenueText');
+      if (venueEl) venueEl.innerText = lu.venue ? `${lu.venue} (${lu.capacity || ''})` : '-';
+      
+      const refEl = document.getElementById('mcRefereeText');
+      if (refEl) refEl.innerText = lu.referee || '-';
+
+      const homeFormEl = document.getElementById('mcHomeFormation');
+      if (homeFormEl) homeFormEl.innerText = home.formation || '-';
+
+      const awayFormEl = document.getElementById('mcAwayFormation');
+      if (awayFormEl) awayFormEl.innerText = away.formation || '-';
 
       const renderPlayerRows = (list) => {
         if (!list || list.length === 0) return `<div style="color: #94a3b8; font-size: 11px; padding: 6px;">Squad not announced</div>`;
@@ -4279,10 +4338,17 @@
         `).join('');
       };
 
-      document.getElementById('mcHomeStarting').innerHTML = renderPlayerRows(home.startingXI);
-      document.getElementById('mcAwayStarting').innerHTML = renderPlayerRows(away.startingXI);
-      document.getElementById('mcHomeSubs').innerHTML = renderPlayerRows(home.substitutes);
-      document.getElementById('mcAwaySubs').innerHTML = renderPlayerRows(away.substitutes);
+      const homeStartEl = document.getElementById('mcHomeStarting');
+      if (homeStartEl) homeStartEl.innerHTML = renderPlayerRows(home.startingXI);
+
+      const awayStartEl = document.getElementById('mcAwayStarting');
+      if (awayStartEl) awayStartEl.innerHTML = renderPlayerRows(away.startingXI);
+
+      const homeSubEl = document.getElementById('mcHomeSubs');
+      if (homeSubEl) homeSubEl.innerHTML = renderPlayerRows(home.substitutes);
+
+      const awaySubEl = document.getElementById('mcAwaySubs');
+      if (awaySubEl) awaySubEl.innerHTML = renderPlayerRows(away.substitutes);
     }
 
     function renderMcStats(mc, hero) {
