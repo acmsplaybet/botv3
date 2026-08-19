@@ -10,12 +10,16 @@ async function parseMarkets(page) {
 
     const markets = {};
 
-    // Determine match final and half-time scores for automatic win/loss validation if FT
+    // Check if match is finished (FT) or live/upcoming
+    const scoreBox = document.querySelector('.match_res, .lscr_td, .schema .score');
+    const isLive = document.querySelector('.lscrlv, .blink_me, .live_min, .match_res_status.lmin_td') !== null || (scoreBox && scoreBox.getAttribute('data-minute'));
+    const isFt = !isLive && (document.body.innerText.includes('Full time') || (scoreBox && scoreBox.innerText.includes('FT')));
+
     const heroScoreEl = document.getElementById('evhdbte') || document.querySelector('.lscrsp') || document.querySelector('.match_res');
     const heroScoreText = clean(heroScoreEl?.innerText);
     let matchFtHome = null;
     let matchFtAway = null;
-    if (heroScoreText && heroScoreText.includes('-')) {
+    if (isFt && heroScoreText && heroScoreText.includes('-')) {
       const parts = heroScoreText.split('-').map(p => parseInt(clean(p), 10));
       if (!isNaN(parts[0]) && !isNaN(parts[1])) {
         matchFtHome = parts[0];
@@ -25,6 +29,11 @@ async function parseMarkets(page) {
 
     // Helper to evaluate win/loss status from DOM classes or score calculation
     const evaluateStatus = (predWrap, pick, marketType) => {
+      // If match is LIVE or UPCOMING, all predictions remain pending
+      if (isLive || !isFt) {
+        return 'pending';
+      }
+
       // 1. Direct prediction container class check
       if (predWrap) {
         if (predWrap.classList.contains('predict_y')) return 'win';
@@ -224,7 +233,7 @@ async function parseMarkets(page) {
       if (htPredEl) {
         const s = htPredEl.querySelector('.forepr span, .forepr');
         htPick = clean(s?.innerText) || '-';
-        htStatus = htPredEl.classList.contains('predict_y') ? 'win' : (htPredEl.classList.contains('predict_no') ? 'loss' : 'pending');
+        htStatus = evaluateStatus(htPredEl, htPick, '1X2');
       }
 
       const allPreds = Array.from(row.querySelectorAll('.predict_y, .predict_no, .predict_e, .predict'));
@@ -232,7 +241,7 @@ async function parseMarkets(page) {
       if (ftPredEl) {
         const s = ftPredEl.querySelector('.forepr span, .forepr');
         ftPick = clean(s?.innerText) || '-';
-        ftStatus = ftPredEl.classList.contains('predict_y') ? 'win' : (ftPredEl.classList.contains('predict_no') ? 'loss' : 'pending');
+        ftStatus = evaluateStatus(ftPredEl, ftPick, '1X2');
       }
     }
 

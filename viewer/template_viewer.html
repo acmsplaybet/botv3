@@ -2533,10 +2533,16 @@
         const res = hero.result || {};
         const scoreBadge = document.getElementById('heroScore');
         const isUpcoming = res.status === 'Upcoming' || !res.score || res.score === '-';
+        const isLive = res.isLive || hero.isLive || (res.status && res.status.includes('Live'));
+
         if (isUpcoming) {
           scoreBadge.innerText = '?';
           scoreBadge.className = 'hero-score-badge upcoming';
           scoreBadge.title = 'Upcoming Match';
+        } else if (isLive) {
+          scoreBadge.innerHTML = `<span class="pulse-dot"></span> ${res.score}`;
+          scoreBadge.className = 'hero-score-badge live';
+          scoreBadge.title = res.status || 'Live Match';
         } else {
           scoreBadge.innerText = res.score;
           scoreBadge.className = 'hero-score-badge';
@@ -4170,11 +4176,23 @@
       }
 
       let html = '';
+      let htRendered = false;
 
       // Scoreboards / Events chronological flow
-      events.forEach(ev => {
+      events.forEach((ev, idx) => {
         const isHome = ev.team === 'home';
         const isAway = ev.team === 'away';
+        const minStr = ev.minute || '';
+
+        // If transitioning past first half and HT exists, insert HT scoreboard
+        if (!htRendered && periods.ht) {
+          const nextEv = events[idx];
+          const minNum = parseInt(minStr, 10);
+          if (minNum > 45 && !minStr.startsWith('45+')) {
+            html += `<div class="mc-event-scoreboard"><span class="sb-lbl">HT</span><span class="sb-val">${periods.ht}</span></div>`;
+            htRendered = true;
+          }
+        }
 
         if (ev.type === 'goal') {
           html += `
@@ -4304,6 +4322,13 @@
           `;
         }
       });
+
+      if (!htRendered && periods.ht) {
+        html += `<div class="mc-event-scoreboard"><span class="sb-lbl">HT</span><span class="sb-val">${periods.ht}</span></div>`;
+      }
+      if (periods.ft) {
+        html += `<div class="mc-event-scoreboard"><span class="sb-lbl">FT</span><span class="sb-val">${periods.ft}</span></div>`;
+      }
 
       container.innerHTML = html;
     }
