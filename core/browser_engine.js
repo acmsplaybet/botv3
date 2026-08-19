@@ -2,18 +2,26 @@
  * ====================================================================
  * BPA V3 STEALTH BROWSER ENGINE (CLOUDFLARE & FOREBET SHIELD BYPASS)
  * ====================================================================
+ * Persistent Session & Cookie Architecture:
+ * - Retains warm Chromium profile, LocalStorage, and TLS state across runs
+ * - Automatically loads and preserves Cloudflare cf_clearance & session cookies
+ * - Ad/tracker interception for maximum speed without breaking Cloudflare challenges
  */
 
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
-const cookieCacheFile = path.join(__dirname, '..', 'data', 'cf_cookies_cache.json');
+const dataDir = path.join(__dirname, '..', 'data');
+const cookieCacheFile = path.join(dataDir, 'cf_cookies_cache.json');
+const persistentProfileDir = path.join(dataDir, 'stealth_profile');
 
 function loadCachedCookies() {
   try {
     if (fs.existsSync(cookieCacheFile)) {
-      return JSON.parse(fs.readFileSync(cookieCacheFile, 'utf-8'));
+      const raw = fs.readFileSync(cookieCacheFile, 'utf-8');
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
     }
   } catch (e) {}
   return [];
@@ -22,7 +30,6 @@ function loadCachedCookies() {
 function saveCachedCookies(cookies) {
   try {
     if (!cookies || !cookies.length) return;
-    const dataDir = path.join(__dirname, '..', 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(cookieCacheFile, JSON.stringify(cookies, null, 2), 'utf-8');
   } catch (e) {}
@@ -30,12 +37,20 @@ function saveCachedCookies(cookies) {
 
 async function createBrowser(options = {}) {
   const headless = options.headless !== undefined ? options.headless : 'new';
-  const tempUserDataDir = path.join(__dirname, '..', 'temp_profiles', 'bot_' + Date.now());
+  
+  // Use persistent profile by default so Cloudflare clearances & TLS state are preserved
+  const userDataDir = options.useTempProfile 
+    ? path.join(__dirname, '..', 'temp_profiles', 'worker_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6))
+    : persistentProfileDir;
+
+  if (!fs.existsSync(userDataDir)) {
+    fs.mkdirSync(userDataDir, { recursive: true });
+  }
 
   const browser = await puppeteer.launch({
     headless: headless,
     defaultViewport: { width: 1440, height: 900 },
-    userDataDir: tempUserDataDir,
+    userDataDir: userDataDir,
     ignoreHTTPSErrors: true,
     args: [
       '--no-sandbox',
@@ -49,49 +64,72 @@ async function createBrowser(options = {}) {
     ]
   });
 
-  browser._tempUserDataDir = tempUserDataDir;
+  browser._userDataDir = userDataDir;
+  browser._isTempProfile = Boolean(options.useTempProfile);
   return browser;
 }
 
 async function setupPageInterception(page) {
   try {
-    // 1. Stealth Evasions
+    // 1. Load and inject persistent Cloudflare & Session cookies
+    const cachedCookies = loadCachedCookies();
+    if (cachedCookies && cachedCookies.length > 0) {
+      try {
+        await page.setCookie(...cachedCookies);
+      } catch (e) {}
+    }
+
+    // 2. Stealth Evasions
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
       Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
       Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
       window.chrome = { runtime: {}, app: {}, csi: () => {}, loadTimes: () => {} };
-      Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+      const originalQuery = window.navigator.permissions.query;
+      window.navigator.permissions.query = (parameters) => (
+        parameters.name === 'notifications' ?
+          Promise.resolve({ state: Notification.permission }) :
+          originalQuery(parameters)
+      );
     });
 
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+    // 3. User Agent & Language
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36');
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Windows"'
+    });
 
-    // Inject cached cookies if available
-    const cachedCookies = loadCachedCookies();
-    if (cachedCookies && cachedCookies.length > 0) {
-      try { await page.setCookie(...cachedCookies); } catch (e) {}
-    }
-
+    // 4. Selective Ad-blocking and Media interception
     await page.setRequestInterception(true);
     page.on('request', (req) => {
-      const url = req.url().toLowerCase();
+      const u = req.url();
       const rType = req.resourceType();
 
-      // Block Ads & Trackers
-      const adDomains = [
-        'googleads', 'doubleclick', 'criteo', 'googlesyndication', 'adsystem', 'adnxs',
-        'analytics', 'facebook', 'taboola', 'outbrain', 'pubmatic', 'rubiconproject',
-        'openx', 'amazon-adsystem', 'clarity.ms', 'hotjar', 'onesignal', 'popcash',
-        'exoclick', 'adroll', 'smartadserver', 'casalemedia', 'scorecardresearch',
-        'quantserve', 'bidswitch', 'lijit', 'sovrn', 'moatads', 'adsafeprotected',
-        'adservice', 'pagead2'
-      ];
+      // NEVER block Cloudflare challenge verification scripts
+      if (u.includes('cloudflare') || u.includes('challenges.cloudflare') || u.includes('turnstile')) {
+        return req.continue();
+      }
 
-      if (adDomains.some(d => url.includes(d))) {
+      // Block heavy ad networks & analytics
+      if (
+        u.includes('google-analytics') ||
+        u.includes('googletagmanager') ||
+        u.includes('doubleclick') ||
+        u.includes('criteo') ||
+        u.includes('adroll') ||
+        u.includes('scorecardresearch') ||
+        u.includes('taboola') ||
+        u.includes('outbrain') ||
+        u.includes('yandex') ||
+        u.includes('adnxs')
+      ) {
         return req.abort();
       }
 
-      // Block non-essential media & fonts
+      // Block non-essential heavy assets (fonts, media) to maximize speed
       if (rType === 'media' || rType === 'font' || rType === 'websocket') {
         return req.abort();
       }
@@ -101,8 +139,8 @@ async function setupPageInterception(page) {
   } catch (e) {}
 }
 
-async function navigateWithRetry(page, url, logger = console.log, maxRetries = 5) {
-  const delays = [1000, 2500, 4500, 7000, 10000];
+async function navigateWithRetry(page, url, logger = console.log, maxRetries = 4) {
+  const delays = [1500, 3000, 5000, 8000];
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -114,24 +152,26 @@ async function navigateWithRetry(page, url, logger = console.log, maxRetries = 5
 
       if (isCf) {
         logger(`[Ağ] ⚠️ Cloudflare Challenge tespit edildi, bekleniyor (${attempt}/${maxRetries})...`);
-        await new Promise(r => setTimeout(r, 3500));
+        await new Promise(r => setTimeout(r, 4000));
         title = await page.title();
         isCf = title.includes('Just a moment') || title.includes('Attention Required') || title === 'www.forebet.com';
 
         if (isCf) {
           logger(`[Ağ] 🔄 Sayfa yenileniyor (Cloudflare Bypass)...`);
           await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 });
-          await new Promise(r => setTimeout(r, 2000));
+          await new Promise(r => setTimeout(r, 2500));
         }
       }
 
-      // Cache cookies on success
+      // Cache fresh cookies on success to data/cf_cookies_cache.json
       try {
         const cookies = await page.cookies();
-        if (cookies && cookies.length > 0) saveCachedCookies(cookies);
+        if (cookies && cookies.length > 0) {
+          saveCachedCookies(cookies);
+        }
       } catch (e) {}
 
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 800));
       return true;
     } catch (err) {
       logger(`[Ağ] ⚠️ Bağlantı denemesi ${attempt} hatası: ${err.message}`);
@@ -150,7 +190,7 @@ async function bypassCloudflareIfNeeded(page, logger = () => {}) {
 
     if (isCf) {
       logger(`[Ağ] ⚠️ Cloudflare Challenge tespit edildi, bekleniyor...`);
-      await new Promise(r => setTimeout(r, 3000));
+      await new Promise(r => setTimeout(r, 3500));
       title = await page.title();
       isCf = title.includes('Just a moment') || title.includes('Attention Required') || title === 'www.forebet.com';
 
@@ -174,12 +214,15 @@ async function bypassCloudflareIfNeeded(page, logger = () => {}) {
 
 async function closeBrowser(browser) {
   if (!browser) return;
-  const tempDir = browser._tempUserDataDir;
+  const isTemp = browser._isTempProfile;
+  const tempDir = browser._userDataDir;
+
   try {
     await browser.close();
   } catch (e) {}
 
-  if (tempDir && fs.existsSync(tempDir)) {
+  // Only delete isolated temporary worker folders, NEVER delete the persistent stealth_profile!
+  if (isTemp && tempDir && fs.existsSync(tempDir)) {
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
     } catch (e) {}

@@ -6,11 +6,11 @@
  * cookie cache integrity, and page loading speed.
  */
 
-const { initBrowser, closeBrowser, bypassCloudflareIfNeeded } = require('../core/browser_engine');
+const { initBrowser, closeBrowser, setupPageInterception, navigateWithRetry, bypassCloudflareIfNeeded } = require('../core/browser_engine');
 const fs = require('fs');
 const path = require('path');
 
-const TEST_URL = 'https://www.forebet.com/en/football/predictions-by-date';
+const TEST_URL = 'https://www.forebet.com/en/football-predictions/predictions-1x2';
 const COOKIE_CACHE_PATH = path.join(__dirname, '..', 'data', 'cf_cookies_cache.json');
 
 async function testCfHealth() {
@@ -35,14 +35,15 @@ async function testCfHealth() {
 
     // 2. Tarayıcı başlatma
     console.log('\n🚀 2. Stealth Puppeteer Tarayıcısı Başlatılıyor...');
-    browser = await initBrowser(true); // Headless mode
+    browser = await initBrowser({ headless: 'new' });
     page = await browser.newPage();
-    console.log('   ✅ Tarayıcı ve sayfa hazırlandı');
+    await setupPageInterception(page);
+    console.log('   ✅ Tarayıcı, çerezler ve stealth filtreleri hazırlandı');
 
     // 3. Forebet bağlantı ve Cloudflare bypass testi
     console.log(`\n🌐 3. Forebet Test Sayfası Yükleniyor: ${TEST_URL}...`);
     const navStart = Date.now();
-    await page.goto(TEST_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await navigateWithRetry(page, TEST_URL, console.log);
     const navTime = Date.now() - navStart;
     console.log(`   ⏱️  İlk DOM Yüklenme Süresi: ${navTime}ms`);
 
