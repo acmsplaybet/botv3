@@ -3144,7 +3144,7 @@
           if (res.aetScore) extra.push(`AET`);
 
           return `
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" onclick="openMatchCenterModal('events')" title="Click to view Match Center">
               <div style="font-weight: 800; color: #0f172a; font-size: 13px;">
                 <span class="coef-fore-box" style="font-size: 10px; margin-right: 2px;">${res.status || 'FT'}</span> 
                 <b class="score-exact-num" style="color: #008000;">${res.score}</b>
@@ -3190,7 +3190,7 @@
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, '1X2')" style="cursor: pointer;" title="Click to view extended odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -4091,6 +4091,659 @@
       document.getElementById('homeNextTbody').innerHTML = renderFdrTable(nm.home);
       document.getElementById('awayNextTbody').innerHTML = renderFdrTable(nm.away);
     }
+
+    // ====================================================================
+    // 11. MATCH CENTER (EVENTS, LINE-UPS, STATS) MODAL & EXTENDED ODDS POPUP
+    // ====================================================================
+    let activeMatchCenterTab = 'events';
+
+    function openMatchCenterModal(tab = 'events') {
+      const data = window.MATCH_DATA;
+      if (!data) return;
+      const mc = data.matchCenter || {};
+      const hero = data.hero || {};
+
+      const modal = document.getElementById('matchCenterModal');
+      if (!modal) return;
+
+      // Update header
+      document.getElementById('mcHomeName').innerText = hero.homeTeam || 'Home';
+      document.getElementById('mcAwayName').innerText = hero.awayTeam || 'Away';
+      if (hero.homeLogo) document.getElementById('mcHomeLogo').src = hero.homeLogo;
+      if (hero.awayLogo) document.getElementById('mcAwayLogo').src = hero.awayLogo;
+
+      const res = hero.result || {};
+      document.getElementById('mcScoreVal').innerText = res.score || hero.finalScore || hero.score || '-';
+      document.getElementById('mcStatusText').innerText = res.status || 'Finished';
+      
+      const penText = res.penScore ? `Pen. ${res.penScore}` : (res.aetScore ? `AET ${res.aetScore}` : '');
+      const penEl = document.getElementById('mcPenText');
+      if (penEl) {
+        penEl.innerText = penText;
+        penEl.style.display = penText ? 'block' : 'none';
+      }
+
+      switchMatchCenterTab(tab);
+      modal.style.display = 'flex';
+    }
+
+    function closeMatchCenterModal() {
+      const modal = document.getElementById('matchCenterModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function switchMatchCenterTab(tab) {
+      activeMatchCenterTab = tab;
+      const data = window.MATCH_DATA;
+      const mc = data?.matchCenter || {};
+      const hero = data?.hero || {};
+
+      document.querySelectorAll('.mc-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+
+      const eventsSec = document.getElementById('mcEventsSection');
+      const lineupsSec = document.getElementById('mcLineupsSection');
+      const statsSec = document.getElementById('mcStatsSection');
+
+      eventsSec.style.display = tab === 'events' ? 'block' : 'none';
+      lineupsSec.style.display = tab === 'lineups' ? 'block' : 'none';
+      statsSec.style.display = tab === 'stats' ? 'block' : 'none';
+
+      if (tab === 'events') renderMcEvents(mc, hero);
+      else if (tab === 'lineups') renderMcLineups(mc, hero);
+      else if (tab === 'stats') renderMcStats(mc, hero);
+    }
+
+    function renderMcEvents(mc, hero) {
+      const container = document.getElementById('mcEventsList');
+      if (!container) return;
+
+      const events = mc.events || [];
+      const periods = mc.periods || {};
+
+      if (events.length === 0 && !periods.ht && !periods.ft) {
+        container.innerHTML = `<div style="text-align: center; padding: 40px; color: #94a3b8; font-weight: 700;">No in-match events recorded for this match.</div>`;
+        return;
+      }
+
+      let html = '';
+
+      // Scoreboards / Events chronological flow
+      events.forEach(ev => {
+        const isHome = ev.team === 'home';
+        const isAway = ev.team === 'away';
+
+        if (ev.type === 'goal') {
+          html += `
+            <div class="mc-event-row">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block">
+                  <span class="mc-player-name">${ev.scorer || 'Goal'}</span>
+                  ${ev.assist ? `<span class="mc-player-sub">Assists: ${ev.assist}</span>` : ''}
+                  ${ev.isPenalty ? `<span class="mc-badge-pill pen">PEN</span>` : ''}
+                  ${ev.isOwnGoal ? `<span class="mc-badge-pill og">O.G.</span>` : ''}
+                </div>
+                <div class="mc-event-icon goal"><i class="fa fa-futbol"></i> ${ev.score ? `<span class="mc-score-chip">${ev.score}</span>` : ''}</div>
+              ` : ''}</div>
+              <div class="mc-event-min">${ev.minute}'</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-event-icon goal"><i class="fa fa-futbol"></i> ${ev.score ? `<span class="mc-score-chip">${ev.score}</span>` : ''}</div>
+                <div class="mc-player-block">
+                  <span class="mc-player-name">${ev.scorer || 'Goal'}</span>
+                  ${ev.assist ? `<span class="mc-player-sub">Assists: ${ev.assist}</span>` : ''}
+                  ${ev.isPenalty ? `<span class="mc-badge-pill pen">PEN</span>` : ''}
+                  ${ev.isOwnGoal ? `<span class="mc-badge-pill og">O.G.</span>` : ''}
+                </div>
+              ` : ''}</div>
+            </div>
+          `;
+        } else if (ev.type === 'card') {
+          const cardClass = ev.card === 'red' ? 'red' : (ev.card === 'yellow_red' ? 'yellow-red' : 'yellow');
+          html += `
+            <div class="mc-event-row">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player || 'Player'}</span></div>
+                <div class="mc-event-icon card ${cardClass}"></div>
+              ` : ''}</div>
+              <div class="mc-event-min">${ev.minute}'</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-event-icon card ${cardClass}"></div>
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player || 'Player'}</span></div>
+              ` : ''}</div>
+            </div>
+          `;
+        } else if (ev.type === 'sub') {
+          html += `
+            <div class="mc-event-row">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block">
+                  <span class="mc-player-name in">▲ ${ev.playerIn || '-'}</span>
+                  <span class="mc-player-sub out">▼ ${ev.playerOut || '-'}</span>
+                </div>
+                <div class="mc-event-icon sub"><i class="fa fa-exchange-alt"></i></div>
+              ` : ''}</div>
+              <div class="mc-event-min">${ev.minute}'</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-event-icon sub"><i class="fa fa-exchange-alt"></i></div>
+                <div class="mc-player-block">
+                  <span class="mc-player-name in">▲ ${ev.playerIn || '-'}</span>
+                  <span class="mc-player-sub out">▼ ${ev.playerOut || '-'}</span>
+                </div>
+              ` : ''}</div>
+            </div>
+          `;
+        } else if (ev.type === 'penalty_kick') {
+          const isScored = ev.scored;
+          html += `
+            <div class="mc-event-row pen-round">
+              <div class="mc-event-side home">${isHome ? `
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player || 'Penalty'}</span></div>
+                <div class="mc-event-icon ${isScored ? 'pen-scored' : 'pen-missed'}">${isScored ? '✓' : '✗'}</div>
+              ` : ''}</div>
+              <div class="mc-event-min">PEN</div>
+              <div class="mc-event-side away">${isAway ? `
+                <div class="mc-event-icon ${isScored ? 'pen-scored' : 'pen-missed'}">${isScored ? '✓' : '✗'}</div>
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player || 'Penalty'}</span></div>
+              ` : ''}</div>
+            </div>
+          `;
+        }
+      });
+
+      container.innerHTML = html;
+    }
+
+    function renderMcLineups(mc, hero) {
+      const container = document.getElementById('mcLineupsContent');
+      if (!container) return;
+
+      const lu = mc.lineups || {};
+      const home = lu.home || {};
+      const away = lu.away || {};
+
+      document.getElementById('mcVenueText').innerText = lu.venue ? `${lu.venue} (${lu.capacity || ''})` : '-';
+      document.getElementById('mcRefereeText').innerText = lu.referee || '-';
+      document.getElementById('mcHomeFormation').innerText = home.formation || '-';
+      document.getElementById('mcAwayFormation').innerText = away.formation || '-';
+
+      const renderPlayerRows = (list) => {
+        if (!list || list.length === 0) return `<div style="color: #94a3b8; font-size: 11px; padding: 6px;">Squad not announced</div>`;
+        return list.map(p => `
+          <div class="mc-player-item">
+            <span class="mc-pnum">${p.num || '-'}</span>
+            <span class="mc-pname">${p.name || '-'}</span>
+          </div>
+        `).join('');
+      };
+
+      document.getElementById('mcHomeStarting').innerHTML = renderPlayerRows(home.startingXI);
+      document.getElementById('mcAwayStarting').innerHTML = renderPlayerRows(away.startingXI);
+      document.getElementById('mcHomeSubs').innerHTML = renderPlayerRows(home.substitutes);
+      document.getElementById('mcAwaySubs').innerHTML = renderPlayerRows(away.substitutes);
+    }
+
+    function renderMcStats(mc, hero) {
+      const container = document.getElementById('mcStatsContent');
+      if (!container) return;
+
+      const stats = mc.inMatchStats || {};
+      const keys = Object.keys(stats);
+
+      if (keys.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 40px; color: #94a3b8; font-weight: 700;">No in-match statistics recorded.</div>`;
+        return;
+      }
+
+      container.innerHTML = keys.map(k => {
+        const item = stats[k];
+        const hVal = item.home || '0';
+        const aVal = item.away || '0';
+        const hNum = parseFloat(String(hVal).replace('%', '')) || 0;
+        const aNum = parseFloat(String(aVal).replace('%', '')) || 0;
+        const total = (hNum + aNum) || 1;
+        const hPct = Math.round((hNum / total) * 100);
+        const aPct = 100 - hPct;
+
+        return `
+          <div class="mc-stat-item">
+            <div class="mc-stat-header">
+              <span class="h-val">${hVal}</span>
+              <span class="s-label">${item.label || k}</span>
+              <span class="a-val">${aVal}</span>
+            </div>
+            <div class="mc-stat-bar-track">
+              <div class="mc-stat-bar-fill home" style="width: ${hPct}%;"></div>
+              <div class="mc-stat-bar-fill away" style="width: ${aPct}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Floating Odds Dropdown Tooltip
+    function toggleOddsTooltip(event, marketKey) {
+      event.stopPropagation();
+      const data = window.MATCH_DATA;
+      if (!data) return;
+      const markets = data.markets || {};
+      const hero = data.hero || {};
+      const m = markets[marketKey] || markets['1X2'] || {};
+      const ext = m.extendedOdds;
+
+      const tt = document.getElementById('oddsFloatingTooltip');
+      if (!tt) return;
+
+      if (tt.style.display === 'block') {
+        tt.style.display = 'none';
+        return;
+      }
+
+      let oddsHtml = '';
+      if (ext && (ext['1'] || ext['X'] || ext['2'])) {
+        const trends = ext.trends || {};
+        oddsHtml = `
+          <div class="odds-tt-cols">
+            <div class="odds-tt-col"><span class="col-lbl">1</span><b class="col-val">${ext['1'] || '-'}</b>${trends['1'] ? `<span class="trend-arr ${trends['1']}">${trends['1'] === 'up' ? '▲' : '▼'}</span>` : ''}</div>
+            <div class="odds-tt-col"><span class="col-lbl">X</span><b class="col-val">${ext['X'] || '-'}</b>${trends['X'] ? `<span class="trend-arr ${trends['X']}">${trends['X'] === 'up' ? '▲' : '▼'}</span>` : ''}</div>
+            <div class="odds-tt-col"><span class="col-lbl">2</span><b class="col-val">${ext['2'] || '-'}</b>${trends['2'] ? `<span class="trend-arr ${trends['2']}">${trends['2'] === 'up' ? '▲' : '▼'}</span>` : ''}</div>
+          </div>
+        `;
+      } else if (ext && (ext['under'] || ext['over'])) {
+        oddsHtml = `
+          <div class="odds-tt-cols">
+            <div class="odds-tt-col"><span class="col-lbl">Under</span><b class="col-val">${ext.under || '-'}</b></div>
+            <div class="odds-tt-col"><span class="col-lbl">Over</span><b class="col-val">${ext.over || '-'}</b></div>
+          </div>
+        `;
+      } else if (ext && (ext['yes'] || ext['no'])) {
+        oddsHtml = `
+          <div class="odds-tt-cols">
+            <div class="odds-tt-col"><span class="col-lbl">Yes</span><b class="col-val">${ext.yes || '-'}</b></div>
+            <div class="odds-tt-col"><span class="col-lbl">No</span><b class="col-val">${ext.no || '-'}</b></div>
+          </div>
+        `;
+      } else {
+        oddsHtml = `<div style="padding: 10px; text-align: center; color: #94a3b8;">Main Odds: <b>${m.mainOdds || '-'}</b></div>`;
+      }
+
+      tt.innerHTML = `
+        <div class="odds-tt-header">${hero.homeTeam || 'Home'} - ${hero.awayTeam || 'Away'} <span class="tt-close" onclick="document.getElementById('oddsFloatingTooltip').style.display='none'">✕</span></div>
+        ${oddsHtml}
+      `;
+
+      const rect = event.target.getBoundingClientRect();
+      tt.style.left = `${Math.max(10, rect.left - 60)}px`;
+      tt.style.top = `${rect.bottom + window.scrollY + 6}px`;
+      tt.style.display = 'block';
+    }
+
+    document.addEventListener('click', () => {
+      const tt = document.getElementById('oddsFloatingTooltip');
+      if (tt) tt.style.display = 'none';
+    });
   </script>
+
+  <!-- ==================================================================== -->
+  <!-- MATCH CENTER MODAL OVERLAY -->
+  <!-- ==================================================================== -->
+  <div id="matchCenterModal" class="mc-modal-overlay" style="display: none;" onclick="if(event.target === this) closeMatchCenterModal()">
+    <div class="mc-modal-box">
+      <!-- Modal Header -->
+      <div class="mc-header">
+        <div class="mc-team-col">
+          <img id="mcHomeLogo" src="" alt="logo" class="mc-logo" onerror="this.src='https://www.forebet.com/images/icons/blank-logo.png'">
+          <div id="mcHomeName" class="mc-tname">Home</div>
+        </div>
+        <div class="mc-score-col">
+          <div id="mcPenText" class="mc-pen-badge" style="display: none;">Pen. 4-5</div>
+          <div id="mcScoreVal" class="mc-main-score">1 - 1</div>
+          <div id="mcStatusText" class="mc-status-text">Full time</div>
+        </div>
+        <div class="mc-team-col">
+          <img id="mcAwayLogo" src="" alt="logo" class="mc-logo" onerror="this.src='https://www.forebet.com/images/icons/blank-logo.png'">
+          <div id="mcAwayName" class="mc-tname">Away</div>
+        </div>
+        <button class="mc-close-btn" onclick="closeMatchCenterModal()">✕</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="mc-nav-tabs">
+        <button class="mc-tab-btn active" data-tab="events" onclick="switchMatchCenterTab('events')"><i class="fa fa-stream"></i> Events</button>
+        <button class="mc-tab-btn" data-tab="lineups" onclick="switchMatchCenterTab('lineups')"><i class="fa fa-users"></i> Line-ups</button>
+        <button class="mc-tab-btn" data-tab="stats" onclick="switchMatchCenterTab('stats')"><i class="fa fa-chart-bar"></i> Stats</button>
+      </div>
+
+      <!-- Body Content -->
+      <div class="mc-body">
+        <!-- 1. EVENTS TAB -->
+        <div id="mcEventsSection" class="mc-tab-content">
+          <div id="mcEventsList" class="mc-events-container"></div>
+        </div>
+
+        <!-- 2. LINEUPS TAB -->
+        <div id="mcLineupsSection" class="mc-tab-content" style="display: none;">
+          <div class="mc-lineups-meta">
+            <div><b>Venue:</b> <span id="mcVenueText">-</span></div>
+            <div><b>Referee:</b> <span id="mcRefereeText">-</span></div>
+          </div>
+          <div class="mc-formations-bar">
+            <div><b>Home:</b> <span id="mcHomeFormation">-</span></div>
+            <div><b>Away:</b> <span id="mcAwayFormation">-</span></div>
+          </div>
+          <div class="mc-squads-grid">
+            <div class="mc-squad-column">
+              <div class="mc-squad-title">Starting XI</div>
+              <div id="mcHomeStarting"></div>
+              <div class="mc-squad-title" style="margin-top: 14px;">Substitutes</div>
+              <div id="mcHomeSubs"></div>
+            </div>
+            <div class="mc-squad-column">
+              <div class="mc-squad-title">Starting XI</div>
+              <div id="mcAwayStarting"></div>
+              <div class="mc-squad-title" style="margin-top: 14px;">Substitutes</div>
+              <div id="mcAwaySubs"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. STATS TAB -->
+        <div id="mcStatsSection" class="mc-tab-content" style="display: none;">
+          <div id="mcStatsContent" class="mc-stats-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING ODDS TOOLTIP -->
+  <div id="oddsFloatingTooltip" class="odds-floating-tooltip" style="display: none;"></div>
+
+  <style>
+    /* MATCH CENTER MODAL STYLES */
+    .mc-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+    }
+    .mc-modal-box {
+      background: #ffffff;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .mc-header {
+      background: #142231;
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .mc-team-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 35%;
+      text-align: center;
+    }
+    .mc-logo {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      margin-bottom: 4px;
+    }
+    .mc-tname {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .mc-score-col {
+      text-align: center;
+      width: 30%;
+    }
+    .mc-pen-badge {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-bottom: 2px;
+    }
+    .mc-main-score {
+      font-size: 28px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+    .mc-status-text {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .mc-close-btn {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .mc-close-btn:hover { color: #ffffff; }
+
+    .mc-nav-tabs {
+      display: flex;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+    .mc-tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      padding: 10px 0;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .mc-tab-btn.active {
+      color: #38bdf8;
+      border-bottom: 2px solid #38bdf8;
+      background: #0f172a;
+    }
+
+    .mc-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* EVENTS LIST */
+    .mc-events-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mc-event-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #f8fafc;
+      font-size: 12px;
+    }
+    .mc-event-side {
+      width: 44%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mc-event-side.home { justify-content: flex-end; text-align: right; }
+    .mc-event-side.away { justify-content: flex-start; text-align: left; }
+    .mc-event-min {
+      width: 12%;
+      text-align: center;
+      font-weight: 800;
+      color: #475569;
+      background: #e2e8f0;
+      border-radius: 4px;
+      padding: 2px 0;
+      font-size: 11px;
+    }
+    .mc-player-name { font-weight: 800; color: #0f172a; display: block; }
+    .mc-player-name.in { color: #16a34a; }
+    .mc-player-sub { font-size: 10px; color: #64748b; display: block; }
+    .mc-player-sub.out { color: #dc2626; }
+    .mc-event-icon.card {
+      width: 12px;
+      height: 16px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .mc-event-icon.card.yellow { background: #eab308; }
+    .mc-event-icon.card.red { background: #ef4444; }
+    .mc-event-icon.card.yellow-red { background: linear-gradient(135deg, #eab308 50%, #ef4444 50%); }
+    .mc-event-icon.goal { color: #16a34a; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+    .mc-score-chip { background: #16a34a; color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; }
+    .mc-event-icon.sub { color: #3b82f6; font-size: 12px; }
+    .mc-badge-pill { font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 800; }
+    .mc-badge-pill.pen { background: #fef08a; color: #854d0e; }
+    .mc-badge-pill.og { background: #fee2e2; color: #991b1b; }
+    .mc-event-icon.pen-scored { color: #16a34a; font-weight: 900; }
+    .mc-event-icon.pen-missed { color: #ef4444; font-weight: 900; }
+
+    /* LINEUPS */
+    .mc-lineups-meta {
+      background: #f1f5f9;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .mc-formations-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      padding: 0 10px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 10px;
+    }
+    .mc-squads-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .mc-squad-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 2px;
+    }
+    .mc-player-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .mc-player-item:nth-child(even) { background: #f8fafc; }
+    .mc-pnum { font-weight: 900; color: #475569; width: 18px; text-align: center; }
+    .mc-pname { font-weight: 700; color: #1e293b; }
+
+    /* STATS */
+    .mc-stats-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mc-stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .mc-stat-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .mc-stat-header .s-label { color: #475569; font-weight: 700; font-size: 11px; }
+    .mc-stat-header .h-val { color: #0046A8; }
+    .mc-stat-header .a-val { color: #16a34a; }
+    .mc-stat-bar-track {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      display: flex;
+      overflow: hidden;
+    }
+    .mc-stat-bar-fill.home { background: #0046A8; }
+    .mc-stat-bar-fill.away { background: #16a34a; }
+
+    /* FLOATING ODDS TOOLTIP */
+    .odds-floating-tooltip {
+      position: absolute;
+      background: #142231;
+      color: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      padding: 10px;
+      z-index: 10000;
+      min-width: 180px;
+      font-size: 12px;
+    }
+    .odds-tt-header {
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .odds-tt-header .tt-close { cursor: pointer; color: #cbd5e1; }
+    .odds-tt-cols {
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+    }
+    .odds-tt-col {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .odds-tt-col .col-lbl { font-size: 10px; color: #94a3b8; font-weight: 800; }
+    .odds-tt-col .col-val { font-size: 14px; font-weight: 900; color: #38bdf8; }
+    .trend-arr.up { color: #22c55e; font-size: 10px; }
+    .trend-arr.down { color: #ef4444; font-size: 10px; }
+  </style>
 </body>
 </html>

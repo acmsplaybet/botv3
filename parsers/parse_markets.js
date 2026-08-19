@@ -2,6 +2,10 @@
  * ====================================================================
  * PARSER: STEP 2 - PREDICTION MARKETS (EXACT & DYNAMIC FOR ANY MATCH)
  * ====================================================================
+ * Extracts:
+ * - Primary pick, probabilities, correct score, avg goals, main odds
+ * - Extended Odds & Trends (1X2 full odds 1/X/2, Under/Over, BTTS Yes/No, HT)
+ * ====================================================================
  */
 
 async function parseMarkets(page) {
@@ -47,6 +51,12 @@ async function parseMarkets(page) {
         if (textVal && textVal !== '-') odds = textVal;
       }
 
+      // Extended Odds & Trends from .haodd (e.g. 1.48, 3.90, 5.75 + up/down/none)
+      const haoddEl = row.querySelector('.haodd');
+      const haoddSpans = haoddEl ? Array.from(haoddEl.querySelectorAll('span')).map(s => clean(s.innerText)).filter(Boolean) : [];
+      const haoddNumbers = haoddSpans.filter(s => /^\d+(\.\d+)?$/.test(s));
+      const haoddDirections = haoddSpans.filter(s => /^(up|down|none)$/i.test(s));
+
       // Live Cost / Live Avg: Extract from .la_prmod
       const liveEl = row.querySelector('.la_prmod .lscrsp, .la_prmod > span, .la_prmod');
       let liveCost = '-';
@@ -69,6 +79,8 @@ async function parseMarkets(page) {
         correctScore: clean(csEl?.innerText),
         avgGoals: clean(avgEl?.innerText),
         odds: odds,
+        haoddNumbers,
+        haoddDirections,
         liveCost: liveCost,
         ftScore: clean(ftScoreEl?.innerText),
         htScore: clean(htScoreEl?.innerText)
@@ -77,6 +89,20 @@ async function parseMarkets(page) {
 
     // 1. 1X2
     const d1x2 = parseRow('m1x2_table');
+    let ext1x2 = null;
+    if (d1x2?.haoddNumbers && d1x2.haoddNumbers.length >= 3) {
+      ext1x2 = {
+        "1": d1x2.haoddNumbers[0],
+        "X": d1x2.haoddNumbers[1],
+        "2": d1x2.haoddNumbers[2],
+        trends: d1x2.haoddDirections.length >= 3 ? {
+          "1": d1x2.haoddDirections[0],
+          "X": d1x2.haoddDirections[1],
+          "2": d1x2.haoddDirections[2]
+        } : null
+      };
+    }
+
     markets['1X2'] = {
       prob1: (d1x2?.probs[0] || '0').replace('%', '') + '%',
       probX: (d1x2?.probs[1] || '0').replace('%', '') + '%',
@@ -86,11 +112,24 @@ async function parseMarkets(page) {
       correctScore: d1x2?.correctScore || '-',
       avgGoals: d1x2?.avgGoals || '-',
       mainOdds: d1x2?.odds || '-',
+      extendedOdds: ext1x2,
       liveCost: d1x2?.liveCost || '-'
     };
 
     // 2. Under / Over 2.5
     const dUo = parseRow('uo_table');
+    let extUo = null;
+    if (dUo?.haoddNumbers && dUo.haoddNumbers.length >= 2) {
+      extUo = {
+        "under": dUo.haoddNumbers[0],
+        "over": dUo.haoddNumbers[1],
+        trends: dUo.haoddDirections.length >= 2 ? {
+          "under": dUo.haoddDirections[0],
+          "over": dUo.haoddDirections[1]
+        } : null
+      };
+    }
+
     markets['UnderOver'] = {
       probUnder: (dUo?.probs[0] || '0').replace('%', '') + '%',
       probOver: (dUo?.probs[1] || '0').replace('%', '') + '%',
@@ -99,11 +138,26 @@ async function parseMarkets(page) {
       correctScore: dUo?.correctScore || '-',
       avgGoals: dUo?.avgGoals || '-',
       mainOdds: dUo?.odds || '-',
+      extendedOdds: extUo,
       liveCost: dUo?.liveCost || '-'
     };
 
     // 3. Half Time (HT)
     const dHt = parseRow('ht_table');
+    let extHt = null;
+    if (dHt?.haoddNumbers && dHt.haoddNumbers.length >= 3) {
+      extHt = {
+        "1": dHt.haoddNumbers[0],
+        "X": dHt.haoddNumbers[1],
+        "2": dHt.haoddNumbers[2],
+        trends: dHt.haoddDirections.length >= 3 ? {
+          "1": dHt.haoddDirections[0],
+          "X": dHt.haoddDirections[1],
+          "2": dHt.haoddDirections[2]
+        } : null
+      };
+    }
+
     markets['HT'] = {
       prob1: (dHt?.probs[0] || '0').replace('%', '') + '%',
       probX: (dHt?.probs[1] || '0').replace('%', '') + '%',
@@ -113,10 +167,11 @@ async function parseMarkets(page) {
       htScore: dHt?.htScore ? dHt.htScore.replace(/[()]/g, '') : '-',
       avgGoals: dHt?.avgGoals || '-',
       mainOdds: dHt?.odds || '-',
+      extendedOdds: extHt,
       liveCost: dHt?.liveCost || '-'
     };
 
-    // 4. HT / FT (Two-half prediction e.g. "X / X", "1 / 1" with separate win/loss statuses)
+    // 4. HT / FT
     const dHtft = parseRow('htft_table');
     const htftEl = document.getElementById('htft_table');
     let htftProb = '-';
@@ -158,57 +213,68 @@ async function parseMarkets(page) {
       ftStatus: ftStatus,
       correctScore: dHtft?.correctScore || '-',
       mainOdds: dHtft?.odds || '-',
+      extendedOdds: dHtft?.haoddNumbers?.length ? { oddsList: dHtft.haoddNumbers } : null,
       liveCost: dHtft?.liveCost || '-'
     };
 
-    // 5. BTTS (Both Teams to Score)
-    const dBts = parseRow('bts_table');
-    if (dBts && dBts.pick && dBts.pick !== '-') {
-      markets['BTTS'] = {
-        probNo: (dBts?.probs[0] || '0').replace('%', '') + '%',
-        probYes: (dBts?.probs[1] || '0').replace('%', '') + '%',
-        pick: dBts?.pick || '-',
-        status: dBts?.status || 'pending',
-        correctScore: dBts?.correctScore || '-',
-        avgGoals: dBts?.avgGoals || '-',
-        mainOdds: dBts?.odds || '-',
-        liveCost: dBts?.liveCost || '-'
-      };
-    }
-
-    // 6. Double Chance (dbc_table) - ONLY if Forebet actually has Double Chance tab/market for this match
-    const hasDoubleTab = Array.from(document.querySelectorAll('a, span, button, div')).some(el => {
-      const t = (el.innerText || '').trim().toLowerCase();
-      return (t === 'double' || t === 'double chance') && (
-        el.getAttribute('onclick')?.includes('dbc') ||
-        el.getAttribute('onclick')?.includes('schema') ||
-        el.classList.contains('schema_tab') ||
-        el.classList.contains('sch_btn') ||
-        el.closest('.schema_menu, .tabs, .prnav') !== null
-      );
-    });
-
-    const dDbc = parseRow('dbc_table');
-    if (hasDoubleTab && dDbc && dDbc.pick && dDbc.pick !== '-') {
-      const dbcEl = document.getElementById('dbc_table');
-      let dbcProb = '-';
-      if (dbcEl) {
-        const fprcSpan = dbcEl.querySelector('.fprc span.fpr, .fprc span');
-        if (fprcSpan) {
-          const rawProb = clean(fprcSpan.innerText).replace('%', '');
-          if (rawProb) dbcProb = rawProb + '%';
-        }
+    // 5. Both Teams to Score (BTTS)
+    const dBtts = parseRow('bts_table');
+    const btsEl = document.getElementById('bts_table');
+    let btsProb = '-';
+    if (btsEl) {
+      const row = btsEl.querySelector('.rcnt') || btsEl;
+      const btsFprcSpan = row.querySelector('.fprc span.fpr, .fprc span');
+      if (btsFprcSpan) {
+        const rawProb = clean(btsFprcSpan.innerText).replace('%', '');
+        if (rawProb) btsProb = rawProb + '%';
       }
-      markets['Double'] = {
-        prob: dbcProb !== '-' ? dbcProb : ((dDbc?.probs[0] || '0').replace('%', '') + '%'),
-        pick: dDbc?.pick || '-',
-        status: dDbc?.status || 'pending',
-        correctScore: dDbc?.correctScore || '-',
-        avgGoals: dDbc?.avgGoals || '-',
-        mainOdds: dDbc?.odds || '-',
-        liveCost: dDbc?.liveCost || '-'
+    }
+
+    let extBtts = null;
+    if (dBtts?.haoddNumbers && dBtts.haoddNumbers.length >= 2) {
+      extBtts = {
+        "yes": dBtts.haoddNumbers[0],
+        "no": dBtts.haoddNumbers[1],
+        trends: dBtts.haoddDirections.length >= 2 ? {
+          "yes": dBtts.haoddDirections[0],
+          "no": dBtts.haoddDirections[1]
+        } : null
       };
     }
+
+    markets['BTTS'] = {
+      probYes: btsProb !== '-' ? btsProb : ((dBtts?.probs[0] || '0').replace('%', '') + '%'),
+      probNo: ((100 - parseInt(btsProb !== '-' ? btsProb : (dBtts?.probs[0] || '0'), 10)) || 0) + '%',
+      pick: dBtts?.pick || 'Yes',
+      status: dBtts?.status || 'pending',
+      correctScore: dBtts?.correctScore || '-',
+      avgGoals: dBtts?.avgGoals || '-',
+      mainOdds: dBtts?.odds || '-',
+      extendedOdds: extBtts,
+      liveCost: dBtts?.liveCost || '-'
+    };
+
+    // 6. Double Chance
+    const dDbc = parseRow('dbc_table');
+    const dbcEl = document.getElementById('dbc_table');
+    let dbcProb = '-';
+    if (dbcEl) {
+      const row = dbcEl.querySelector('.rcnt') || dbcEl;
+      const dbcFprcSpan = row.querySelector('.fprc span.fpr, .fprc span');
+      if (dbcFprcSpan) {
+        const rawProb = clean(dbcFprcSpan.innerText).replace('%', '');
+        if (rawProb) dbcProb = rawProb + '%';
+      }
+    }
+    markets['Double'] = {
+      prob: dbcProb !== '-' ? dbcProb : ((dDbc?.probs[0] || '0').replace('%', '') + '%'),
+      pick: dDbc?.pick || '-',
+      status: dDbc?.status || 'pending',
+      correctScore: dDbc?.correctScore || '-',
+      avgGoals: dDbc?.avgGoals || '-',
+      mainOdds: dDbc?.odds || '-',
+      liveCost: dDbc?.liveCost || '-'
+    };
 
     // 7. Asian Handicap
     const dAh = parseRow('ah_table');
@@ -220,11 +286,12 @@ async function parseMarkets(page) {
         correctScore: dAh?.correctScore || '-',
         avgGoals: dAh?.avgGoals || '-',
         mainOdds: dAh?.odds || '-',
+        extendedOdds: dAh?.haoddNumbers?.length ? { oddsList: dAh.haoddNumbers } : null,
         liveCost: dAh?.liveCost || '-'
       };
     }
 
-    // 8. Dynamic Scorers (Only if present with players on page)
+    // 8. Dynamic Scorers
     const gscrEl = document.getElementById('gscr_table');
     const scorersList = [];
     if (gscrEl) {
@@ -294,5 +361,3 @@ async function parseMarkets(page) {
 }
 
 module.exports = { parseMarkets };
-
-

@@ -2,6 +2,23 @@
 
 Tüm önemli değişiklikler, yeni modüller ve hata düzeltmeleri bu dosyada [Semantic Versioning](https://semver.org/) kurallarına göre tutulur.
 
+## [3.1.0-PRO] — 2026-08-20
+### ✨ Yeni Modüller ve Özellikler (Faz 2 & Faz 3)
+- **Açılan Detaylı Oranlar (Faz 2 - Extended Odds & Trends across 9 Markets):**
+  - `parsers/parse_markets.js` güncellendi; her tahmin pazarı satırındaki `.haodd` DOM bloklarından tüm açılan barem oranları yakalandı.
+  - **1X2 Pazarı:** `1`, `X`, `2` açılan tüm oranlar ve `up`, `down`, `none` trend yönleri.
+  - **Under/Over Pazarı:** `under`, `over` oranları.
+  - **HT (İlk Yarı) Pazarı:** `1`, `X`, `2` oranları.
+  - **BTTS (KG Var/Yok) Pazarı:** `yes`, `no` oranları.
+  - **HTML Viewer Oran Popupları:** Tahmin tablolarındaki oran kutucuklarına tıklandığında açılan 1:1 Forebet siyah oran kutusu (`#oddsFloatingTooltip`) eklendi.
+- **Bitmiş Maç Merkezi: Olaylar, Kadrolar ve İstatistikler (Faz 3 - Match Center):**
+  - `parsers/parse_match_center.js` modülü yazıldı ve 10. adım olarak `scrape_match.js` motoruna bağlandı.
+  - **Events (Olaylar):** Dakika dakika goller (atan, asist, penaltı, kendi kalesine, anlık skor), sarı ve kırmızı kartlar, oyuncu değişiklikleri ve penaltı atışları (`penalties: [ { player, scored, score } ]`).
+  - **Line-ups (Kadrolar):** Stadyum, Kapasite, Hakem, Ev & Deplasman Dizilişleri (`4-4-2`, `4-2-3-1`), İlk 11 (Forma no, oyuncu adı) ve Yedekler listesi.
+  - **Stats (İstatistikler):** Toplam şut, İsabetli şut, Ceza sahası içi/dışı şutlar, Topla oynama %, İsabetli paslar, Tehlikeli ataklar, Kornerler, Ofsaytlar, Disiplin kartları.
+  - **1:1 HTML Viewer Match Center Modal:** Skora tıklandığında açılan 3 sekmeli (`Events`, `Line-ups`, `Stats`) canlı maç merkezi overlay ekranı (`#matchCenterModal`) yapıldı.
+- **APEX API Veri İletimi:** Zenginleştirilmiş `matchCenter` ve `extendedOdds` nesneleri `raw_bot_json` ile APEX Ingester'a aktarıldı.
+
 ---
 
 ## [3.0.1-OPT] — 2026-08-20

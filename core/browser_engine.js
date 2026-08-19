@@ -163,6 +163,9 @@ async function navigateWithRetry(page, url, logger = console.log, maxRetries = 4
         }
       }
 
+      // Ensure actual match content is present
+      await page.waitForSelector('.predictioncontain, .schema, .rcnt, #m1x2_table', { timeout: 10000 }).catch(() => null);
+
       // Cache fresh cookies on success to data/cf_cookies_cache.json
       try {
         const cookies = await page.cookies();

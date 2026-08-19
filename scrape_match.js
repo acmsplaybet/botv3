@@ -3,12 +3,11 @@
  * BPA V3 SINGLE MATCH SCRAPER RUNNER (CLI & PROGRAMMATIC ENGINE)
  * ====================================================================
  * High-performance single match scraper with full ad/tracker interception,
- * Cloudflare session reuse, 9 modular parsers, and zero dummy data standard.
+ * Cloudflare session reuse, 10 modular parsers, and zero dummy data standard.
  */
 
 const path = require('path');
 const fs = require('fs');
-const puppeteer = require('puppeteer');
 
 const { createBrowser, setupPageInterception, navigateWithRetry } = require('./core/browser_engine');
 const { parseHero } = require('./parsers/parse_hero');
@@ -20,6 +19,7 @@ const { parseInjuries } = require('./parsers/parse_injuries');
 const { parseLastMatches } = require('./parsers/parse_last_matches');
 const { parseOverallStats } = require('./parsers/parse_overall_stats');
 const { parseNextMatches } = require('./parsers/parse_next_matches');
+const { parseMatchCenter } = require('./parsers/parse_match_center');
 const { generateMatchViewer } = require('./viewer/generate_viewer');
 
 const COLORS = {
@@ -50,7 +50,7 @@ async function scrapeMatch(url, options = {}) {
     logger(`🚀 BPA V3 Forebet Scraper başlatılıyor...`, COLORS.cyan);
     logger(`🌐 Hedef URL: ${url}`, COLORS.cyan);
 
-    // 1. Launch Browser with optimized stealth flags
+    // 1. Launch Browser with persistent stealth flags
     browser = await createBrowser({ headless });
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
@@ -59,33 +59,35 @@ async function scrapeMatch(url, options = {}) {
     await setupPageInterception(page);
 
     // 3. Navigate with network resilience and retry
-    await navigateWithRetry(page, url, (m) => logger(m, COLORS.yellow), 3);
+    await navigateWithRetry(page, url, (m) => logger(m, COLORS.yellow), 4);
     logger(`✅ Sayfaya başarıyla bağlanıldı ve DOM yüklendi.`, COLORS.green);
 
     // 4. ADIM 1: Hero & Takım Bilgileri
-    logger(`⏳ [1/9] Hero, Takım Bilgileri, Logolar ve Formlar ayrıştırılıyor...`);
+    logger(`⏳ [1/10] Hero, Takım Bilgileri, Logolar ve Formlar ayrıştırılıyor...`);
     const hero = await parseHero(page);
     logger(`  ↳ ✅ Takımlar: ${hero.homeTeam} (${hero.homeCode}) vs ${hero.awayTeam} (${hero.awayCode})`, COLORS.green);
     logger(`  ↳ ✅ Skor: ${hero.finalScore || hero.score} • Tarih: ${hero.matchDate} ${hero.matchTime}`, COLORS.green);
 
-    // 5. ADIM 2: 9 Tahmin Pazarı
-    logger(`⏳ [2/9] 9 Tahmin Pazarı (1X2, U/O, HT, HT/FT, BTTS, Handicap, Scorers, Corners, Cards) ayrıştırılıyor...`);
+    // 5. ADIM 2: 9 Tahmin Pazarı & Açılan Oranlar (Extended Odds)
+    logger(`⏳ [2/10] 9 Tahmin Pazarı & Açılan Detaylı Oranlar (1X2, U/O, HT, HT/FT, BTTS, Handicap) ayrıştırılıyor...`);
     const markets = await parseMarkets(page);
     logger(`  ↳ ✅ 1X2: 1(${markets['1X2']?.prob1}) X(${markets['1X2']?.probX}) 2(${markets['1X2']?.prob2}) | Tahmin: ${markets['1X2']?.pick}`, COLORS.green);
-    logger(`  ↳ ✅ Alt/Üst 2.5: Alt(${markets['UnderOver']?.probUnder}) Üst(${markets['UnderOver']?.probOver}) | Tahmin: ${markets['UnderOver']?.pick}`, COLORS.green);
+    if (markets['1X2']?.extendedOdds) {
+      logger(`  ↳ 📊 1X2 Açılan Oranlar: 1(${markets['1X2'].extendedOdds['1']}) X(${markets['1X2'].extendedOdds['X']}) 2(${markets['1X2'].extendedOdds['2']})`, COLORS.cyan);
+    }
 
     // 6. ADIM 3: H2H & Match Intro
-    logger(`⏳ [3/9] H2H Karşılaşmaları ayrıştırılıyor...`);
+    logger(`⏳ [3/10] H2H Karşılaşmaları ayrıştırılıyor...`);
     const h2hAndIntro = await parseH2HAndIntro(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ H2H: ${h2hAndIntro.h2h?.matches?.length || 0} geçmiş maç bulundu.`, COLORS.green);
 
     // 7. ADIM 4: Straight Line Distance
-    logger(`⏳ [4/9] Straight Line Distance (Kuş Uçuşu Mesafe & Stadyum Coğrafyası) ayrıştırılıyor...`);
+    logger(`⏳ [4/10] Straight Line Distance (Kuş Uçuşu Mesafe & Stadyum Coğrafyası) ayrıştırılıyor...`);
     const distance = await parseDistance(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ Kuş Uçuşu Mesafe: ${distance.km || '-'} (${distance.homeCity} ↔ ${distance.awayCity}) | Stadyum: ${distance.homeStadium || '-'}`, COLORS.green);
 
     // 8. ADIM 5: Standings (Puan Durumu)
-    logger(`⏳ [5/9] Lig Puan Durumu Tablosu ayrıştırılıyor...`);
+    logger(`⏳ [5/10] Lig Puan Durumu Tablosu ayrıştırılıyor...`);
     const standings = await parseStandings(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ Puan Durumu: ${standings.length} takım tablosu çıkarıldı.`, COLORS.green);
 
@@ -110,7 +112,7 @@ async function scrapeMatch(url, options = {}) {
     }
 
     // 9. ADIM 6: Injured & Suspended Players
-    logger(`⏳ [6/9] Sakat ve Cezalı Oyuncular (Injured & Suspended) ayrıştırılıyor...`);
+    logger(`⏳ [6/10] Sakat ve Cezalı Oyuncular (Injured & Suspended) ayrıştırılıyor...`);
     const injuries = await parseInjuries(page, hero.homeTeam, hero.awayTeam);
     if (injuries.hasInjuries) {
       logger(`  ↳ ✅ Sakat/Cezalı: Ev Sahibi(${injuries.homePlayers?.length || 0}) • Deplasman(${injuries.awayPlayers?.length || 0})`, COLORS.green);
@@ -119,20 +121,29 @@ async function scrapeMatch(url, options = {}) {
     }
 
     // 10. ADIM 7: Last 6 Matches (2x2 Grid)
-    logger(`⏳ [7/9] Son 6 Maç & İç/Dış Saha Form Tabloları ayrıştırılıyor...`);
+    logger(`⏳ [7/10] Son 6 Maç & İç/Dış Saha Form Tabloları ayrıştırılıyor...`);
     const lastMatches = await parseLastMatches(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ Ev Sahibi Genel: ${lastMatches.homeOverall?.matches?.length || 0} maç | Deplasman Genel: ${lastMatches.awayOverall?.matches?.length || 0} maç`, COLORS.green);
 
     // 11. ADIM 8: Overall Statistics
-    logger(`⏳ [8/9] Overall İstatistikler (Şutlar, Paslar, Histogram, Disiplin) ayrıştırılıyor...`);
+    logger(`⏳ [8/10] Overall İstatistikler (Şutlar, Paslar, Histogram, Disiplin) ayrıştırılıyor...`);
     const overallStats = await parseOverallStats(page);
     logger(`  ↳ ✅ Şutlar: ${hero.homeCode}(${overallStats.shots?.home?.total || 0}) vs ${hero.awayCode}(${overallStats.shots?.away?.total || 0})`, COLORS.green);
     logger(`  ↳ ✅ Paslar: ${hero.homeCode}(${overallStats.passes?.total?.home || 0}) vs ${hero.awayCode}(${overallStats.passes?.total?.away || 0})`, COLORS.green);
 
     // 12. ADIM 9: Next Matches & FDR
-    logger(`⏳ [9/9] Gelecek Maçlar & Zorluk Puanları ayrıştırılıyor...`);
+    logger(`⏳ [9/10] Gelecek Maçlar & Zorluk Puanları ayrıştırılıyor...`);
     const nextMatches = await parseNextMatches(page, hero.homeCode, hero.awayCode);
     logger(`  ↳ ✅ Gelecek Fikstür: ${nextMatches.home?.length || 0} ev maçı, ${nextMatches.away?.length || 0} dep maçı`, COLORS.green);
+
+    // 13. ADIM 10: Match Center (Events, Line-ups, Stats)
+    logger(`⏳ [10/10] Match Center (Goller, Kartlar, İlk 11 Kadroları, İstatistikler) ayrıştırılıyor...`);
+    const matchCenter = await parseMatchCenter(page, hero);
+    if (matchCenter.hasEvents) {
+      logger(`  ↳ ✅ Maç Olayları: ${matchCenter.events?.length || 0} olay (Gol/Kart/Değişiklik) | Kadrolar: OK | İstatistikler: OK`, COLORS.green);
+    } else {
+      logger(`  ↳ ℹ️ Bu maç için henüz maç içi olay/kadro verisi bulunmuyor.`, COLORS.yellow);
+    }
 
     // Bütünleştirilmiş Veri Paketi
     const matchData = {
@@ -150,7 +161,8 @@ async function scrapeMatch(url, options = {}) {
       injuries,
       lastMatches,
       overallStats,
-      nextMatches
+      nextMatches,
+      matchCenter
     };
 
     // Dosyalara Kaydetme
@@ -198,7 +210,12 @@ async function scrapeMatch(url, options = {}) {
     throw err;
   } finally {
     if (browser) {
-      try { await browser.close(); } catch (e) {}
+      try {
+        const { closeBrowser } = require('./core/browser_engine');
+        await closeBrowser(browser);
+      } catch (e) {
+        try { await browser.close(); } catch (_) {}
+      }
     }
   }
 }

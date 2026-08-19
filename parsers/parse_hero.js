@@ -5,26 +5,7 @@
  */
 
 async function parseHero(page) {
-  // --- HT skoru: score elementine tıkla, popup'taki HT satırını oku ---
-  // Sadece #evhdbte kullan - .lscrsp H2H linklerine de eşleşir ve sayfa navigate eder!
   let htFromEvents = '';
-  try {
-    const scoreEl = await page.$('#evhdbte');
-    if (scoreEl) {
-      await scoreEl.click();
-      await page.waitForSelector('.ft-events__section.match-events, .ft-events__section, .match-events', { timeout: 1200 }).catch(() => null);
-      htFromEvents = await page.evaluate(() => {
-        const evSection = document.querySelector('.ft-events__section.match-events, .ft-events__section, .match-events');
-        if (!evSection) return '';
-        const text = evSection.innerText || '';
-        // Format: "...\nHT\n0-1\n..." veya "HT\n0 - 1"
-        const m = text.match(/\bHT[\s\n]+(\d+\s*[-–]\s*\d+)/);
-        return m ? m[1].replace(/\s/g, '').replace('–', '-') : '';
-      });
-      try { await page.keyboard.press('Escape'); } catch (_) {}
-    }
-  } catch (_) { /* silent - HT optional */ }
-
   return await page.evaluate((htScoreFromEvents) => {
     const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
 
