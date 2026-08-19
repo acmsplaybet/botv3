@@ -3385,6 +3385,11 @@
         `;
       } else if (activeMarketTab === 'Scorers') {
         const p = markets['Scorers'] || {};
+        const scorersList = p.predictedScorers || [];
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 30%; text-align: left; padding-left: 12px;">Player</th>
+            <th style="width: 20%;">Team</th>
             <th style="width: 20%;">Probability %</th>
             <th style="width: 15%;">Odds</th>
             <th style="width: 15%;">Score</th>
