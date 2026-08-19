@@ -1,0 +1,4096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forebet Desktop 1:1 Live Match Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* FOREBET EXACT 1:1 DESKTOP MASTER STYLES */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Lato', Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #222222;
+      font-size: 13px;
+      line-height: 1.35;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: #1e40af;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Top Nav Bar */
+    .top-forebet-nav {
+      background-color: #142231;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-title span { color: #00c71a; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover {
+      background: #334155;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    /* Main Container */
+    .main-wrap {
+      max-width: 1060px;
+      margin: 15px auto 50px;
+      padding: 0 10px;
+    }
+
+    /* Breadcrumbs */
+    .crumb-bar {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 1. HERO MATCH BANNER */
+    .fore-hero-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      position: relative;
+    }
+
+    .hero-meta-top {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-teams-wrap {
+      display: grid;
+      grid-template-columns: 1fr 180px 1fr;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .hero-team-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero-team-logo {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+    }
+
+    .hero-team-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .hero-form-badges {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .form-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .form-dot.W { background-color: #22c55e; }
+    .form-dot.D { background-color: #eab308; }
+    .form-dot.L { background-color: #ef4444; }
+
+    .hero-center-box {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-score-badge {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 900;
+      padding: 6px 18px;
+      border-radius: 6px;
+      letter-spacing: 2px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .hero-score-badge.upcoming {
+      background: #ff9800;
+      color: #ffffff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0;
+      margin-bottom: 6px;
+      box-shadow: 0 2px 6px rgba(255, 152, 0, 0.4);
+    }
+
+    .hero-time-badge {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .hero-weather-pill {
+      font-size: 11px;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 2. MARKETS TABS & TABLE */
+    .fore-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    .market-tabs-scroll {
+      display: flex;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .market-tab-btn {
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: transparent;
+      border: none;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .market-tab-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .market-tab-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      border-bottom: 2px solid #00c71a;
+      font-weight: 800;
+    }
+
+    .fore-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .fore-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .fore-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: center;
+      color: #1e293b;
+    }
+
+    .td-teams-cell {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      gap: 2px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .td-prob-values {
+      display: flex;
+      justify-content: space-around;
+      font-weight: 700;
+    }
+
+    .th-prob-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .th-prob-title {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .th-prob-subcols {
+      display: flex;
+      justify-content: space-around;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .hero-subscore-details {
+      font-size: 11px;
+      font-weight: 800;
+      color: #b91c1c;
+      margin-bottom: 4px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-subscore-details span {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .pred-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .pred-badge.win, .pred-badge.correct { background: #22c55e; color: #ffffff; }
+    .pred-badge.pending { background: #0f172a; color: #ffffff; }
+    .pred-badge.lost, .pred-badge.loss, .pred-badge.incorrect { background: #ef4444; color: #ffffff; }
+
+    .score-exact-num {
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 13px;
+    }
+
+    .coef-fore-box {
+      background: #f1f5f9;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      color: #334155;
+      font-size: 11px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* 3. AI ANALYSIS TEXT */
+    .sec-main-header {
+      font-size: 14px;
+      font-weight: 900;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 20px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sec-main-header::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 14px;
+      background: #00c71a;
+      border-radius: 2px;
+    }
+
+    .ai-intro-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    /* 4. H2H MODULE */
+    .h2h-summary-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+    }
+
+    .h2h-league-pill-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .h2h-league-pill {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .h2h-league-pill.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+
+    .h2h-view-more-btn {
+      display: block;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      color: #475569;
+      font-weight: 700;
+      padding: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .h2h-view-more-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    /* 4.1. STRAIGHT LINE DISTANCE */
+    .distance-module-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .distance-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .dist-team-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dist-team-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .dist-team-code {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .distance-title-main {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .distance-cities-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .dist-city-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dist-city-item.away { text-align: right; }
+
+    .dist-city-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .dist-country-name {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .dist-visual-box {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dist-km-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #0284c7;
+      font-weight: 800;
+    }
+
+    .dist-km-value {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    .dist-graphic-route {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      margin: 4px 0;
+    }
+
+    .dist-icon-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 2;
+    }
+
+    .dist-icon-node.stadium { background: #0f172a; color: #ffffff; }
+    .dist-icon-node.pin { background: #ef4444; color: #ffffff; }
+
+    .dist-dashed-arrow-line {
+      flex: 1;
+      height: 2px;
+      border-top: 2px dashed #94a3b8;
+      margin: 0 8px;
+      position: relative;
+    }
+
+    .dist-locations-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 11px;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .dist-loc-origin { text-align: right; }
+
+    /* 4.5. INJURED AND SUSPENDED */
+    .injuries-card-container {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .injuries-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+    }
+
+    .injuries-tab-pill {
+      background: #f1f5f9;
+      color: #475569;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .injuries-tab-pill.active {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .injuries-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .injuries-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .injuries-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .injury-player-name {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .injury-reason-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .injury-icon-img {
+      width: 16px;
+      height: 16px;
+      object-fit: contain;
+    }
+
+    .injury-until-text {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .injuries-view-all-btn {
+      display: block;
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      color: #475569;
+      font-weight: 700;
+      padding: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .injuries-view-all-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* 4.6. STANDINGS TABLE */
+    .standings-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .standings-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      padding: 6px 8px;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .standings-table td {
+      padding: 6px 8px;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .standings-table tr.highlight td {
+      background-color: #fef08a !important;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* 5. RECENT MATCHES (2x2 Grid) */
+    .last-matches-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .last-sub-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .last-sub-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .last-sub-title-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .last-sub-team-code {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .last-sub-team-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    .last-sub-title-text {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .last-league-pills {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .last-league-pill {
+      background: #f1f5f9;
+      color: #64748b;
+      border: none;
+      border-radius: 12px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .last-league-pill.active {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .last-matches-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .last-matches-table tr {
+      border-bottom: 1px solid #f8fafc;
+    }
+
+    .last-matches-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .lm-date-cell {
+      font-size: 11px;
+      color: #64748b;
+      width: 70px;
+      white-space: nowrap;
+    }
+
+    .lm-teams-cell {
+      text-align: left;
+      padding: 6px 8px;
+    }
+
+    .lm-team-name {
+      color: #334155;
+    }
+
+    .lm-team-name.active-team {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .lm-score-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      min-width: 60px;
+    }
+
+    .lm-score-pill.W {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .lm-score-pill.D {
+      background: #fef9c3;
+      color: #a16207;
+      border: 1px solid #fef08a;
+    }
+
+    .lm-score-pill.L {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .lm-ht-score {
+      font-size: 10px;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+
+    .lm-league-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-align: center;
+      width: 32px;
+    }
+
+    .lm-summary-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: auto;
+      font-size: 11px;
+    }
+
+    .lm-bar-track {
+      display: flex;
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+      background: #e2e8f0;
+      width: 100%;
+    }
+
+    .lm-bar-fill.win { background: #22c55e; }
+    .lm-bar-fill.draw { background: #eab308; }
+    .lm-bar-fill.lost { background: #ef4444; }
+
+    .lm-stat-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      text-align: center;
+    }
+
+    .lm-stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .lm-stat-item.win { color: #16a34a; }
+    .lm-stat-item.draw { color: #ca8a04; }
+    .lm-stat-item.lost { color: #dc2626; }
+
+    .lm-stat-pct {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .lm-view-more-btn {
+      display: block;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      color: #475569;
+      font-weight: 700;
+      padding: 6px;
+      margin-top: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 11px;
+      transition: background 0.2s;
+    }
+
+    .lm-view-more-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    /* 6. OVERALL STATS (EXACT 1:1 FOREBET SYSTEM) */
+    .os-main-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #b91c1c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 25px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .os-top-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .os-tabs-group {
+      display: inline-flex;
+      gap: 4px;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 20px;
+    }
+
+    .os-tab-pill {
+      background: transparent;
+      border: none;
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .os-tab-pill.active {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .os-select-dropdown {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f172a;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .os-leagues-bar {
+      display: flex;
+      gap: 4px;
+      background: #334155;
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+    }
+
+    .os-league-pill {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .os-league-pill.active {
+      background: #475569;
+      color: #ffffff;
+    }
+
+    .overall-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .os-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .os-card-header-red {
+      font-size: 13px;
+      font-weight: 800;
+      color: #dc2626;
+      text-transform: none;
+      text-align: center;
+      letter-spacing: 0.2px;
+      margin-bottom: 10px;
+    }
+
+    .os-card-header-teams {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .os-head-team {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .os-head-team-img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+
+    .os-head-team-code {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .os-head-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: none;
+    }
+
+    /* 1. PLAYED GAMES */
+    .os-pg-flex {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .os-pg-team-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .os-pg-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .os-pg-logo-big {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .os-pg-num-big {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1;
+    }
+
+    /* 2. GOALS */
+    .os-goals-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .os-goal-team-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .os-goal-row-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .os-goal-row-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .os-goal-left-info {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .os-goal-big-num {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1;
+      width: 28px;
+    }
+
+    .os-goal-meta-lbl {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .os-goal-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .os-goal-meta-avg-title {
+      font-size: 8px;
+      color: #64748b;
+      font-weight: 600;
+      line-height: 1.1;
+      text-align: right;
+    }
+
+    .os-goal-meta-avg-val {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748b;
+    }
+
+    .os-goal-bar-wrap {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .os-goal-bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .os-goal-bar-track {
+      display: flex;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #e2e8f0;
+      margin-bottom: 6px;
+    }
+
+    .os-bar-green { background: #22c55e; }
+    .os-bar-red { background: #ef4444; }
+
+    /* 3. UNDER / OVER PIES */
+    .os-pie-row-item {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f8fafc;
+    }
+
+    .os-pie-row-item:last-child {
+      border-bottom: none;
+    }
+
+    .os-pie-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .os-pie-side.right {
+      flex-direction: row-reverse;
+    }
+
+    .os-pie-texts {
+      display: flex;
+      flex-direction: column;
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    .os-pie-counts {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .os-pie-circle-54 {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .os-pie-center-label {
+      text-align: center;
+    }
+
+    .os-pie-center-val {
+      font-size: 16px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .os-pie-center-sub {
+      font-size: 9px;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    /* 4. GOALS BY TIME PERIOD HISTOGRAM */
+    .os-tp-tabs {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .os-tp-btn {
+      background: transparent;
+      border: none;
+      padding: 3px 12px;
+      border-radius: 14px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .os-tp-btn.active {
+      background: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+    }
+
+    .os-histogram-dual-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .os-hist-team-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .os-hist-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .os-hist-head-title {
+      font-size: 9px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .os-hist-chart-area {
+      display: flex;
+      align-items: flex-end;
+      height: 75px;
+      gap: 3px;
+      border-bottom: 1px solid #cbd5e1;
+      border-left: 1px solid #cbd5e1;
+      padding: 0 2px 0 2px;
+      position: relative;
+    }
+
+    .os-hist-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+    }
+
+    .os-hist-val {
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 1px;
+      line-height: 1;
+    }
+
+    .os-hist-bar {
+      width: 100%;
+      max-width: 16px;
+      background: #15803d;
+      border-radius: 2px 2px 0 0;
+      min-height: 2px;
+      transition: height 0.3s ease;
+    }
+
+    .os-hist-bar.conceded {
+      background: #15803d;
+    }
+
+    .os-hist-bar.empty {
+      background: #e2e8f0;
+    }
+
+    .os-hist-labels {
+      display: flex;
+      gap: 3px;
+      margin-top: 3px;
+      padding: 0 2px;
+    }
+
+    .os-hist-lbl {
+      flex: 1;
+      text-align: center;
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .os-hist-lbl.red-mark {
+      color: #dc2626;
+      font-weight: 900;
+    }
+
+    /* 5. SHOTS (2-BOX GRID) */
+    .os-shots-2box-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .os-shots-team-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .os-shots-team-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .os-shots-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 11px;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+
+    .os-shots-field-wrap {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 6px;
+      margin: 8px 0 6px;
+      text-align: center;
+    }
+
+    .os-shots-off-lbl {
+      font-size: 10px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .os-goal-post-box {
+      background: rgba(34, 197, 94, 0.15);
+      border: 2px solid #16a34a;
+      border-radius: 4px;
+      padding: 6px 4px;
+      font-size: 10px;
+      font-weight: 900;
+      color: #15803d;
+    }
+
+    .os-box-field-wrap {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid #86efac;
+      border-radius: 6px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .os-box-inner-rect {
+      background: rgba(34, 197, 94, 0.22);
+      border: 1.5px solid #16a34a;
+      border-radius: 4px;
+      padding: 6px 4px;
+      margin-bottom: 4px;
+      font-size: 10px;
+      font-weight: 900;
+      color: #15803d;
+    }
+
+    .os-box-outer-lbl {
+      font-size: 10px;
+      font-weight: 800;
+      color: #14532d;
+    }
+
+    /* 6. PASSES */
+    .os-passes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .os-pass-team-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .os-pass-stat-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 11px;
+    }
+
+    .os-big-pct-text {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+    }
+
+    /* 7. AVG EVENT TIME */
+    .os-aet-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      justify-content: center;
+    }
+
+    .os-aet-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .os-aet-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+
+    .os-timeline-container {
+      margin-top: 10px;
+    }
+
+    .os-timeline-team-row {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .os-timeline-bar-axis {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      position: relative;
+      margin: 16px 6px 4px;
+    }
+
+    .os-timeline-scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #94a3b8;
+      font-weight: 700;
+      padding: 0 2px;
+    }
+
+    .os-timeline-scale-labels .red-mark {
+      color: #dc2626;
+      font-weight: 900;
+    }
+
+    .os-timeline-pin {
+      position: absolute;
+      top: -14px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .os-pin-tag {
+      font-size: 9px;
+      font-weight: 900;
+      color: #ffffff;
+      padding: 1px 4px;
+      border-radius: 3px;
+      line-height: 1.1;
+    }
+
+    .os-pin-tag.scored { background: #22c55e; }
+    .os-pin-tag.conceded { background: #ef4444; }
+
+    .os-pin-pointer {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      margin-top: 1px;
+    }
+
+    .os-pin-pointer.scored { background: #22c55e; }
+    .os-pin-pointer.conceded { background: #ef4444; }
+
+    /* 8. ATTACKS */
+    .os-atk-comp-row {
+      display: grid;
+      grid-template-columns: 1fr 130px 1fr;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .os-atk-comp-label {
+      font-size: 9px;
+      font-weight: 900;
+      color: #dc2626;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+
+    .os-atk-comp-side {
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .os-atk-comp-side.right {
+      justify-content: flex-end;
+    }
+
+    .os-atk-name {
+      font-weight: 600;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    }
+
+    .os-pin-pointer.scored { background: #22c55e; }
+    .os-pin-pointer.conceded { background: #ef4444; }
+
+    /* 9 & 10. FOREBET TABLES */
+    .os-table-fore {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .os-table-fore th {
+      padding: 6px 8px;
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 700;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .os-table-fore td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: center;
+      color: #0f172a;
+    }
+
+    .os-table-fore td:nth-child(3) {
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .os-card-badge {
+      display: inline-block;
+      width: 9px;
+      height: 12px;
+      border-radius: 1px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
+    .os-card-badge.red { background: #ef4444; }
+    .os-card-badge.yellow { background: #eab308; }
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    /* FDR Difficulty Table */
+    .fdr-pill {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      border-radius: 3px;
+      font-weight: 800;
+      font-size: 11px;
+      color: #ffffff;
+    }
+
+    .fdr-1 { background: #22c55e; }
+    .fdr-2 { background: #84cc16; }
+    .fdr-3 { background: #eab308; }
+    .fdr-4 { background: #f97316; }
+    .fdr-5 { background: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Forebet Nav -->
+  <div class="top-forebet-nav">
+    <div class="brand-title">
+      <i class="fa-solid fa-futbol"></i> FOREBET <span>MATCH CENTER</span>
+    </div>
+    <div class="nav-actions">
+      <a href="http://localhost:3050" class="nav-btn"><i class="fa-solid fa-house"></i> Bot Dashboard</a>
+      <button class="nav-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / PDF</button>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="crumb-bar">
+      <i class="fa-solid fa-house"></i>
+      <span>Football</span>
+      <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+      <span id="crumbCountry">League</span>
+      <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+      <span id="crumbLeague">Match</span>
+    </div>
+
+    <!-- 1. HERO MATCH BANNER -->
+    <div class="fore-hero-card">
+      <div class="hero-meta-top" id="heroMetaTop">PREDICTION MATCH CENTER</div>
+      <div class="hero-teams-wrap">
+        
+        <!-- Home Team -->
+        <div class="hero-team-box">
+          <img class="hero-team-logo" id="homeLogo" src="" alt="Home Logo" onerror="this.src='https://via.placeholder.com/68?text=HOME'">
+          <div class="hero-team-name" id="homeName">Home Team</div>
+          <div style="font-size: 11px; color: #64748b; font-weight: 700;" id="homeRank">Rank: -</div>
+          <div class="hero-form-badges" id="homeFormBadges"></div>
+        </div>
+
+        <!-- Center Match Info -->
+        <div class="hero-center-box">
+          <div class="hero-score-badge" id="heroScore">VS</div>
+          <div class="hero-subscore-details" id="heroSubScore" style="display: none;"></div>
+          <div class="hero-time-badge" id="heroTime">-</div>
+          <div class="hero-weather-pill" id="heroWeather">
+            <i class="fa-solid fa-cloud-sun"></i> <span id="heroWeatherVal">--°</span>
+          </div>
+        </div>
+
+        <!-- Away Team -->
+        <div class="hero-team-box">
+          <img class="hero-team-logo" id="awayLogo" src="" alt="Away Logo" onerror="this.src='https://via.placeholder.com/68?text=AWAY'">
+          <div class="hero-team-name" id="awayName">Away Team</div>
+          <div style="font-size: 11px; color: #64748b; font-weight: 700;" id="awayRank">Rank: -</div>
+          <div class="hero-form-badges" id="awayFormBadges"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. PREDICTION MARKETS -->
+    <div class="sec-main-header">Predictions & Market Odds</div>
+    <div class="fore-card">
+      <div class="market-tabs-scroll" id="marketTabsList"></div>
+      <table class="fore-table">
+        <thead id="marketThead"></thead>
+        <tbody id="marketTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- 3. AI INTRO ANALYSIS -->
+    <div class="sec-main-header">Match Preview & Forebet AI Analysis</div>
+    <div class="ai-intro-card" id="aiIntroText">
+      Loading Forebet AI analytical breakdown...
+    </div>
+
+    <!-- 4. H2H MODULE -->
+    <div class="sec-main-header">Head to Head Matches</div>
+    <div class="fore-card" style="padding: 16px;">
+      
+      <!-- League Filter Pills -->
+      <div class="h2h-league-pill-bar" id="h2hLeaguePills"></div>
+
+      <!-- Stats Summary Strip -->
+      <div class="h2h-summary-strip" id="h2hSummaryStrip"></div>
+
+      <!-- H2H Matches Table -->
+      <table class="fore-table">
+        <thead>
+          <tr>
+            <th style="width: 15%; text-align: left; padding-left: 10px;">Date</th>
+            <th style="width: 50%; text-align: left; padding-left: 10px;">Match</th>
+            <th style="width: 15%;">Score</th>
+            <th style="width: 10%;">League</th>
+            <th style="width: 10%;">Result</th>
+          </tr>
+        </thead>
+        <tbody id="h2hTbody"></tbody>
+      </table>
+
+      <!-- Bottom H2H Summary Bar -->
+      <div id="h2hBottomSummary" style="margin-top: 14px;"></div>
+
+      <!-- View More Toggle Button -->
+      <button class="h2h-view-more-btn" id="h2hViewMoreBtn" style="display: none;" onclick="toggleH2HViewMore()">View More</button>
+    </div>
+
+    <!-- 4.1. STRAIGHT LINE DISTANCE MODULE -->
+    <div id="distanceSectionWrap">
+      <div class="sec-main-header">Straight Line Distance</div>
+      <div class="distance-module-card">
+        <div class="distance-header-row">
+          <div class="dist-team-side">
+            <span class="dist-team-code" id="distHomeCode">HOME</span>
+            <img class="dist-team-logo" id="distHomeLogo" src="" alt="Home" onerror="this.style.display='none'">
+          </div>
+          <div class="distance-title-main">
+            <i class="fa-solid fa-route" style="color: #64748b;"></i>
+            <span>Straight Line Distance</span>
+          </div>
+          <div class="dist-team-side">
+            <img class="dist-team-logo" id="distAwayLogo" src="" alt="Away" onerror="this.style.display='none'">
+            <span class="dist-team-code" id="distAwayCode">AWAY</span>
+          </div>
+        </div>
+
+        <div class="distance-cities-row">
+          <div class="dist-city-item home">
+            <span class="dist-city-name" id="distHomeCity">City</span>
+            <span class="dist-country-name" id="distHomeCountry">Country</span>
+          </div>
+          <div class="dist-city-item away">
+            <span class="dist-city-name" id="distAwayCity">City</span>
+            <span class="dist-country-name" id="distAwayCountry">Country</span>
+          </div>
+        </div>
+
+        <div class="dist-visual-box">
+          <div class="dist-km-header">
+            <i class="fa-solid fa-bus"></i>
+            <span class="dist-km-value" id="distKmValue">-</span>
+          </div>
+          <div class="dist-graphic-route">
+            <div class="dist-icon-node stadium" title="Home Stadium">
+              <i class="fa-solid fa-landmark-dome"></i>
+            </div>
+            <div class="dist-dashed-arrow-line"></div>
+            <div class="dist-icon-node pin" title="Away Origin">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+          </div>
+          <div class="dist-locations-row">
+            <div class="dist-loc-stadium" id="distHomeStadium">Home Stadium</div>
+            <div class="dist-loc-origin" id="distAwayOrigin">Away City</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.2. STANDINGS TABLE -->
+    <div id="standingsSectionWrap">
+      <div class="sec-main-header">Standings</div>
+      <div class="fore-card">
+        <table class="standings-table">
+          <thead>
+            <tr>
+              <th style="width: 5%;">#</th>
+              <th style="text-align: left; padding-left: 10px;">Team</th>
+              <th style="width: 8%;">PTS</th>
+              <th style="width: 8%;">GP</th>
+              <th style="width: 7%;">W</th>
+              <th style="width: 7%;">D</th>
+              <th style="width: 7%;">L</th>
+              <th style="width: 8%;">GF</th>
+              <th style="width: 8%;">GA</th>
+              <th style="width: 8%;">GD</th>
+            </tr>
+          </thead>
+          <tbody id="standingsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4.5. INJURED AND SUSPENDED MODULE -->
+    <div id="injuriesSectionWrap">
+      <div class="sec-main-header">Injured and Suspended</div>
+      <div class="injuries-card-container">
+        <div class="injuries-tabs">
+          <button class="injuries-tab-pill active" id="injuriesHomeTabBtn" onclick="switchInjuriesTab('home')">Home Team</button>
+          <button class="injuries-tab-pill" id="injuriesAwayTabBtn" onclick="switchInjuriesTab('away')">Away Team</button>
+        </div>
+        <table class="injuries-table">
+          <thead>
+            <tr>
+              <th style="width: 40%;">Player</th>
+              <th style="width: 45%;">Reason</th>
+              <th style="width: 15%; text-align: center;">Until</th>
+            </tr>
+          </thead>
+          <tbody id="injuriesTbody"></tbody>
+        </table>
+        <button class="injuries-view-all-btn" id="injuriesViewAllBtn" style="display: none;" onclick="toggleInjuriesViewAll()">View all</button>
+      </div>
+    </div>
+
+    <!-- 5. RECENT MATCHES (4 BLOCKS: 2x2 Grid) -->
+    <div class="sec-main-header">Recent Matches Form</div>
+    <div class="last-matches-grid">
+      <!-- 1. Home Overall -->
+      <div class="last-sub-card" id="lmCardHomeOverall">
+        <div class="last-sub-header">
+          <div class="last-sub-title-box">
+            <span class="last-sub-team-code" id="lmHomeOverallCode">HOME</span>
+            <img class="last-sub-team-logo" id="lmHomeOverallLogo" src="" alt="logo" onerror="this.style.display='none'">
+            <span class="last-sub-title-text" id="lmHomeOverallTitle">Home Team (Overall)</span>
+          </div>
+          <div class="last-league-pills" id="lmHomeOverallPills"></div>
+        </div>
+        <table class="last-matches-table"><tbody id="lmHomeOverallTbody"></tbody></table>
+        <div class="lm-summary-bar" id="lmHomeOverallSummary"></div>
+        <button class="lm-view-more-btn" id="lmHomeOverallBtn" style="display: none;" onclick="toggleLmViewMore('homeOverall')">View all</button>
+      </div>
+
+      <!-- 2. Away Overall -->
+      <div class="last-sub-card" id="lmCardAwayOverall">
+        <div class="last-sub-header">
+          <div class="last-sub-title-box">
+            <span class="last-sub-team-code" id="lmAwayOverallCode">AWAY</span>
+            <img class="last-sub-team-logo" id="lmAwayOverallLogo" src="" alt="logo" onerror="this.style.display='none'">
+            <span class="last-sub-title-text" id="lmAwayOverallTitle">Away Team (Overall)</span>
+          </div>
+          <div class="last-league-pills" id="lmAwayOverallPills"></div>
+        </div>
+        <table class="last-matches-table"><tbody id="lmAwayOverallTbody"></tbody></table>
+        <div class="lm-summary-bar" id="lmAwayOverallSummary"></div>
+        <button class="lm-view-more-btn" id="lmAwayOverallBtn" style="display: none;" onclick="toggleLmViewMore('awayOverall')">View all</button>
+      </div>
+
+      <!-- 3. Home Context (Home at Home) -->
+      <div class="last-sub-card" id="lmCardHomeHome">
+        <div class="last-sub-header">
+          <div class="last-sub-title-box">
+            <span class="last-sub-team-code" id="lmHomeHomeCode">HOME</span>
+            <img class="last-sub-team-logo" id="lmHomeHomeLogo" src="" alt="logo" onerror="this.style.display='none'">
+            <span class="last-sub-title-text" id="lmHomeHomeTitle">Home Matches</span>
+          </div>
+          <div class="last-league-pills" id="lmHomeHomePills"></div>
+        </div>
+        <table class="last-matches-table"><tbody id="lmHomeHomeTbody"></tbody></table>
+        <div class="lm-summary-bar" id="lmHomeHomeSummary"></div>
+        <button class="lm-view-more-btn" id="lmHomeHomeBtn" style="display: none;" onclick="toggleLmViewMore('homeHome')">View all</button>
+      </div>
+
+      <!-- 4. Away Context (Away on Away) -->
+      <div class="last-sub-card" id="lmCardAwayAway">
+        <div class="last-sub-header">
+          <div class="last-sub-title-box">
+            <span class="last-sub-team-code" id="lmAwayAwayCode">AWAY</span>
+            <img class="last-sub-team-logo" id="lmAwayAwayLogo" src="" alt="logo" onerror="this.style.display='none'">
+            <span class="last-sub-title-text" id="lmAwayAwayTitle">Away Matches</span>
+          </div>
+          <div class="last-league-pills" id="lmAwayAwayPills"></div>
+        </div>
+        <table class="last-matches-table"><tbody id="lmAwayAwayTbody"></tbody></table>
+        <div class="lm-summary-bar" id="lmAwayAwaySummary"></div>
+        <button class="lm-view-more-btn" id="lmAwayAwayBtn" style="display: none;" onclick="toggleLmViewMore('awayAway')">View all</button>
+      </div>
+    </div>
+
+    <!-- 6. OVERALL STATISTICS (1:1 FOREBET SYSTEM) -->
+    <div class="os-main-title">Overall Statistics</div>
+    
+    <!-- Top Filter Controls -->
+    <div class="os-top-controls">
+      <div class="os-tabs-group">
+        <button class="os-tab-pill active" id="osTabOverall" onclick="setOsIndex(0)">Overall</button>
+        <button class="os-tab-pill" id="osTabHomeAway" onclick="setOsIndex(1)">Home/Away</button>
+      </div>
+      <div>
+        <select class="os-select-dropdown" id="osTimeSelect" onchange="setOsCategory(this.value)">
+          <option value="ft">Full time</option>
+          <option value="ht1">First half</option>
+          <option value="ht2">Second half</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- League Bar -->
+    <div class="os-leagues-bar" id="osLeaguePills">
+      <button class="os-league-pill active" onclick="setOsLeague('all')">All leagues</button>
+    </div>
+
+    <div class="overall-stats-grid">
+      
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- 1. PLAYED GAMES -->
+        <div class="os-card">
+          <div class="os-card-header-red">Played games</div>
+          <div class="os-pg-flex">
+            <div class="os-pg-team-box">
+              <div class="os-pg-logo-wrap">
+                <img id="osPgHomeLogo" class="os-pg-logo-big" src="" alt="home" onerror="this.style.display='none'">
+                <span id="osPgHomeCode" style="font-size: 13px; font-weight: 800; color: #0f172a;">HOM</span>
+              </div>
+              <span id="osPgHomeNum" class="os-pg-num-big">0</span>
+            </div>
+            <div class="os-pg-team-box">
+              <div class="os-pg-logo-wrap">
+                <img id="osPgAwayLogo" class="os-pg-logo-big" src="" alt="away" onerror="this.style.display='none'">
+                <span id="osPgAwayCode" style="font-size: 13px; font-weight: 800; color: #0f172a;">AWY</span>
+              </div>
+              <span id="osPgAwayNum" class="os-pg-num-big">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. GOALS -->
+        <div class="os-card">
+          <div class="os-card-header-red">Goals</div>
+          <div class="os-goals-2col">
+            <!-- Home Side -->
+            <div class="os-goal-team-box">
+              <div class="os-goal-row-item">
+                <div class="os-goal-left-info">
+                  <span class="os-goal-meta-lbl">Scored</span>
+                  <span class="os-goal-big-num" id="osGoalsScoredHomeTot">0</span>
+                </div>
+                <div class="os-goal-meta">
+                  <span class="os-goal-meta-avg-title">Avg.<br>per game</span>
+                  <span class="os-goal-meta-avg-val" id="osGoalsScoredHomeAvg">0.00</span>
+                </div>
+              </div>
+              <div class="os-goal-row-item">
+                <div class="os-goal-left-info">
+                  <span class="os-goal-meta-lbl">Conceded</span>
+                  <span class="os-goal-big-num" id="osGoalsConcHomeTot">0</span>
+                </div>
+                <div class="os-goal-meta">
+                  <span class="os-goal-meta-avg-title">Avg.<br>per game</span>
+                  <span class="os-goal-meta-avg-val" id="osGoalsConcHomeAvg">0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Away Side -->
+            <div class="os-goal-team-box">
+              <div class="os-goal-row-item">
+                <div class="os-goal-left-info">
+                  <span class="os-goal-meta-lbl">Scored</span>
+                  <span class="os-goal-big-num" id="osGoalsScoredAwayTot">0</span>
+                </div>
+                <div class="os-goal-meta">
+                  <span class="os-goal-meta-avg-title">Avg.<br>per game</span>
+                  <span class="os-goal-meta-avg-val" id="osGoalsScoredAwayAvg">0.00</span>
+                </div>
+              </div>
+              <div class="os-goal-row-item">
+                <div class="os-goal-left-info">
+                  <span class="os-goal-meta-lbl">Conceded</span>
+                  <span class="os-goal-big-num" id="osGoalsConcAwayTot">0</span>
+                </div>
+                <div class="os-goal-meta">
+                  <span class="os-goal-meta-avg-title">Avg.<br>per game</span>
+                  <span class="os-goal-meta-avg-val" id="osGoalsConcAwayAvg">0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scored a goal / Conceded a goal Dual Bars -->
+          <div class="os-goal-bar-wrap">
+            <div class="os-goal-bar-header">
+              <span id="osScoredHomeBarTitle">In last 0 matches</span>
+              <b style="color: #0f172a;">Scored a goal</b>
+              <span id="osScoredAwayBarTitle">In last 0 matches</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-bottom: 2px;">
+                  <span>Yes</span><span>No</span>
+                </div>
+                <div class="os-goal-bar-track">
+                  <div class="os-bar-green" id="osScoredHomeBarYes" style="width: 50%;"></div>
+                  <div class="os-bar-red" id="osScoredHomeBarNo" style="width: 50%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700;">
+                  <span id="osScoredHomeYesText" style="color: #16a34a;">Yes 0 (0%)</span>
+                  <span id="osScoredHomeNoText" style="color: #dc2626;">0 (0%) No</span>
+                </div>
+              </div>
+
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-bottom: 2px;">
+                  <span>Yes</span><span>No</span>
+                </div>
+                <div class="os-goal-bar-track">
+                  <div class="os-bar-green" id="osScoredAwayBarYes" style="width: 50%;"></div>
+                  <div class="os-bar-red" id="osScoredAwayBarNo" style="width: 50%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700;">
+                  <span id="osScoredAwayYesText" style="color: #16a34a;">Yes 0 (0%)</span>
+                  <span id="osScoredAwayNoText" style="color: #dc2626;">0 (0%) No</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. UNDER / OVER PIES -->
+        <div class="os-card">
+          <div style="display: flex; justify-content: flex-end; gap: 12px; font-size: 10px; font-weight: 700; color: #64748b; margin-bottom: 6px;">
+            <span><span style="color: #38bdf8;">●</span> Under</span>
+            <span><span style="color: #0f172a;">●</span> Over</span>
+          </div>
+
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <span id="osPiesHomeCode" class="os-head-team-code">HOM</span>
+              <img id="osPiesHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <span class="os-head-title" style="color: #0f172a;">Recent matches</span>
+            <div class="os-head-team">
+              <img id="osPiesAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+              <span id="osPiesAwayCode" class="os-head-team-code">AWY</span>
+            </div>
+          </div>
+
+          <div id="osPiesRowsWrap"></div>
+        </div>
+
+        <!-- 4. GOALS BY TIME PERIOD -->
+        <div class="os-card" id="osGoalsByTpCard">
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <span id="osTpHomeCode" class="os-head-team-code">HOM</span>
+              <img id="osTpHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <div style="text-align: center;">
+              <span class="os-card-header-red" style="margin: 0;">Goals by time period</span>
+              <div class="os-tp-tabs" style="margin-top: 4px;">
+                <button id="osTpScoredBtn" class="os-tp-btn active" onclick="setOsTpMode('scored')">Scored</button>
+                <button id="osTpConcededBtn" class="os-tp-btn" onclick="setOsTpMode('conceded')">Conceded</button>
+              </div>
+            </div>
+            <div class="os-head-team">
+              <img id="osTpAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+              <span id="osTpAwayCode" class="os-head-team-code">AWY</span>
+            </div>
+          </div>
+          <div id="histogramContainer"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <!-- 5. SHOTS -->
+        <div class="os-card">
+          <div class="os-card-header-red">Shots</div>
+          
+          <div class="os-shots-2box-grid">
+            <!-- Home Shots Box -->
+            <div class="os-shots-team-box">
+              <div class="os-shots-team-head">
+                <div class="os-pg-logo-wrap">
+                  <span id="shotsHomeName" style="font-size: 11px; font-weight: 800; color: #0f172a;">HOM</span>
+                  <img id="osShotsHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+                </div>
+                <span class="os-goal-meta-avg-title" style="text-align: right;">Avg.<br>per game</span>
+              </div>
+              <div class="os-shots-line">
+                <span>Total shots</span>
+                <b id="shotsHomeTotVal" style="font-size: 13px; color: #0f172a;">0</b>
+                <b id="shotsHomeTotAvg" style="font-size: 12px; color: #64748b;">0.00</b>
+              </div>
+              <div class="os-shots-line">
+                <span>Blocked</span>
+                <b id="shotsHomeBlkVal" style="font-size: 13px; color: #0f172a;">0</b>
+                <b id="shotsHomeBlkAvg" style="font-size: 12px; color: #64748b;">0.00</b>
+              </div>
+              
+              <div class="os-shots-field-wrap">
+                <div class="os-shots-off-lbl"><b id="shotsHomeOffPct">0%</b> <span style="color: #64748b;">OFF target</span></div>
+                <div class="os-goal-post-box">
+                  <b id="shotsHomeOnPct">0%</b> <span style="color: #64748b; font-size: 9px;">ON target</span>
+                </div>
+              </div>
+
+              <div class="os-box-field-wrap">
+                <div class="os-box-inner-rect">
+                  <b id="shotsHomeInsidePct">0%</b> <span style="color: #64748b; font-size: 9px;">Inside box</span>
+                </div>
+                <div class="os-box-outer-lbl"><b id="shotsHomeOutsidePct">0%</b> <span style="color: #64748b;">Outside box</span></div>
+              </div>
+            </div>
+
+            <!-- Away Shots Box -->
+            <div class="os-shots-team-box">
+              <div class="os-shots-team-head">
+                <div class="os-pg-logo-wrap">
+                  <span id="shotsAwayName" style="font-size: 11px; font-weight: 800; color: #0f172a;">AWY</span>
+                  <img id="osShotsAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+                </div>
+                <span class="os-goal-meta-avg-title" style="text-align: right;">Avg.<br>per game</span>
+              </div>
+              <div class="os-shots-line">
+                <span>Total shots</span>
+                <b id="shotsAwayTotVal" style="font-size: 13px; color: #0f172a;">0</b>
+                <b id="shotsAwayTotAvg" style="font-size: 12px; color: #64748b;">0.00</b>
+              </div>
+              <div class="os-shots-line">
+                <span>Blocked</span>
+                <b id="shotsAwayBlkVal" style="font-size: 13px; color: #0f172a;">0</b>
+                <b id="shotsAwayBlkAvg" style="font-size: 12px; color: #64748b;">0.00</b>
+              </div>
+
+              <div class="os-shots-field-wrap">
+                <div class="os-shots-off-lbl"><b id="shotsAwayOffPct">0%</b> <span style="color: #64748b;">OFF target</span></div>
+                <div class="os-goal-post-box">
+                  <b id="shotsAwayOnPct">0%</b> <span style="color: #64748b; font-size: 9px;">ON target</span>
+                </div>
+              </div>
+
+              <div class="os-box-field-wrap">
+                <div class="os-box-inner-rect">
+                  <b id="shotsAwayInsidePct">0%</b> <span style="color: #64748b; font-size: 9px;">Inside box</span>
+                </div>
+                <div class="os-box-outer-lbl"><b id="shotsAwayOutsidePct">0%</b> <span style="color: #64748b;">Outside box</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. PASSES -->
+        <div class="os-card">
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <span id="osPassHomeCode" class="os-head-team-code">HOM</span>
+              <img id="osPassHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <span class="os-card-header-red" style="margin: 0;">Passes</span>
+            <div class="os-head-team">
+              <img id="osPassAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+              <span id="osPassAwayCode" class="os-head-team-code">AWY</span>
+            </div>
+          </div>
+
+          <div class="os-passes-grid">
+            <div class="os-pass-team-box">
+              <div class="os-pass-stat-line">
+                <span style="color: #64748b;">Total <b id="passesHomeTot" style="color: #0f172a;">0</b></span>
+                <span style="font-size: 10px; color: #64748b;">Avg. per game <b id="passesHomeAvg" style="color: #0f172a;">0.00</b></span>
+              </div>
+              <div class="os-pass-stat-line" style="margin-top: 4px;">
+                <span style="color: #64748b;">Accurate <b id="passesHomeAccCount" style="color: #0f172a;">0</b></span>
+                <span class="os-big-pct-text" id="passesHomeAccPct" style="color: #0f172a;">0%</span>
+              </div>
+              <div class="os-pass-stat-line" style="margin-top: 4px;">
+                <span style="color: #64748b;">Ball Possession</span>
+                <span class="os-big-pct-text" id="passesHomePoss" style="color: #0f172a;">0%</span>
+              </div>
+            </div>
+
+            <div class="os-pass-team-box">
+              <div class="os-pass-stat-line">
+                <span style="color: #64748b;">Total <b id="passesAwayTot" style="color: #0f172a;">0</b></span>
+                <span style="font-size: 10px; color: #64748b;">Avg. per game <b id="passesAwayAvg" style="color: #0f172a;">0.00</b></span>
+              </div>
+              <div class="os-pass-stat-line" style="margin-top: 4px;">
+                <span style="color: #64748b;">Accurate <b id="passesAwayAccCount" style="color: #0f172a;">0</b></span>
+                <span class="os-big-pct-text" id="passesAwayAccPct" style="color: #0f172a;">0%</span>
+              </div>
+              <div class="os-pass-stat-line" style="margin-top: 4px;">
+                <span style="color: #64748b;">Ball Possession</span>
+                <span class="os-big-pct-text" id="passesAwayPoss" style="color: #0f172a;">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. AVG. EVENT TIME -->
+        <div class="os-card">
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <span id="osAetHomeCode" class="os-head-team-code">HOM</span>
+              <img id="osAetHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <span class="os-card-header-red" style="margin: 0;">Avg. Event Time</span>
+            <div class="os-head-team">
+              <img id="osAetAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+              <span id="osAetAwayCode" class="os-head-team-code">AWY</span>
+            </div>
+          </div>
+
+          <div class="os-aet-tabs" id="osAetTabs">
+            <button class="os-aet-btn active" id="osAetGoalBtn" onclick="setOsAetEvent('1st_goal')">First goal</button>
+            <button class="os-aet-btn" id="osAetCornerBtn" onclick="setOsAetEvent('1st_corner')">First corner</button>
+            <button class="os-aet-btn" id="osAetCardBtn" onclick="setOsAetEvent('1st_card')">First card</button>
+          </div>
+
+          <div class="os-timeline-container">
+            <!-- Home Timeline -->
+            <div class="os-timeline-team-row">
+              <div class="os-timeline-bar-axis">
+                <div class="os-timeline-pin" id="aetHomeScoredPin" style="left: 48%;">
+                  <span class="os-pin-tag scored" id="aetHomeScoredVal">44'</span>
+                  <div class="os-pin-pointer scored"></div>
+                </div>
+                <div class="os-timeline-pin" id="aetHomeConcPin" style="left: 31%;">
+                  <span class="os-pin-tag conceded" id="aetHomeConcVal">28'</span>
+                  <div class="os-pin-pointer conceded"></div>
+                </div>
+              </div>
+              <div class="os-timeline-scale-labels">
+                <span>0'</span><span>15'</span><span>30'</span><span class="red-mark">HT</span><span>60'</span><span>75'</span><span class="red-mark">FT</span>
+              </div>
+            </div>
+
+            <!-- Away Timeline -->
+            <div class="os-timeline-team-row" style="margin-top: 8px;">
+              <div class="os-timeline-bar-axis">
+                <div class="os-timeline-pin" id="aetAwayScoredPin" style="left: 46%;">
+                  <span class="os-pin-tag scored" id="aetAwayScoredVal">42'</span>
+                  <div class="os-pin-pointer scored"></div>
+                </div>
+                <div class="os-timeline-pin" id="aetAwayConcPin" style="left: 42%;">
+                  <span class="os-pin-tag conceded" id="aetAwayConcVal">38'</span>
+                  <div class="os-pin-pointer conceded"></div>
+                </div>
+              </div>
+              <div class="os-timeline-scale-labels">
+                <span>0'</span><span>15'</span><span>30'</span><span class="red-mark">HT</span><span>60'</span><span>75'</span><span class="red-mark">FT</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: center; gap: 16px; font-size: 10px; font-weight: 700; color: #64748b; margin-top: 6px;">
+            <span><span style="color: #22c55e;">●</span> Scored</span>
+            <span><span style="color: #ef4444;">●</span> Conceded</span>
+          </div>
+        </div>
+
+        <!-- 8. TOTAL & DANGEROUS ATTACKS -->
+        <div class="os-card">
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <span id="osAtkHomeCode" class="os-head-team-code">HOM</span>
+              <img id="osAtkHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+            <span class="os-card-header-red" style="margin: 0;">Attacks</span>
+            <div class="os-head-team">
+              <img id="osAtkAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            <div class="os-head-team">
+              <span class="os-head-team-code" id="osDangHomeCode">HOM</span>
+            </div>
+            <span class="os-head-title">Dangerous Attacks</span>
+            <div class="os-head-team">
+              <span class="os-head-team-code" id="osDangAwayCode">AWY</span>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 6px; background: #f8fafc; border-radius: 4px;">
+            <div><span id="dangHomeFullName">Home</span> <b id="dangHomeTot">0</b> <span style="color: #64748b; font-size: 10px;">Avg. <span id="dangHomeAvg">0.00</span></span></div>
+            <div style="text-align: right;"><span id="dangAwayFullName">Away</span> <b id="dangAwayTot">0</b> <span style="color: #64748b; font-size: 10px;">Avg. <span id="dangAwayAvg">0.00</span></span></div>
+          </div>
+        </div>
+
+        <!-- 9. OTHERS -->
+        <div class="os-card">
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <img id="osOthersHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+              <span id="osOthersHomeCode" class="os-head-team-code">HOM</span>
+            </div>
+            <div style="text-align: center;">
+              <div class="os-head-title" style="margin-bottom: 2px;">OTHERS</div>
+              <div style="font-size: 10.5px; color: #64748b; font-weight: 600;">
+                <b id="osOthersHomePl" style="color: #0f172a;">0</b> Played games <b id="osOthersAwayPl" style="color: #0f172a;">0</b>
+              </div>
+            </div>
+            <div class="os-head-team">
+              <span id="osOthersAwayCode" class="os-head-team-code">AWY</span>
+              <img id="osOthersAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+          </div>
+          <table class="os-table-fore">
+            <thead>
+              <tr>
+                <th style="width: 15%;">Avg. per game</th>
+                <th style="width: 15%;">Total</th>
+                <th style="width: 40%;"></th>
+                <th style="width: 15%;">Total</th>
+                <th style="width: 15%;">Avg. per game</th>
+              </tr>
+            </thead>
+            <tbody id="othersTbody"></tbody>
+          </table>
+        </div>
+
+        <!-- 10. DISCIPLINARY -->
+        <div class="os-card">
+          <div class="os-card-header-teams">
+            <div class="os-head-team">
+              <img id="osDiscHomeLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+              <span id="osDiscHomeCode" class="os-head-team-code">HOM</span>
+            </div>
+            <span class="os-head-title">Disciplinary</span>
+            <div class="os-head-team">
+              <span id="osDiscAwayCode" class="os-head-team-code">AWY</span>
+              <img id="osDiscAwayLogo" class="os-head-team-img" src="" alt="" onerror="this.style.display='none'">
+            </div>
+          </div>
+          <table class="os-table-fore">
+            <thead>
+              <tr>
+                <th style="width: 15%;">Avg. per game</th>
+                <th style="width: 15%;">Total</th>
+                <th style="width: 40%;"></th>
+                <th style="width: 15%;">Total</th>
+                <th style="width: 15%;">Avg. per game</th>
+              </tr>
+            </thead>
+            <tbody id="disciplinaryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 7. NEXT MATCHES & FDR -->
+    <div class="sec-main-header" style="margin-top: 20px;">Next Fixtures & Difficulty</div>
+    <div class="fore-card">
+      <div class="last-matches-grid">
+        <div>
+          <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 8px;" id="nextHomeCode">HOME</div>
+          <table class="fore-table"><tbody id="homeNextTbody"></tbody></table>
+        </div>
+        <div>
+          <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 8px;" id="nextAwayCode">AWAY</div>
+          <table class="fore-table"><tbody id="awayNextTbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    window.MATCH_DATA = __MATCH_DATA_PLACEHOLDER__;
+
+    let activeMarketTab = '1X2';
+    let currentInjuriesTab = 'home';
+    let injuriesViewAll = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.MATCH_DATA) {
+        initMatchCenter(window.MATCH_DATA);
+      }
+    });
+
+    function initMatchCenter(data) {
+      if (!data) return;
+
+      const hero = data.hero || {};
+      const homeTeam = hero.homeTeam || 'Home Team';
+      const awayTeam = hero.awayTeam || 'Away Team';
+      const homeCode = hero.homeCode || 'HOM';
+      const awayCode = hero.awayCode || 'AWY';
+      const homeLogo = hero.homeLogo || '';
+      const awayLogo = hero.awayLogo || '';
+
+      // 1. Breadcrumbs
+      try {
+        document.getElementById('crumbCountry').innerText = hero.country || 'Football';
+        document.getElementById('crumbLeague').innerText = hero.leagueName || 'League Match';
+        document.getElementById('heroMetaTop').innerText = `${hero.country || ''} - ${hero.leagueName || ''} (${hero.round || 'Round'})`;
+      } catch (e) {}
+
+      // 2. Hero Section
+      try {
+        document.getElementById('homeName').innerText = homeTeam;
+        document.getElementById('awayName').innerText = awayTeam;
+        if (homeLogo) document.getElementById('homeLogo').src = homeLogo;
+        if (awayLogo) document.getElementById('awayLogo').src = awayLogo;
+        const res = hero.result || {};
+        const scoreBadge = document.getElementById('heroScore');
+        const isUpcoming = res.status === 'Upcoming' || !res.score || res.score === '-';
+        if (isUpcoming) {
+          scoreBadge.innerText = '?';
+          scoreBadge.className = 'hero-score-badge upcoming';
+          scoreBadge.title = 'Upcoming Match';
+        } else {
+          scoreBadge.innerText = res.score;
+          scoreBadge.className = 'hero-score-badge';
+          scoreBadge.title = res.status || 'Finished';
+        }
+        document.getElementById('heroTime').innerText = hero.matchDate || 'Upcoming';
+        document.getElementById('heroWeatherVal').innerText = hero.weather || '--°';
+
+        const subScoreEl = document.getElementById('heroSubScore');
+        if (subScoreEl) {
+          const subDetails = [];
+          if (res.status && res.status !== 'Upcoming' && res.status !== 'FT') {
+            subDetails.push(res.status);
+          }
+          if (res.penScore) {
+            subDetails.push(`Pen. ${res.penScore}`);
+          }
+          if (res.aetScore) {
+            subDetails.push(`AET ${res.aetScore}`);
+          }
+          if (res.htScore) {
+            subDetails.push(`HT: ${res.htScore}`);
+          }
+
+          if (subDetails.length > 0) {
+            subScoreEl.style.display = 'flex';
+            subScoreEl.innerHTML = subDetails.map(d => `<span>${d}</span>`).join('');
+          } else {
+            subScoreEl.style.display = 'none';
+          }
+        }
+
+        const renderFormBadges = (formList, containerId) => {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          container.innerHTML = (formList || []).map(r => `<div class="form-dot ${r}">${r}</div>`).join('');
+        };
+        renderFormBadges(hero.homeForm, 'homeFormBadges');
+        renderFormBadges(hero.awayForm, 'awayFormBadges');
+      } catch (e) {}
+
+      // 3. Markets
+      try {
+        renderPredictionMarkets(data);
+      } catch (e) {
+        console.error('Error rendering prediction markets:', e);
+      }
+
+      // 4.1. H2H Module
+      try {
+        const h2h = data.h2h || {};
+        const availableLeagues = h2h.availableLeagues || ['All'];
+        const summary = h2h.summary || {};
+        const allMatches = h2h.matches || [];
+
+        const summaryStrip = document.getElementById('h2hSummaryStrip');
+        const pillsWrap = document.getElementById('h2hLeaguePills');
+        const tbody = document.getElementById('h2hTbody');
+
+        window._h2hActiveLeague = 'All';
+        window._h2hExpanded = false;
+
+        window.updateH2HView = function() {
+          const league = window._h2hActiveLeague;
+          let filtered = allMatches;
+          if (league !== 'All') {
+            filtered = allMatches.filter(m => (m.leagueFull && m.leagueFull.toLowerCase().includes(league.toLowerCase())) || (m.league && m.league.toLowerCase().includes(league.toLowerCase())));
+          }
+
+          const visibleMatches = window._h2hExpanded ? filtered : filtered.slice(0, 6);
+
+          let hWins = 0, draws = 0, aWins = 0;
+          const cleanStr = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const curHomeClean = cleanStr(homeTeam);
+          const curAwayClean = cleanStr(awayTeam);
+
+          visibleMatches.forEach(m => {
+            const parts = (m.score || '').split('-').map(n => parseInt(n.trim(), 10));
+            const rowHomeClean = cleanStr(m.home);
+            const rowAwayClean = cleanStr(m.away);
+
+            const isRowHomeCurHome = curHomeClean && (rowHomeClean.includes(curHomeClean) || curHomeClean.includes(rowHomeClean));
+            const isRowAwayCurHome = curHomeClean && (rowAwayClean.includes(curHomeClean) || curHomeClean.includes(rowAwayClean));
+
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+              const hGoals = parts[0];
+              const aGoals = parts[1];
+
+              if (hGoals > aGoals) {
+                if (isRowHomeCurHome) { hWins++; m.resBadge = 'W'; }
+                else { aWins++; m.resBadge = 'L'; }
+              } else if (aGoals > hGoals) {
+                if (isRowAwayCurHome) { hWins++; m.resBadge = 'W'; }
+                else { aWins++; m.resBadge = 'L'; }
+              } else {
+                draws++;
+                m.resBadge = 'D';
+              }
+            } else {
+              if (m.resBadge === 'W') hWins++;
+              else if (m.resBadge === 'L') aWins++;
+              else draws++;
+            }
+          });
+
+          const tot = visibleMatches.length;
+          const hPct = tot ? Math.round((hWins / tot) * 100) : 0;
+          const dPct = tot ? Math.round((draws / tot) * 100) : 0;
+          const aPct = tot ? Math.round((aWins / tot) * 100) : 0;
+
+          if (summaryStrip) {
+            summaryStrip.innerHTML = `
+              <div style="font-weight: 800; color: #0f172a; font-size: 13px;">${homeTeam} vs ${awayTeam}</div>
+              <div style="display: flex; gap: 16px; font-weight: 700; font-size: 12px; flex-wrap: wrap;">
+                <span style="color: #22c55e;">${homeTeam}: ${hWins} (%${hPct})</span>
+                <span style="color: #ca8a04;">Draw: ${draws} (%${dPct})</span>
+                <span style="color: #ef4444;">${awayTeam}: ${aWins} (%${aPct})</span>
+              </div>
+            `;
+          }
+
+          const bottomSummary = document.getElementById('h2hBottomSummary');
+          if (bottomSummary) {
+            if (tot > 0) {
+              bottomSummary.style.display = 'block';
+              bottomSummary.innerHTML = `
+                <div style="display: flex; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px;">
+                  <div style="flex: 1; text-align: center;">
+                    <div style="font-weight: 700; font-size: 11px; color: #0f172a;">${homeTeam} ${hWins}</div>
+                    <div style="font-weight: 800; font-size: 13px; color: #22c55e; margin-top: 2px;">${hPct}%</div>
+                    <div style="height: 3px; background: #e2e8f0; border-radius: 2px; margin-top: 4px; overflow: hidden;"><div style="width: ${hPct}%; height: 100%; background: #22c55e;"></div></div>
+                  </div>
+                  <div style="flex: 1; text-align: center;">
+                    <div style="font-weight: 700; font-size: 11px; color: #0f172a;">Draw ${draws}</div>
+                    <div style="font-weight: 800; font-size: 13px; color: #ca8a04; margin-top: 2px;">${dPct}%</div>
+                    <div style="height: 3px; background: #e2e8f0; border-radius: 2px; margin-top: 4px; overflow: hidden;"><div style="width: ${dPct}%; height: 100%; background: #eab308;"></div></div>
+                  </div>
+                  <div style="flex: 1; text-align: center;">
+                    <div style="font-weight: 700; font-size: 11px; color: #0f172a;">${awayTeam} ${aWins}</div>
+                    <div style="font-weight: 800; font-size: 13px; color: #ef4444; margin-top: 2px;">${aPct}%</div>
+                    <div style="height: 3px; background: #e2e8f0; border-radius: 2px; margin-top: 4px; overflow: hidden;"><div style="width: ${aPct}%; height: 100%; background: #ef4444;"></div></div>
+                  </div>
+                </div>
+              `;
+            } else {
+              bottomSummary.style.display = 'none';
+            }
+          }
+
+          if (visibleMatches.length > 0) {
+            tbody.innerHTML = visibleMatches.map(m => `
+              <tr>
+                <td style="font-size: 11px; color: #64748b; text-align: left; padding-left: 10px;">${m.date}</td>
+                <td style="text-align: left; padding-left: 10px; font-weight: 700;">${m.home} - ${m.away}</td>
+                <td><b>${m.score}</b> ${m.htScore ? `<span style="font-size: 10px; color: #64748b;">(${m.htScore})</span>` : ''}</td>
+                <td><span class="coef-fore-box">${m.league || '-'}</span></td>
+                <td><div class="form-dot ${m.resBadge}" style="margin: 0 auto;">${m.resBadge}</div></td>
+              </tr>
+            `).join('');
+          } else {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 18px;">No previous matches found for this selection.</td></tr>`;
+          }
+
+          const viewMoreBtn = document.getElementById('h2hViewMoreBtn');
+          if (filtered.length > 6) {
+            viewMoreBtn.style.display = 'block';
+            viewMoreBtn.innerText = window._h2hExpanded ? 'Show Less' : `View all (${filtered.length})`;
+          } else {
+            viewMoreBtn.style.display = 'none';
+          }
+
+          document.querySelectorAll('.h2h-league-pill').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-league') === league);
+          });
+        };
+
+        window.setH2HLeague = function(league) {
+          window._h2hActiveLeague = league;
+          window.updateH2HView();
+        };
+
+        window.toggleH2HViewMore = function() {
+          window._h2hExpanded = !window._h2hExpanded;
+          window.updateH2HView();
+        };
+
+        let finalLeagues = [...availableLeagues];
+        if (finalLeagues.length > 1) {
+          pillsWrap.style.display = 'flex';
+          pillsWrap.innerHTML = finalLeagues.map(l => `
+            <button class="h2h-league-pill ${l === 'All' ? 'active' : ''}" data-league="${l}" onclick="setH2HLeague('${l}')">${l}</button>
+          `).join('');
+        } else {
+          pillsWrap.style.display = 'none';
+        }
+
+        window.updateH2HView();
+      } catch (e) {
+        console.error('Error rendering H2H:', e);
+      }
+
+      // 4.2. Straight Line Distance Module
+      try {
+        const dist = data.distance || {};
+        const distWrap = document.getElementById('distanceSectionWrap');
+        if (dist && dist.hasDistance) {
+          distWrap.style.display = 'block';
+          document.getElementById('distHomeCode').innerText = dist.homeCode || homeCode;
+          document.getElementById('distAwayCode').innerText = dist.awayCode || awayCode;
+          if (dist.homeLogo) document.getElementById('distHomeLogo').src = dist.homeLogo;
+          if (dist.awayLogo) document.getElementById('distAwayLogo').src = dist.awayLogo;
+          document.getElementById('distHomeCity').innerText = dist.homeCity || '-';
+          document.getElementById('distHomeCountry').innerText = dist.homeCountry || '-';
+          document.getElementById('distAwayCity').innerText = dist.awayCity || '-';
+          document.getElementById('distAwayCountry').innerText = dist.awayCountry || '-';
+          document.getElementById('distKmValue').innerText = dist.km || '-';
+          document.getElementById('distHomeStadium').innerText = dist.homeStadium || 'Home Stadium';
+          document.getElementById('distAwayOrigin').innerText = dist.awayCity || 'Away City';
+        } else {
+          distWrap.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Error rendering Distance:', e);
+      }
+
+      // 4.3. Standings
+      try {
+        const standings = data.standings || [];
+        const standingsWrap = document.getElementById('standingsSectionWrap');
+        const tbody = document.getElementById('standingsTbody');
+        if (standings.length > 0) {
+          if (standingsWrap) standingsWrap.style.display = 'block';
+          tbody.innerHTML = standings.map(row => {
+            const hClean = homeTeam.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const aClean = awayTeam.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const rClean = (row.team || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const isPlaying = row.highlight || (hClean && rClean.includes(hClean)) || (aClean && rClean.includes(aClean));
+            return `
+              <tr class="${isPlaying ? 'highlight' : ''}">
+                <td><b>${row.rank}</b></td>
+                <td style="text-align: left; padding-left: 10px; font-weight: ${isPlaying ? '800' : '600'};">${row.team}</td>
+                <td><b style="color: #0f172a;">${row.pts}</b></td>
+                <td>${row.gp}</td>
+                <td>${row.w}</td>
+                <td>${row.d}</td>
+                <td>${row.l}</td>
+                <td>${row.gf}</td>
+                <td>${row.ga}</td>
+                <td><b>${row.gd}</b></td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          if (standingsWrap) standingsWrap.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Error rendering Standings:', e);
+      }
+
+      // 4.5. Injured & Suspended Module
+      try {
+        const injuries = data.injuries || {};
+        const injuriesWrap = document.getElementById('injuriesSectionWrap');
+
+        window.switchInjuriesTab = function(tab) {
+          currentInjuriesTab = tab;
+          document.getElementById('injuriesHomeTabBtn').classList.toggle('active', tab === 'home');
+          document.getElementById('injuriesAwayTabBtn').classList.toggle('active', tab === 'away');
+          window.renderInjuriesTable();
+        };
+
+        window.toggleInjuriesViewAll = function() {
+          injuriesViewAll = !injuriesViewAll;
+          window.renderInjuriesTable();
+        };
+
+        window.renderInjuriesTable = function() {
+          const players = currentInjuriesTab === 'home' ? (injuries.homePlayers || []) : (injuries.awayPlayers || []);
+          const tbody = document.getElementById('injuriesTbody');
+          const viewAllBtn = document.getElementById('injuriesViewAllBtn');
+
+          if (!players || players.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 20px;">No reported injuries or suspensions for this team.</td></tr>`;
+            viewAllBtn.style.display = 'none';
+            return;
+          }
+
+          const visiblePlayers = injuriesViewAll ? players : players.slice(0, 4);
+
+          tbody.innerHTML = visiblePlayers.map(p => `
+            <tr>
+              <td class="injury-player-name">${p.name}</td>
+              <td>
+                <div class="injury-reason-cell">
+                  ${p.icon ? `<img class="injury-icon-img" src="${p.icon}" alt="injury" onerror="this.style.display='none'">` : `<i class="fa-solid fa-circle-plus" style="color: #ef4444;"></i>`}
+                  <span>${p.reason}</span>
+                </div>
+              </td>
+              <td style="text-align: center;" class="injury-until-text">${p.until || '-'}</td>
+            </tr>
+          `).join('');
+
+          if (players.length > 4) {
+            viewAllBtn.style.display = 'block';
+            viewAllBtn.innerText = injuriesViewAll ? 'View less' : `View all (${players.length})`;
+          } else {
+            viewAllBtn.style.display = 'none';
+          }
+        };
+
+        if (injuries.hasInjuries || (injuries.homePlayers && injuries.homePlayers.length > 0) || (injuries.awayPlayers && injuries.awayPlayers.length > 0)) {
+          injuriesWrap.style.display = 'block';
+          document.getElementById('injuriesHomeTabBtn').innerText = injuries.homeTeam || homeTeam;
+          document.getElementById('injuriesAwayTabBtn').innerText = injuries.awayTeam || awayTeam;
+          window.renderInjuriesTable();
+        } else {
+          injuriesWrap.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Error rendering Injuries:', e);
+      }
+
+      // 5. RECENT MATCHES (4 BLOCKS) - 100% BULLETPROOF NORMALIZATION
+      try {
+        const lmData = data.lastMatches || {};
+        const lmStates = {
+          homeOverall: { activeLeague: 'All', expanded: false },
+          awayOverall: { activeLeague: 'All', expanded: false },
+          homeHome: { activeLeague: 'All', expanded: false },
+          awayAway: { activeLeague: 'All', expanded: false }
+        };
+
+        // Normalizer function supporting both Object and Array schemas
+        const normalizeBlockData = (raw) => {
+          if (!raw) return { matches: [], availableLeagues: ['All'], summary: {} };
+          if (Array.isArray(raw)) return { matches: raw, availableLeagues: ['All'], summary: {} };
+          return {
+            title: raw.title || '',
+            code: raw.code || '',
+            logo: raw.logo || '',
+            availableLeagues: raw.availableLeagues || ['All'],
+            matches: raw.matches || [],
+            summary: raw.summary || {}
+          };
+        };
+
+        const blockConfigs = {
+          homeOverall: {
+            block: normalizeBlockData(lmData.homeOverall),
+            defaultTitle: `${homeTeam} (Overall)`,
+            defaultCode: homeCode || 'HOM',
+            defaultLogo: homeLogo || '',
+            targetTeam: homeTeam,
+            elPrefix: 'lmHomeOverall'
+          },
+          awayOverall: {
+            block: normalizeBlockData(lmData.awayOverall),
+            defaultTitle: `${awayTeam} (Overall)`,
+            defaultCode: awayCode || 'AWY',
+            defaultLogo: awayLogo || '',
+            targetTeam: awayTeam,
+            elPrefix: 'lmAwayOverall'
+          },
+          homeHome: {
+            block: normalizeBlockData(lmData.homeHome),
+            defaultTitle: `${homeTeam} (Home)`,
+            defaultCode: homeCode || 'HOM',
+            defaultLogo: homeLogo || '',
+            targetTeam: homeTeam,
+            elPrefix: 'lmHomeHome'
+          },
+          awayAway: {
+            block: normalizeBlockData(lmData.awayAway),
+            defaultTitle: `${awayTeam} (Away)`,
+            defaultCode: awayCode || 'AWY',
+            defaultLogo: awayLogo || '',
+            targetTeam: awayTeam,
+            elPrefix: 'lmAwayAway'
+          }
+        };
+
+        window.setLmLeague = function(blockKey, leagueName) {
+          lmStates[blockKey].activeLeague = leagueName;
+          window.renderLmBlock(blockKey);
+        };
+
+        window.toggleLmViewMore = function(blockKey) {
+          lmStates[blockKey].expanded = !lmStates[blockKey].expanded;
+          window.renderLmBlock(blockKey);
+        };
+
+        window.renderLmBlock = function(blockKey) {
+          const config = blockConfigs[blockKey];
+          if (!config) return;
+          const block = config.block;
+          const state = lmStates[blockKey];
+          const p = config.elPrefix;
+
+          const codeEl = document.getElementById(`${p}Code`);
+          if (codeEl) codeEl.innerText = block.code || config.defaultCode;
+
+          const titleEl = document.getElementById(`${p}Title`);
+          if (titleEl) titleEl.innerText = block.title || config.defaultTitle;
+
+          const logoEl = document.getElementById(`${p}Logo`);
+          const logoSrc = block.logo || config.defaultLogo;
+          if (logoEl) {
+            if (logoSrc) {
+              logoEl.src = logoSrc;
+              logoEl.style.display = 'block';
+            } else {
+              logoEl.style.display = 'none';
+            }
+          }
+
+          // League Pills
+          const pillsWrap = document.getElementById(`${p}Pills`);
+          const leagues = (block.availableLeagues || []).map(l => typeof l === 'string' ? l : (l.name || ''));
+          if (pillsWrap) {
+            if (leagues.length > 1) {
+              pillsWrap.style.display = 'flex';
+              pillsWrap.innerHTML = leagues.map(l => `
+                <button class="last-league-pill ${l === state.activeLeague ? 'active' : ''}" onclick="setLmLeague('${blockKey}', '${l}')">${l}</button>
+              `).join('');
+            } else {
+              pillsWrap.style.display = 'none';
+            }
+          }
+
+          // Filter matches
+          const allMatches = block.matches || [];
+          let filtered = allMatches;
+          if (state.activeLeague !== 'All') {
+            const lgObj = (block.availableLeagues || []).find(l => (typeof l === 'object' ? l.name : l) === state.activeLeague);
+            const lgId = typeof lgObj === 'object' ? lgObj.lgId : '';
+            filtered = allMatches.filter(m => {
+              if (lgId && m.leagueId) return m.leagueId === lgId;
+              const leg = m.league || '';
+              return leg.toLowerCase().includes(state.activeLeague.toLowerCase());
+            });
+          }
+
+          const visibleMatches = state.expanded ? filtered : filtered.slice(0, 6);
+          const tbody = document.getElementById(`${p}Tbody`);
+
+          if (tbody) {
+            if (visibleMatches.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 14px;">No matches found for this selection.</td></tr>`;
+            } else {
+              tbody.innerHTML = visibleMatches.map(m => {
+                const hName = m.home || '';
+                const aName = m.away || '';
+                const tTarget = (config.targetTeam || '').toLowerCase();
+                const isHomeActive = m.isTargetHome || (tTarget && hName.toLowerCase().includes(tTarget));
+                const isAwayActive = !m.isTargetHome && (tTarget && aName.toLowerCase().includes(tTarget));
+                const res = m.resBadge || 'D';
+
+                return `
+                  <tr>
+                    <td class="lm-date-cell">${m.date || '-'}</td>
+                    <td class="lm-teams-cell">
+                      <span class="lm-team-name ${isHomeActive ? 'active-team' : ''}">${hName}</span>
+                      <span style="color: #94a3b8; margin: 0 3px;">-</span>
+                      <span class="lm-team-name ${isAwayActive ? 'active-team' : ''}">${aName}</span>
+                    </td>
+                    <td style="text-align: center;">
+                      <span class="lm-score-pill ${res}">
+                        <span>${m.score || '-'}</span>
+                        ${m.htScore ? `<span class="lm-ht-score">(${m.htScore})</span>` : ''}
+                      </span>
+                    </td>
+                    <td style="text-align: right;">
+                      <span class="lm-league-tag">${m.league || 'Lg'}</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
+
+          // Summary Bar - DYNAMIC CALCULATION BASED ON VISIBLE MATCHES!
+          const summaryWrap = document.getElementById(`${p}Summary`);
+          if (summaryWrap) {
+            let sWin = 0, sDraw = 0, sLost = 0;
+            const calcBase = visibleMatches;
+            calcBase.forEach(m => {
+              if (m.resBadge === 'W') sWin++;
+              else if (m.resBadge === 'D') sDraw++;
+              else if (m.resBadge === 'L') sLost++;
+            });
+
+            const total = calcBase.length || 1;
+            const wPct = Math.round((sWin / total) * 100);
+            const dPct = Math.round((sDraw / total) * 100);
+            const lPct = Math.max(0, 100 - wPct - dPct);
+
+            summaryWrap.innerHTML = `
+              <div class="lm-bar-track">
+                <div class="lm-bar-fill win" style="width: ${wPct}%;"></div>
+                <div class="lm-bar-fill draw" style="width: ${dPct}%;"></div>
+                <div class="lm-bar-fill lost" style="width: ${lPct}%;"></div>
+              </div>
+              <div class="lm-stat-row">
+                <div class="lm-stat-item win"><div>Win <b>${sWin}</b></div><div class="lm-stat-pct">${wPct}%</div></div>
+                <div class="lm-stat-item draw"><div>Draw <b>${sDraw}</b></div><div class="lm-stat-pct">${dPct}%</div></div>
+                <div class="lm-stat-item lost"><div>Lost <b>${sLost}</b></div><div class="lm-stat-pct">${lPct}%</div></div>
+              </div>
+            `;
+          }
+
+          // View all toggle button
+          const btn = document.getElementById(`${p}Btn`);
+          if (btn) {
+            if (filtered.length > 6) {
+              btn.style.display = 'block';
+              btn.innerText = state.expanded ? 'Show Less' : `View all (${filtered.length})`;
+            } else {
+              btn.style.display = 'none';
+            }
+          }
+        };
+
+        // Render all 4 blocks
+        ['homeOverall', 'awayOverall', 'homeHome', 'awayAway'].forEach(k => window.renderLmBlock(k));
+      } catch (e) {
+        console.error('Error rendering Last Matches:', e);
+      }
+
+      // 6. Overall Stats
+      try {
+        renderOverallStats(data.overallStats, homeCode, awayCode, homeLogo, awayLogo, homeTeam, awayTeam);
+      } catch (e) {
+        console.error('Error rendering Overall Stats:', e);
+      }
+
+      // 7. Next Matches
+      try {
+        renderNextMatches(data.nextMatches, homeCode, awayCode);
+      } catch (e) {
+        console.error('Error rendering Next Matches:', e);
+      }
+    }
+
+    function renderPredictionMarkets(data) {
+      const thead = document.getElementById('marketThead');
+      const tbody = document.getElementById('marketTbody');
+      const hero = data?.hero || {};
+      const markets = data?.markets || {};
+
+      const tabConfig = [
+        { key: '1X2', label: '1X2' },
+        { key: 'UnderOver', label: 'Under/Over 2.5' },
+        { key: 'HT', label: 'Half Time' },
+        { key: 'HT_FT', label: 'HT / FT' },
+        { key: 'BTTS', label: 'Both Teams To Score' },
+        { key: 'Double', label: 'Double Chance' },
+        { key: 'Handicap', label: 'Handicap' },
+        { key: 'Scorers', label: 'Scorers' },
+        { key: 'Corners', label: 'Corners' },
+        { key: 'Cards', label: 'Cards' },
+      ];
+
+      const availableTabs = tabConfig.filter(t => markets[t.key] !== undefined && markets[t.key] !== null);
+
+      if (!availableTabs.some(t => t.key === activeMarketTab)) {
+        activeMarketTab = availableTabs[0]?.key || '1X2';
+      }
+
+      const tabsContainer = document.getElementById('marketTabsList');
+      tabsContainer.innerHTML = availableTabs.map(t => `
+        <button class="market-tab-btn ${t.key === activeMarketTab ? 'active' : ''}" onclick="switchMarketTab('${t.key}')">
+          ${t.label}
+        </button>
+      `).join('');
+
+      window.switchMarketTab = function(key) {
+        activeMarketTab = key;
+        renderPredictionMarkets(data);
+      };
+
+      const teamCellHtml = `
+        <div class="td-teams-cell">
+          <span>${hero.homeTeam || 'Home Team'}</span>
+          <span>${hero.awayTeam || 'Away Team'}</span>
+        </div>
+      `;
+
+      const renderBadge = (pick, status) => {
+        const s = (status || '').toLowerCase().trim();
+        let cls = 'pending';
+        if (s === 'correct' || s === 'win' || s === 'won') {
+          cls = 'win';
+        } else if (s === 'incorrect' || s === 'lost' || s === 'loss') {
+          cls = 'lost';
+        }
+        return `<span class="pred-badge ${cls}">${pick || '-'}</span>`;
+      };
+
+      const renderScoreCell = (h) => {
+        const res = h?.result;
+        if (res && res.status !== 'Upcoming' && res.score && res.score !== '-') {
+          let extra = [];
+          if (res.htScore) extra.push(`(${res.htScore})`);
+          if (res.penScore) extra.push(`Pen. ${res.penScore}`);
+          if (res.aetScore) extra.push(`AET`);
+
+          return `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+              <div style="font-weight: 800; color: #0f172a; font-size: 13px;">
+                <span class="coef-fore-box" style="font-size: 10px; margin-right: 2px;">${res.status || 'FT'}</span> 
+                <b class="score-exact-num" style="color: #008000;">${res.score}</b>
+              </div>
+              ${extra.length > 0 ? `<span style="font-size: 10px; color: #64748b; font-weight: 700;">${extra.join(' ')}</span>` : ''}
+            </div>
+          `;
+        }
+        return `<span style="color: #94a3b8; font-weight: 700;">-</span>`;
+      };
+
+      if (activeMarketTab === '1X2') {
+        const p = markets['1X2'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">
+              <div class="th-prob-header">
+                <div class="th-prob-title">Probability %</div>
+                <div class="th-prob-subcols"><span>1</span><span>X</span><span>2</span></div>
+              </div>
+            </th>
+            <th style="width: 8%;">Pred</th>
+            <th style="width: 10%;">Correct score</th>
+            <th style="width: 9%;">Avg. goals</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 7%;">Odds</th>
+            <th style="width: 8%;">Live avg.</th>
+            <th style="width: 7%;">Score</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td>
+              <div class="td-prob-values">
+                <span>${p.prob1 || '-'}</span>
+                <span>${p.probX || '-'}</span>
+                <span>${p.prob2 || '-'}</span>
+              </div>
+            </td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'UnderOver') {
+        const p = markets['UnderOver'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">
+              <div class="th-prob-header">
+                <div class="th-prob-title">Prob. % (Under / Over 2.5)</div>
+                <div class="th-prob-subcols"><span>Under</span><span>Over</span></div>
+              </div>
+            </th>
+            <th style="width: 8%;">Pred</th>
+            <th style="width: 10%;">Correct score</th>
+            <th style="width: 9%;">Avg. goals</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 7%;">Odds</th>
+            <th style="width: 8%;">Live avg.</th>
+            <th style="width: 7%;">Score</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><div class="td-prob-values"><span>${p.probUnder || '-'}</span><span>${p.probOver || '-'}</span></div></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'HT') {
+        const p = markets['HT'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">
+              <div class="th-prob-header">
+                <div class="th-prob-title">HT Prob. %</div>
+                <div class="th-prob-subcols"><span>1</span><span>X</span><span>2</span></div>
+              </div>
+            </th>
+            <th style="width: 8%;">Pred</th>
+            <th style="width: 10%;">HT Score</th>
+            <th style="width: 9%;">Avg. goals</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 7%;">Odds</th>
+            <th style="width: 8%;">Live avg.</th>
+            <th style="width: 7%;">Score</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><div class="td-prob-values"><span>${p.prob1 || '-'}</span><span>${p.probX || '-'}</span><span>${p.prob2 || '-'}</span></div></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.htScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'HT_FT') {
+        const p = markets['HT_FT'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">HT/FT Prob. %</th>
+            <th style="width: 14%;">Pred (HT FT)</th>
+            <th style="width: 10%;">Correct score</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 8%;">Odds</th>
+            <th style="width: 9%;">Live avg.</th>
+            <th style="width: 8%;">Score</th>
+          </tr>
+        `;
+        const htB = renderBadge(p.htPick || p.pick?.split('/')[0]?.trim() || 'X', p.htStatus || 'pending');
+        const ftB = renderBadge(p.ftPick || p.pick?.split('/')[1]?.trim() || 'X', p.ftStatus || 'pending');
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><span style="font-weight: 800; color: #0f172a; font-size: 13px;">${p.prob11 || '-'}</span></td>
+            <td><div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center;">${htB} ${ftB}</div></td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'BTTS') {
+        const p = markets['BTTS'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">
+              <div class="th-prob-header">
+                <div class="th-prob-title">BTTS Prob. %</div>
+                <div class="th-prob-subcols"><span>No</span><span>Yes</span></div>
+              </div>
+            </th>
+            <th style="width: 8%;">Pred</th>
+            <th style="width: 10%;">Correct score</th>
+            <th style="width: 9%;">Avg. goals</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 7%;">Odds</th>
+            <th style="width: 8%;">Live avg.</th>
+            <th style="width: 7%;">Score</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><div class="td-prob-values"><span>${p.probNo || '-'}</span><span>${p.probYes || '-'}</span></div></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'Double') {
+        const p = markets['Double'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">
+              <div class="th-prob-header">
+                <div class="th-prob-title">Double Chance Prob. %</div>
+                <div class="th-prob-subcols"><span>1X</span><span>12</span><span>X2</span></div>
+              </div>
+            </th>
+            <th style="width: 8%;">Pred</th>
+            <th style="width: 10%;">Correct score</th>
+            <th style="width: 9%;">Avg. goals</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 7%;">Odds</th>
+            <th style="width: 8%;">Live avg.</th>
+            <th style="width: 7%;">Score</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><div class="td-prob-values"><span>${p.prob1X || '-'}</span><span>${p.prob12 || '-'}</span><span>${p.probX2 || '-'}</span></div></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'Handicap') {
+        const p = markets['Handicap'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">Handicap Prob. %</th>
+            <th style="width: 14%;">Pred (Handicap)</th>
+            <th style="width: 10%;">Correct score</th>
+            <th style="width: 9%;">Avg. goals</th>
+            <th style="width: 9%;">Odds</th>
+            <th style="width: 9%;">Live avg.</th>
+            <th style="width: 8%;">Score</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><span style="font-weight: 800; color: #0f172a; font-size: 13px;">${p.prob1 || '-'}</span></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${renderScoreCell(hero)}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'Scorers') {
+        const p = markets['Scorers'] || {};
+        const scorersList = p.predictedScorers || p.scorers || [];
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 30%; text-align: left; padding-left: 12px;">Player</th>
+            <th style="width: 20%;">Team</th>
+            <th style="width: 20%;">Probability %</th>
+            <th style="width: 15%;">Odds</th>
+            <th style="width: 15%;">Score</th>
+          </tr>
+        `;
+        if (scorersList.length > 0) {
+          tbody.innerHTML = scorersList.map(s => `
+            <tr>
+              <td style="text-align: left; padding-left: 12px; font-weight: 800; color: #0f172a;">${s.player}</td>
+              <td><b>${s.team || '-'}</b></td>
+              <td><span style="font-weight: 800; color: #0284c7;">${s.prob}</span></td>
+              <td><span class="coef-fore-box">${s.odds || '-'}</span></td>
+              <td><span style="color: #94a3b8; font-weight: 700;">-</span></td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 18px;">No anytime goalscorer data for this match.</td></tr>`;
+        }
+      } else if (activeMarketTab === 'Corners') {
+        const p = markets['Corners'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">Prob. % (Under / Over 9.5)</th>
+            <th style="width: 10%;">Pred</th>
+            <th style="width: 12%;">Corners score</th>
+            <th style="width: 11%;">Avg. corners</th>
+            <th style="width: 8%;">Odds</th>
+            <th style="width: 9%;">Live avg.</th>
+            <th style="width: 9%;">Corners</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><div class="td-prob-values"><span>${p.probUnder || '-'}</span><span>${p.probOver || '-'}</span></div></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${p.ftResult && p.ftResult !== '-' ? `<div class="td-score-cell"><span class="td-ft-badge">FT</span> <b>${p.ftResult}</b></div>` : `<span style="color: #94a3b8; font-weight: 700;">-</span>`}</td>
+          </tr>
+        `;
+      } else if (activeMarketTab === 'Cards') {
+        const p = markets['Cards'] || {};
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
+            <th style="width: 18%;">Prob. % (Under / Over 4.5)</th>
+            <th style="width: 10%;">Pred</th>
+            <th style="width: 12%;">Cards score</th>
+            <th style="width: 11%;">Avg. cards</th>
+            <th style="width: 8%;">Odds</th>
+            <th style="width: 9%;">Live avg.</th>
+            <th style="width: 9%;">Cards</th>
+          </tr>
+        `;
+        tbody.innerHTML = `
+          <tr>
+            <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
+            <td><div class="td-prob-values"><span>${p.probUnder || '-'}</span><span>${p.probOver || '-'}</span></div></td>
+            <td>${renderBadge(p.pick, p.status)}</td>
+            <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
+            <td><b>${p.avgGoals || '-'}</b></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
+            <td>${p.ftResult && p.ftResult !== '-' ? `<div class="td-score-cell"><span class="td-ft-badge">FT</span> <b>${p.ftResult}</b></div>` : `<span style="color: #94a3b8; font-weight: 700;">-</span>`}</td>
+          </tr>
+        `;
+      }
+    }
+
+    let osRawData = null;
+    let osHeroMeta = { homeCode: 'HOM', awayCode: 'AWY', homeLogo: '', awayLogo: '', homeName: 'Home', awayName: 'Away' };
+    let osState = {
+      index: 0,
+      category: 'ft',
+      league: 'all',
+      eventTab: '1st_goal',
+      tpMode: 'scored'
+    };
+
+    window.setOsIndex = function(idx) {
+      osState.index = idx;
+      const tabOverall = document.getElementById('osTabOverall');
+      const tabHomeAway = document.getElementById('osTabHomeAway');
+      if (tabOverall) tabOverall.classList.toggle('active', idx === 0);
+      if (tabHomeAway) tabHomeAway.classList.toggle('active', idx === 1);
+      window.updateOverallDisplay();
+    };
+
+    window.setOsCategory = function(cat) {
+      let c = (cat || 'ft').toLowerCase();
+      if (c === 'ht') c = 'ht1';
+      osState.category = c;
+      const sel = document.getElementById('osTimeSelect');
+      if (sel) sel.value = osState.category;
+      window.updateOverallDisplay();
+    };
+
+    window.setOsLeague = function(lgKey) {
+      osState.league = lgKey;
+      document.querySelectorAll('.os-league-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-league') === lgKey);
+      });
+      window.updateOverallDisplay();
+    };
+
+    window.setOsAetEvent = function(evType) {
+      osState.eventTab = evType;
+      const gBtn = document.getElementById('osAetGoalBtn');
+      const cBtn = document.getElementById('osAetCornerBtn');
+      const dBtn = document.getElementById('osAetCardBtn');
+      if (gBtn) gBtn.classList.toggle('active', evType === '1st_goal');
+      if (cBtn) cBtn.classList.toggle('active', evType === '1st_corner');
+      if (dBtn) dBtn.classList.toggle('active', evType === '1st_card');
+      window.updateOverallDisplay();
+    };
+
+    window.setOsTpMode = function(mode) {
+      osState.tpMode = mode;
+      const sBtn = document.getElementById('osTpScoredBtn');
+      const cBtn = document.getElementById('osTpConcededBtn');
+      if (sBtn) sBtn.classList.toggle('active', mode === 'scored');
+      if (cBtn) cBtn.classList.toggle('active', mode === 'conceded');
+      window.updateOverallDisplay();
+    };
+
+    function renderOverallStats(os, homeCode, awayCode, homeLogo, awayLogo, homeName = 'Home', awayName = 'Away') {
+      if (!os) return;
+
+      osRawData = os.rawOvd || null;
+      osHeroMeta = { homeCode, awayCode, homeLogo, awayLogo, homeName, awayName };
+
+      // Set logos & codes across all 10 cards
+      const setLogo = (id, url) => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (url) {
+            el.src = url;
+            el.style.display = 'inline-block';
+          } else {
+            el.style.display = 'none';
+          }
+        }
+      };
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val !== undefined && val !== null ? String(val) : '-';
+      };
+
+      ['osPies', 'osTp', 'osShots', 'osPass', 'osAet', 'osAtk', 'osOthers', 'osDisc', 'osPg'].forEach(prefix => {
+        setLogo(`${prefix}HomeLogo`, homeLogo);
+        setLogo(`${prefix}AwayLogo`, awayLogo);
+        setText(`${prefix}HomeCode`, homeCode);
+        setText(`${prefix}AwayCode`, awayCode);
+      });
+
+      // Render League Pills
+      const leagues = os.availableLeagues || [{ name: 'All leagues', key: 'all' }];
+      const lgWrap = document.getElementById('osLeaguePills');
+      if (lgWrap) {
+        lgWrap.innerHTML = leagues.map(l => `
+          <button class="os-league-pill ${l.key === osState.league ? 'active' : ''}" data-league="${l.key}" onclick="setOsLeague('${l.key}')">${l.name}</button>
+        `).join('');
+      }
+
+      window.updateOverallDisplay(os);
+    }
+
+    window.updateOverallDisplay = function(staticFallback) {
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val !== undefined && val !== null ? String(val) : '-';
+      };
+
+      const calcAvg = (tot, pl) => (!pl || pl === 0 || isNaN(tot)) ? '0.00' : (tot / pl).toFixed(2);
+      const calcPct = (val, tot) => (!tot || tot === 0 || isNaN(val)) ? '0%' : Math.round((val / tot) * 100) + '%';
+      const parseNum = (v, def = 0) => {
+        if (v === undefined || v === null || v === '-') return def;
+        const n = parseFloat(v);
+        return isNaN(n) ? def : n;
+      };
+
+      // If we have raw OVD data, extract dynamically
+      let hObj = null, aObj = null;
+      let hPl = 0, aPl = 0;
+
+      const hData = osRawData?.h || null;
+      const aData = osRawData?.a || null;
+
+      const hIdx = osState.index === 1 ? 1 : 0;
+      const aIdx = osState.index === 1 ? 2 : 0;
+      const lg = osState.league || 'all';
+      let cat = osState.category || 'ft';
+      if (cat === 'ht') cat = 'ht1';
+
+      if (hData && aData) {
+        const hLgObj = hData[lg] || hData['all'] || {};
+        const aLgObj = aData[lg] || aData['all'] || {};
+
+        hObj = hLgObj[cat] || hLgObj['ft'] || {};
+        aObj = aLgObj[cat] || aLgObj['ft'] || {};
+
+        hPl = parseNum(hObj.pl?.[hIdx], 0);
+        aPl = parseNum(aObj.pl?.[aIdx], 0);
+      }
+
+      // 1. PLAYED GAMES
+      const hPlVal = hObj ? hPl : parseNum(staticFallback?.playedGames?.home, 0);
+      const aPlVal = aObj ? aPl : parseNum(staticFallback?.playedGames?.away, 0);
+      setText('osPgHomeNum', hPlVal);
+      setText('osPgAwayNum', aPlVal);
+
+      // 2. GOALS
+      let hScr = 0, aScr = 0, hCnd = 0, aCnd = 0;
+      let hSn = 0, aSn = 0;
+
+      if (hObj && aObj) {
+        hScr = parseNum(hObj.scr?.[hIdx], 0);
+        aScr = parseNum(aObj.scr?.[aIdx], 0);
+        hCnd = parseNum(hObj.cnd?.[hIdx], 0);
+        aCnd = parseNum(aObj.cnd?.[aIdx], 0);
+        hSn = parseNum(hObj.sn?.[hIdx], 0);
+        aSn = parseNum(aObj.sn?.[aIdx], 0);
+      } else if (staticFallback) {
+        hScr = parseNum(staticFallback.goalsScored?.total?.home, 0);
+        aScr = parseNum(staticFallback.goalsScored?.total?.away, 0);
+        hCnd = parseNum(staticFallback.goalsConceded?.total?.home, 0);
+        aCnd = parseNum(staticFallback.goalsConceded?.total?.away, 0);
+        hSn = parseNum(staticFallback.scoredGoalMatches?.home?.yesCount, 0);
+        aSn = parseNum(staticFallback.scoredGoalMatches?.away?.yesCount, 0);
+      }
+
+      setText('osGoalsScoredHomeTot', hScr);
+      setText('osGoalsScoredHomeAvg', calcAvg(hScr, hPlVal));
+      setText('osGoalsConcHomeTot', hCnd);
+      setText('osGoalsConcHomeAvg', calcAvg(hCnd, hPlVal));
+
+      setText('osGoalsScoredAwayTot', aScr);
+      setText('osGoalsScoredAwayAvg', calcAvg(aScr, aPlVal));
+      setText('osGoalsConcAwayTot', aCnd);
+      setText('osGoalsConcAwayAvg', calcAvg(aCnd, aPlVal));
+
+      // Scored a goal / Conceded a goal Dual Bars
+      const hSnNo = hPlVal >= hSn ? hPlVal - hSn : 0;
+      const aSnNo = aPlVal >= aSn ? aPlVal - aSn : 0;
+      const hSnYesPct = parseInt(calcPct(hSn, hPlVal), 10) || 0;
+      const hSnNoPct = 100 - hSnYesPct;
+      const aSnYesPct = parseInt(calcPct(aSn, aPlVal), 10) || 0;
+      const aSnNoPct = 100 - aSnYesPct;
+
+      setText('osScoredHomeBarTitle', `In last ${hPlVal} matches`);
+      setText('osScoredAwayBarTitle', `In last ${aPlVal} matches`);
+      setText('osScoredHomeYesText', `Yes ${hSn} (${hSnYesPct}%)`);
+      setText('osScoredHomeNoText', `${hSnNo} (${hSnNoPct}%) No`);
+      setText('osScoredAwayYesText', `Yes ${aSn} (${aSnYesPct}%)`);
+      setText('osScoredAwayNoText', `${aSnNo} (${aSnNoPct}%) No`);
+
+      const hYesBar = document.getElementById('osScoredHomeBarYes');
+      const hNoBar = document.getElementById('osScoredHomeBarNo');
+      const aYesBar = document.getElementById('osScoredAwayBarYes');
+      const aNoBar = document.getElementById('osScoredAwayBarNo');
+
+      if (hYesBar) hYesBar.style.width = `${hSnYesPct}%`;
+      if (hNoBar) hNoBar.style.width = `${hSnNoPct}%`;
+      if (aYesBar) aYesBar.style.width = `${aSnYesPct}%`;
+      if (aNoBar) aNoBar.style.width = `${aSnNoPct}%`;
+
+      // 3. OVER / UNDER PIES
+      const renderPieRow = (centerVal, centerSub, hVal, aVal, isBtts = false) => {
+        const hOverCount = isBtts ? hVal : (hPlVal >= hVal ? hPlVal - hVal : 0);
+        const hUnderCount = isBtts ? (hPlVal >= hVal ? hPlVal - hVal : 0) : hVal;
+        const aOverCount = isBtts ? aVal : (aPlVal >= aVal ? aPlVal - aVal : 0);
+        const aUnderCount = isBtts ? (aPlVal >= aVal ? aPlVal - aVal : 0) : aVal;
+
+        const hPctNum = parseInt(calcPct(hOverCount, hPlVal), 10) || 0;
+        const aPctNum = parseInt(calcPct(aOverCount, aPlVal), 10) || 0;
+
+        const hCounts = isBtts ? `${hOverCount} ${hUnderCount}` : `${hUnderCount} ${hOverCount}`;
+        const aCounts = isBtts ? `${aOverCount} ${aUnderCount}` : `${aUnderCount} ${aOverCount}`;
+
+        return `
+          <div class="os-pie-row-item">
+            <div class="os-pie-side">
+              <div class="os-pie-texts">
+                <span>${isBtts ? 'Yes / No' : 'Under / Over'}</span>
+                <span class="os-pie-counts">${hCounts}</span>
+              </div>
+              <div class="os-pie-circle-54" style="background: conic-gradient(#475569 0% ${hPctNum}%, #0f172a ${hPctNum}% 100%);">
+                ${hPctNum}%
+              </div>
+            </div>
+
+            <div class="os-pie-center-label">
+              <div class="os-pie-center-val">${centerVal}</div>
+              <div class="os-pie-center-sub">${centerSub}</div>
+            </div>
+
+            <div class="os-pie-side right">
+              <div class="os-pie-texts" style="text-align: right;">
+                <span>${isBtts ? 'Yes / No' : 'Under / Over'}</span>
+                <span class="os-pie-counts">${aCounts}</span>
+              </div>
+              <div class="os-pie-circle-54" style="background: conic-gradient(#475569 0% ${aPctNum}%, #0f172a ${aPctNum}% 100%);">
+                ${aPctNum}%
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
+      const hUn15 = hObj ? parseNum(hObj['un1.5']?.[hIdx], 0) : parseNum(staticFallback?.goals15?.home?.under, 0);
+      const aUn15 = aObj ? parseNum(aObj['un1.5']?.[aIdx], 0) : parseNum(staticFallback?.goals15?.away?.under, 0);
+
+      const hUn25 = hObj ? parseNum(hObj['un2.5']?.[hIdx], 0) : parseNum(staticFallback?.goals25?.home?.under, 0);
+      const aUn25 = aObj ? parseNum(aObj['un2.5']?.[aIdx], 0) : parseNum(staticFallback?.goals25?.away?.under, 0);
+
+      const hUn35 = hObj ? parseNum(hObj['un3.5']?.[hIdx], 0) : parseNum(staticFallback?.goals35?.home?.under, 0);
+      const aUn35 = aObj ? parseNum(aObj['un3.5']?.[aIdx], 0) : parseNum(staticFallback?.goals35?.away?.under, 0);
+
+      const hBts = hObj ? parseNum(hObj.bts?.[hIdx], 0) : parseNum(staticFallback?.bothScored?.home?.yes, 0);
+      const aBts = aObj ? parseNum(aObj.bts?.[aIdx], 0) : parseNum(staticFallback?.bothScored?.away?.yes, 0);
+
+      const piesWrap = document.getElementById('osPiesRowsWrap');
+      if (piesWrap) {
+        piesWrap.innerHTML = `
+          ${renderPieRow('1.5', 'Goals', hUn15, aUn15)}
+          ${renderPieRow('2.5', 'Goals', hUn25, aUn25)}
+          ${renderPieRow('3.5', 'Goals', hUn35, aUn35)}
+          ${renderPieRow('Both', 'scored', hBts, aBts, true)}
+        `;
+      }
+
+      // Goals by Time Period Visibility
+      const tpCard = document.getElementById('osGoalsByTpCard');
+      if (tpCard) {
+        tpCard.style.display = (cat === 'ft') ? 'block' : 'none';
+      }
+
+      if (cat === 'ft') {
+        const intervals = ["0_15", "15_30", "30_45", "45_60", "60_75", "75_90"];
+        const intervalLabels = ["0'", "15'", "30'", "HT", "60'", "75'", "FT"];
+
+        const tpPrefix = osState.tpMode === 'conceded' ? 'cnd_min_' : 'scr_min_';
+
+        const hTp = intervals.map(k => hObj ? parseNum(hObj[`${tpPrefix}${k}`]?.[hIdx], 0) : 0);
+        const aTp = intervals.map(k => aObj ? parseNum(aObj[`${tpPrefix}${k}`]?.[aIdx], 0) : 0);
+
+        const maxVal = Math.max(1, ...hTp, ...aTp);
+
+        const histWrap = document.getElementById('histogramContainer');
+        if (histWrap) {
+          histWrap.className = 'os-histogram-dual-wrap';
+          histWrap.innerHTML = `
+            <!-- Home Team Chart -->
+            <div class="os-hist-team-box">
+              <div class="os-hist-head">
+                <img src="${osHeroMeta.homeLogo}" style="width: 16px; height: 16px; object-fit: contain;" onerror="this.style.display='none'">
+                <span>${osHeroMeta.homeCode}</span>
+                <span class="os-hist-head-title">Goals</span>
+              </div>
+              <div class="os-hist-chart-area">
+                ${hTp.map((v) => `
+                  <div class="os-hist-bar-col">
+                    <span class="os-hist-val">${v > 0 ? v : ''}</span>
+                    <div class="os-hist-bar ${v === 0 ? 'empty' : ''}" style="height: ${v === 0 ? 2 : Math.max(4, Math.round((v / maxVal) * 52))}px;"></div>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="os-hist-labels">
+                ${intervalLabels.map(l => `<span class="os-hist-lbl">${l}</span>`).join('')}
+              </div>
+            </div>
+
+            <!-- Away Team Chart -->
+            <div class="os-hist-team-box">
+              <div class="os-hist-head">
+                <img src="${osHeroMeta.awayLogo}" style="width: 16px; height: 16px; object-fit: contain;" onerror="this.style.display='none'">
+                <span>${osHeroMeta.awayCode}</span>
+                <span class="os-hist-head-title">Goals</span>
+              </div>
+              <div class="os-hist-chart-area">
+                ${aTp.map((v) => `
+                  <div class="os-hist-bar-col">
+                    <span class="os-hist-val">${v > 0 ? v : ''}</span>
+                    <div class="os-hist-bar ${v === 0 ? 'empty' : ''}" style="height: ${v === 0 ? 2 : Math.max(4, Math.round((v / maxVal) * 52))}px;"></div>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="os-hist-labels">
+                ${intervalLabels.map(l => `<span class="os-hist-lbl">${l}</span>`).join('')}
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      const getVal = (arr, idx) => {
+        if (!arr || arr[idx] === undefined || arr[idx] === null || arr[idx] === '-' || arr[idx] === '') return null;
+        const n = parseFloat(arr[idx]);
+        return isNaN(n) ? null : n;
+      };
+
+      // 5. SHOTS (2-BOX FOREBET DESIGN)
+      setText('shotsHomeName', osHeroMeta.homeCode);
+      setText('shotsAwayName', osHeroMeta.awayCode);
+
+      const hShotsTot = getVal(hObj?.shots_total, hIdx);
+      const aShotsTot = getVal(aObj?.shots_total, aIdx);
+      const hShotsBlk = getVal(hObj?.shots_blocked, hIdx);
+      const aShotsBlk = getVal(aObj?.shots_blocked, aIdx);
+      const hShotsOn = getVal(hObj?.shots_on_target, hIdx);
+      const aShotsOn = getVal(aObj?.shots_on_target, aIdx);
+      const hShotsOff = getVal(hObj?.shots_off_target, hIdx);
+      const aShotsOff = getVal(aObj?.shots_off_target, aIdx);
+      const hShotsIn = getVal(hObj?.shots_insidebox, hIdx);
+      const aShotsIn = getVal(aObj?.shots_insidebox, aIdx);
+      const hShotsOut = getVal(hObj?.shots_outsidebox, hIdx);
+      const aShotsOut = getVal(aObj?.shots_outsidebox, aIdx);
+
+      if (hShotsTot !== null) {
+        setText('shotsHomeTotVal', hShotsTot);
+        setText('shotsHomeTotAvg', calcAvg(hShotsTot, hPlVal));
+        setText('shotsHomeBlkVal', hShotsBlk !== null ? hShotsBlk : '-');
+        setText('shotsHomeBlkAvg', hShotsBlk !== null ? calcAvg(hShotsBlk, hPlVal) : '-');
+
+        const onPct = Math.round(((hShotsOn || 0) / hShotsTot) * 100);
+        const offPct = Math.round(((hShotsOff || 0) / hShotsTot) * 100);
+        setText('shotsHomeOnPct', `${onPct}%`);
+        setText('shotsHomeOffPct', `${offPct}%`);
+
+        const inOutSum = (hShotsIn || 0) + (hShotsOut || 0);
+        if (inOutSum > 0) {
+          setText('shotsHomeInsidePct', `${Math.round(((hShotsIn || 0) / inOutSum) * 100)}%`);
+          setText('shotsHomeOutsidePct', `${Math.round(((hShotsOut || 0) / inOutSum) * 100)}%`);
+        } else {
+          setText('shotsHomeInsidePct', '-');
+          setText('shotsHomeOutsidePct', '-');
+        }
+      } else {
+        setText('shotsHomeTotVal', '-');
+        setText('shotsHomeTotAvg', '-');
+        setText('shotsHomeBlkVal', '-');
+        setText('shotsHomeBlkAvg', '-');
+        setText('shotsHomeOnPct', '-');
+        setText('shotsHomeOffPct', '-');
+        setText('shotsHomeInsidePct', '-');
+        setText('shotsHomeOutsidePct', '-');
+      }
+
+      if (aShotsTot !== null) {
+        setText('shotsAwayTotVal', aShotsTot);
+        setText('shotsAwayTotAvg', calcAvg(aShotsTot, aPlVal));
+        setText('shotsAwayBlkVal', aShotsBlk !== null ? aShotsBlk : '-');
+        setText('shotsAwayBlkAvg', aShotsBlk !== null ? calcAvg(aShotsBlk, aPlVal) : '-');
+
+        const onPct = Math.round(((aShotsOn || 0) / aShotsTot) * 100);
+        const offPct = Math.round(((aShotsOff || 0) / aShotsTot) * 100);
+        setText('shotsAwayOnPct', `${onPct}%`);
+        setText('shotsAwayOffPct', `${offPct}%`);
+
+        const inOutSum = (aShotsIn || 0) + (aShotsOut || 0);
+        if (inOutSum > 0) {
+          setText('shotsAwayInsidePct', `${Math.round(((aShotsIn || 0) / inOutSum) * 100)}%`);
+          setText('shotsAwayOutsidePct', `${Math.round(((aShotsOut || 0) / inOutSum) * 100)}%`);
+        } else {
+          setText('shotsAwayInsidePct', '-');
+          setText('shotsAwayOutsidePct', '-');
+        }
+      } else {
+        setText('shotsAwayTotVal', '-');
+        setText('shotsAwayTotAvg', '-');
+        setText('shotsAwayBlkVal', '-');
+        setText('shotsAwayBlkAvg', '-');
+        setText('shotsAwayOnPct', '-');
+        setText('shotsAwayOffPct', '-');
+        setText('shotsAwayInsidePct', '-');
+        setText('shotsAwayOutsidePct', '-');
+      }
+
+      // 6. PASSES
+      const hPassTot = getVal(hObj?.passes_total, hIdx);
+      const aPassTot = getVal(aObj?.passes_total, aIdx);
+      const hPassAcc = getVal(hObj?.passes_accurate, hIdx);
+      const aPassAcc = getVal(aObj?.passes_accurate, aIdx);
+      const hPoss = getVal(hObj?.ball_poss, hIdx);
+      const aPoss = getVal(aObj?.ball_poss, aIdx);
+
+      if (hPassTot !== null) {
+        setText('passesHomeTot', hPassTot);
+        setText('passesHomeAvg', calcAvg(hPassTot, hPlVal));
+        setText('passesHomeAccCount', hPassAcc !== null ? hPassAcc : '-');
+        setText('passesHomeAccPct', hPassAcc !== null ? calcPct(hPassAcc, hPassTot) : '-');
+      } else {
+        setText('passesHomeTot', '-');
+        setText('passesHomeAvg', '-');
+        setText('passesHomeAccCount', '-');
+        setText('passesHomeAccPct', '-');
+      }
+      setText('passesHomePoss', hPoss !== null ? `${Math.floor(hPoss)}%` : '-');
+
+      if (aPassTot !== null) {
+        setText('passesAwayTot', aPassTot);
+        setText('passesAwayAvg', calcAvg(aPassTot, aPlVal));
+        setText('passesAwayAccCount', aPassAcc !== null ? aPassAcc : '-');
+        setText('passesAwayAccPct', aPassAcc !== null ? calcPct(aPassAcc, aPassTot) : '-');
+      } else {
+        setText('passesAwayTot', '-');
+        setText('passesAwayAvg', '-');
+        setText('passesAwayAccCount', '-');
+        setText('passesAwayAccPct', '-');
+      }
+      setText('passesAwayPoss', aPoss !== null ? `${Math.floor(aPoss)}%` : '-');
+
+      // 7. AVG EVENT TIME
+      const ev = osState.eventTab || '1st_goal';
+      const hasAet = cat === 'ft' && hObj && (getVal(hObj['1st_goal_scr_min'], hIdx) !== null || getVal(hObj['1st_corner_min'], hIdx) !== null);
+
+      const hScoredPin = document.getElementById('aetHomeScoredPin');
+      const hConcPin = document.getElementById('aetHomeConcPin');
+      const aScoredPin = document.getElementById('aetAwayScoredPin');
+      const aConcPin = document.getElementById('aetAwayConcPin');
+
+      if (hasAet) {
+        let hEvScored = 0, hEvConc = 0, aEvScored = 0, aEvConc = 0;
+
+        if (ev === '1st_goal') {
+          hEvScored = parseNum(hObj['1st_goal_scr_min']?.[hIdx], 44);
+          hEvConc = parseNum(hObj['1st_goal_cnd_min']?.[hIdx], 28);
+          aEvScored = parseNum(aObj['1st_goal_scr_min']?.[aIdx], 42);
+          aEvConc = parseNum(aObj['1st_goal_cnd_min']?.[aIdx], 38);
+        } else if (ev === '1st_corner') {
+          hEvScored = parseNum(hObj['1st_corner_min']?.[hIdx], 35);
+          hEvConc = 0;
+          aEvScored = parseNum(aObj['1st_corner_min']?.[aIdx], 32);
+          aEvConc = 0;
+        } else if (ev === '1st_card') {
+          hEvScored = parseNum(hObj['1st_card_min']?.[hIdx], 50);
+          hEvConc = 0;
+          aEvScored = parseNum(aObj['1st_card_min']?.[aIdx], 48);
+          aEvConc = 0;
+        }
+
+        setText('aetHomeScoredVal', hEvScored ? `${Math.ceil(hEvScored)}'` : '-');
+        setText('aetHomeConcVal', hEvConc ? `${Math.ceil(hEvConc)}'` : '-');
+        setText('aetAwayScoredVal', aEvScored ? `${Math.ceil(aEvScored)}'` : '-');
+        setText('aetAwayConcVal', aEvConc ? `${Math.ceil(aEvConc)}'` : '-');
+
+        const parseMinPct = num => Math.min(95, Math.max(5, (num / 90) * 100));
+
+        if (hScoredPin) { hScoredPin.style.display = 'flex'; hScoredPin.style.left = `${parseMinPct(hEvScored)}%`; }
+        if (hConcPin) {
+          hConcPin.style.display = hEvConc ? 'flex' : 'none';
+          hConcPin.style.left = `${parseMinPct(hEvConc)}%`;
+        }
+        if (aScoredPin) { aScoredPin.style.display = 'flex'; aScoredPin.style.left = `${parseMinPct(aEvScored)}%`; }
+        if (aConcPin) {
+          aConcPin.style.display = aEvConc ? 'flex' : 'none';
+          aConcPin.style.left = `${parseMinPct(aEvConc)}%`;
+        }
+      } else {
+        setText('aetHomeScoredVal', '-');
+        setText('aetHomeConcVal', '-');
+        setText('aetAwayScoredVal', '-');
+        setText('aetAwayConcVal', '-');
+        if (hScoredPin) hScoredPin.style.display = 'none';
+        if (hConcPin) hConcPin.style.display = 'none';
+        if (aScoredPin) aScoredPin.style.display = 'none';
+        if (aConcPin) aConcPin.style.display = 'none';
+      }
+
+      // 8. ATTACKS
+      setText('atkHomeFullName', osHeroMeta.homeName);
+      setText('atkAwayFullName', osHeroMeta.awayName);
+      setText('osDangHomeCode', osHeroMeta.homeCode);
+      setText('osDangAwayCode', osHeroMeta.awayCode);
+      setText('dangHomeFullName', osHeroMeta.homeName);
+      setText('dangAwayFullName', osHeroMeta.awayName);
+
+      const hAttTot = getVal(hObj?.attacks, hIdx);
+      const aAttTot = getVal(aObj?.attacks, aIdx);
+      const hDangTot = getVal(hObj?.dan_attacks, hIdx);
+      const aDangTot = getVal(aObj?.dan_attacks, aIdx);
+
+      setText('atkHomeTot', hAttTot !== null ? hAttTot : '-');
+      setText('atkHomeAvg', hAttTot !== null ? calcAvg(hAttTot, hPlVal) : '-');
+      setText('atkAwayTot', aAttTot !== null ? aAttTot : '-');
+      setText('atkAwayAvg', aAttTot !== null ? calcAvg(aAttTot, aPlVal) : '-');
+
+      setText('dangHomeTot', hDangTot !== null ? hDangTot : '-');
+      setText('dangHomeAvg', hDangTot !== null ? calcAvg(hDangTot, hPlVal) : '-');
+      setText('dangAwayTot', aDangTot !== null ? aDangTot : '-');
+      setText('dangAwayAvg', aDangTot !== null ? calcAvg(aDangTot, aPlVal) : '-');
+
+      // 9. OTHERS TABLE
+      setText('osOthersHomePl', hPlVal);
+      setText('osOthersAwayPl', aPlVal);
+
+      const othersTbody = document.getElementById('othersTbody');
+      if (othersTbody) {
+        const cleanSheetsH = getVal(hObj?.ch, hIdx);
+        const cleanSheetsA = getVal(aObj?.ch, aIdx);
+        const cornersH = getVal(hObj?.total_corners, hIdx);
+        const cornersA = getVal(aObj?.total_corners, aIdx);
+        const goalKickH = getVal(hObj?.goal_kick, hIdx);
+        const goalKickA = getVal(aObj?.goal_kick, aIdx);
+        const throwInH = getVal(hObj?.throw_in, hIdx);
+        const throwInA = getVal(aObj?.throw_in, aIdx);
+        const offsidesH = getVal(hObj?.offsides, hIdx);
+        const offsidesA = getVal(aObj?.offsides, aIdx);
+        const penScoredH = getVal(hObj?.pen_scored, hIdx);
+        const penAwardedH = getVal(hObj?.pen_awarded, hIdx);
+        const penScoredA = getVal(aObj?.pen_scored, aIdx);
+        const penAwardedA = getVal(aObj?.pen_awarded, aIdx);
+        const savesH = getVal(hObj?.saves, hIdx);
+        const savesA = getVal(aObj?.saves, aIdx);
+
+        const formatRow = (name, hVal, aVal) => ({
+          name,
+          h: hVal !== null ? hVal : '-',
+          a: aVal !== null ? aVal : '-',
+          hAvg: hVal !== null ? calcAvg(hVal, hPlVal) : '-',
+          aAvg: aVal !== null ? calcAvg(aVal, aPlVal) : '-'
+        });
+
+        const penHStr = penScoredH !== null && penAwardedH !== null ? `${penScoredH}/${penAwardedH}` : '-';
+        const penAStr = penScoredA !== null && penAwardedA !== null ? `${penScoredA}/${penAwardedA}` : '-';
+
+        const othersRows = [
+          formatRow('Clean sheets', cleanSheetsH, cleanSheetsA),
+          formatRow('Corners', cornersH, cornersA),
+          formatRow('Goal kicks', goalKickH, goalKickA),
+          formatRow('Throws in', throwInH, throwInA),
+          formatRow('Offsides', offsidesH, offsidesA),
+          { name: 'Penalties', h: penHStr, a: penAStr, hAvg: penScoredH !== null ? calcAvg(penScoredH, hPlVal) : '-', aAvg: penScoredA !== null ? calcAvg(penScoredA, aPlVal) : '-' },
+          formatRow('GK saves', savesH, savesA)
+        ];
+
+        othersTbody.innerHTML = othersRows.map(r => `
+          <tr>
+            <td><span style="color: #64748b; font-size: 10px;">${r.hAvg}</span></td>
+            <td><b>${r.h}</b></td>
+            <td>${r.name}</td>
+            <td><b>${r.a}</b></td>
+            <td><span style="color: #64748b; font-size: 10px;">${r.aAvg}</span></td>
+          </tr>
+        `).join('');
+      }
+
+      // 10. DISCIPLINARY TABLE
+      const discTbody = document.getElementById('disciplinaryTbody');
+      if (discTbody) {
+        const redH = getVal(hObj?.redcards, hIdx);
+        const redA = getVal(aObj?.redcards, aIdx);
+        const yellowH = getVal(hObj?.yellowcards, hIdx);
+        const yellowA = getVal(aObj?.yellowcards, aIdx);
+        const foulsH = getVal(hObj?.fouls, hIdx);
+        const foulsA = getVal(aObj?.fouls, aIdx);
+        const tacklesH = getVal(hObj?.tackles, hIdx);
+        const tacklesA = getVal(aObj?.tackles, aIdx);
+
+        const discRows = [
+          { name: 'Red cards', badge: 'red', h: redH !== null ? redH : '-', a: redA !== null ? redA : '-', hAvg: redH !== null ? calcAvg(redH, hPlVal) : '-', aAvg: redA !== null ? calcAvg(redA, aPlVal) : '-' },
+          { name: 'Yellow cards', badge: 'yellow', h: yellowH !== null ? yellowH : '-', a: yellowA !== null ? yellowA : '-', hAvg: yellowH !== null ? calcAvg(yellowH, hPlVal) : '-', aAvg: yellowA !== null ? calcAvg(yellowA, aPlVal) : '-' },
+          { name: 'Fouls', badge: '', h: foulsH !== null ? foulsH : '-', a: foulsA !== null ? foulsA : '-', hAvg: foulsH !== null ? calcAvg(foulsH, hPlVal) : '-', aAvg: foulsA !== null ? calcAvg(foulsA, aPlVal) : '-' },
+          { name: 'Tackles', badge: '', h: tacklesH !== null ? tacklesH : '-', a: tacklesA !== null ? tacklesA : '-', hAvg: tacklesH !== null ? calcAvg(tacklesH, hPlVal) : '-', aAvg: tacklesA !== null ? calcAvg(tacklesA, aPlVal) : '-' }
+        ];
+
+        discTbody.innerHTML = discRows.map(r => `
+          <tr>
+            <td><span style="color: #64748b; font-size: 10px;">${r.hAvg}</span></td>
+            <td><b>${r.h}</b></td>
+            <td>${r.badge ? `<span class="os-card-badge ${r.badge}"></span>` : ''}${r.name}</td>
+            <td><b>${r.a}</b></td>
+            <td><span style="color: #64748b; font-size: 10px;">${r.aAvg}</span></td>
+          </tr>
+        `).join('');
+      }
+    };
+
+    function renderNextMatches(nm, homeCode, awayCode) {
+      if (!nm) return;
+
+      document.getElementById('nextHomeCode').innerText = homeCode;
+      document.getElementById('nextAwayCode').innerText = awayCode;
+
+      const renderFdrTable = (list) => (list || []).map(f => {
+        const diff = f.difficulty || 3;
+        return `
+          <tr>
+            <td style="text-align: left; padding-left: 6px; font-weight: 700;">${f.opponent || '-'}</td>
+            <td style="color: #64748b; font-size: 11px;">${f.league || '-'}</td>
+            <td style="color: #64748b; font-size: 11px;">${f.date || '-'}</td>
+            <td style="text-align: right;"><span class="fdr-pill fdr-${diff}">${diff}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('homeNextTbody').innerHTML = renderFdrTable(nm.home);
+      document.getElementById('awayNextTbody').innerHTML = renderFdrTable(nm.away);
+    }
+  </script>
+</body>
+</html>

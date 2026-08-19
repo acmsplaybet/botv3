@@ -1,0 +1,47 @@
+# BPA V3 / BOTV3 — Master Cursor Rules
+# Bu dosya tüm AI agentlar için geçerli en üst düzey kurallardır. Her oturumda otomatik devreye girer.
+
+## PROJE KİMLİĞİ
+- Proje Adı: BPA V3 Forebet Master Scraper & APEX Ingestion Bot (`botv3`)
+- Konum: `c:/xampp/htdocs/botv3/`
+- Stack: Node.js (v18+), Puppeteer (Stealth Evasion Engine), Express.js (Viewer Server)
+- Eşleme Hedefi: APEX API (`c:/xampp/htdocs/apex-api/` -> `POST /api/import.php` / `POST /api/sync_ingest.php`)
+- Çıktı Formatı: `output/<match-slug>/match_data.json` + `output/<match-slug>/viewer.html` (1:1 Forebet Masaüstü HTML)
+
+---
+
+## 📚 EKSİKSİZ DOKÜMANTASYON & REFERANS KÜTÜPHANESİ
+Agentlar çalışırken şu dosyaları referans almak ZORUNDADIR:
+
+### 1. Temel & Güncel Dokümanlar:
+- `docs/BOT_FOREBET_ADDENDUM.md` → **EN ÖNEMLİ DOKÜMAN:** DOM seçici haritası, JSON şeması, Açılan oranlar (Extended Odds) ve Bitmiş maç olayları (Goal/Card events) mimarisi, APEX API 19-tablo eşleme sözleşmesi.
+- `DOCS_FOREBET_SCRAPER.md` → Orijinal bölüm bölüm parser spesifikasyonu ve mimari ilkeler.
+- `PROJECT_STANDARDS.md` → Kodlama, Puppeteer stealth, sıfır sahte veri (zero-mock) ve güvenlik standartları.
+- `AGENTS.md` → Sistem genel orkestrasyon kuralları.
+- `WORKFLOW.md` → 5 Aşamalı görev yürütme döngüsü.
+- `PROGRESS.md` → Canlı ilerleme ve modül durum panosu.
+
+### 2. Özel Agent Yetenekleri (Skills):
+- `.agents/skills/bot-forebet-scraper/SKILL.md` → Puppeteer Stealth, 9 market, H2H, Son 6 maç, Overall Stats (`get_ovd`) kazıma kuralları.
+- `.agents/skills/bot-forebet-extended-odds/SKILL.md` → Oran kutusu tıklama, alternatif büro oranları ve Asya/Avrupa handikap türevleri.
+- `.agents/skills/bot-forebet-finished-match-stats/SKILL.md` → Bitmiş maç skoru tıklama, gol dakikaları, kartlar (sarı/kırmızı) ve maç olayları.
+- `.agents/skills/bot-crawl-pipeline/SKILL.md` → Günlük discovery, tarih aralığı arşivi, worker pool ve bellek yönetimi.
+- `.agents/skills/bot-apex-sync/SKILL.md` → APEX REST API iletimi (`/api/import.php`), `X-Apex-Secret` doğrulama, `raw_bot_json` eşleme.
+- `.agents/skills/bot-viewer-renderer/SKILL.md` → 1:1 Forebet Masaüstü HTML viewer üretimi ve asset yönetimi.
+- `.agents/skills/bot-testing-verification/SKILL.md` → Tek maç testi, veri doğrulama ve API import testi.
+- `.agents/skills/bot-debug/SKILL.md` → Cloudflare takılması, DOM değişimleri ve bellek sızıntısı çözümleri.
+
+### 3. Rol & Takip Dosyaları:
+- `PROGRESS.md` → Aktif modüller, tamamlananlar ve yol haritası.
+- `YONETICI.md` → Yönetici Agent görev promptu üretme ve QA onay rehberi.
+- `GELISTIRICI.md` → Geliştirici Agent kodlama ve test raporu rehberi.
+- `CHANGELOG.md` → SemVer sürüm kayıtları.
+
+---
+
+## ⚡ ZORUNLU ÇALIŞMA KURALLARI
+1. **Mevcut Çalışan Kodları Bozma:** `scrape_match.js`, `core/`, `parsers/` ve `server.js` halihazırda stabil çalışmaktadır. Yeni özellikler modüler ve geriye dönük uyumlu (backward-compatible) eklenmelidir.
+2. **Sıfır Manuel / Sahte Veri (Zero Mock):** Sayfada bulunmayan veya kazınamayan alanlar için sahte metin üretilmez; alan `null`, `""` veya `"-"` bırakılır.
+3. **Undefined Zırhı & Safe Parsing:** Nesne ve dizi erişimlerinde daima `?.` ve `|| []` / `|| {}` kullanılmalıdır.
+4. **Cloudflare & Stealth Evasion:** Bot istekleri arasında insan benzeri rastgele gecikmeler (jitter: 1.5s - 3.5s) korunmalı, çerez önbelleği (`data/cf_cookies_cache.json`) kullanılmalıdır.
+5. **İlerlemeyi Kaydet:** Her tamamlanan modül veya düzeltme `PROGRESS.md` ve `CHANGELOG.md` dosyalarına kaydedilmelidir.

@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Scraped Output & Large Cache
+output/
+archive/
+temp_profiles/
+scratch/
+
+# Cloudflare Cookies & State (Do not commit active session tokens)
+data/cf_cookies_cache.json
+data/*.json
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temporary Screenshots & Dumps
+test_*.png
+test_*.jpg
+scratch_*.html
+*.tmp
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

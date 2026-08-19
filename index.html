@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA V3 - Forebet Canlı Bot & Tarih Aralığı Arşivleme Merkezi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #080c14;
+      --card-bg: #101726;
+      --card-border: #1e293b;
+      --accent-green: #00e676;
+      --accent-cyan: #00e5ff;
+      --accent-blue: #3b82f6;
+      --accent-magenta: #d946ef;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: radial-gradient(circle at top, #131c31 0%, var(--bg-dark) 100%); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Top Navbar */
+    .nav-bar { background: rgba(16, 23, 38, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+    .nav-brand span { background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .status-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 230, 118, 0.1); border: 1px solid rgba(0, 230, 118, 0.3); color: var(--accent-green); padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+
+    /* Main Container */
+    .main-content { max-width: 1280px; width: 100%; margin: 24px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Tab Switcher */
+    .tab-switcher { display: flex; gap: 8px; background: rgba(16, 23, 38, 0.8); border: 1px solid var(--card-border); padding: 6px; border-radius: 12px; width: fit-content; }
+    .tab-btn { background: transparent; border: none; color: var(--text-muted); font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .tab-btn.active { background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(0, 230, 118, 0.15)); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.3); }
+
+    /* Cards */
+    .glass-card { background: rgba(16, 23, 38, 0.75); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); }
+    .card-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+    .card-title i { color: var(--accent-cyan); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 900px) { .grid-2, .grid-4 { grid-template-columns: 1fr; } }
+
+    .form-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .input-field { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; outline: none; transition: all 0.2s; }
+    .input-field:focus { border-color: var(--accent-cyan); box-shadow: 0 0 16px rgba(0, 229, 255, 0.25); }
+
+    .btn-primary { background: linear-gradient(135deg, #00c853, #00e676); color: #051408; font-weight: 800; font-size: 14px; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 230, 118, 0.35); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; font-weight: 800; font-size: 14px; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
+    .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .stat-card { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; text-align: center; }
+    .stat-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .stat-val { font-size: 24px; font-weight: 900; color: #fff; }
+    .stat-val.green { color: var(--accent-green); }
+    .stat-val.cyan { color: var(--accent-cyan); }
+    .stat-val.magenta { color: var(--accent-magenta); }
+
+    .progress-bar-wrap { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--card-border); border-radius: 99px; height: 14px; overflow: hidden; margin: 16px 0; position: relative; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green)); border-radius: 99px; transition: width 0.3s ease; }
+
+    .worker-slot { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .worker-name { font-weight: 800; font-size: 12px; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px; }
+    .worker-match { font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+
+    .terminal-window { background: #060911; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 380px; }
+    .terminal-header { background: #0f172a; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; }
+    .terminal-dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.red { background: #ff5f56; }
+    .dot.yellow { background: #ffbd2e; }
+    .dot.green { background: #27c93f; }
+    .terminal-body { flex: 1; padding: 16px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; color: #94a3b8; }
+    .log-line { margin-bottom: 4px; word-break: break-all; }
+    .log-time { color: #64748b; margin-right: 8px; }
+    .log-info { color: #38bdf8; }
+    .log-success { color: #4ade80; }
+    .log-warning { color: #facc15; }
+    .log-error { color: #f87171; }
+
+    .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .history-table th { text-align: left; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); color: var(--text-muted); border-bottom: 1px solid var(--card-border); font-size: 11px; text-transform: uppercase; font-weight: 800; }
+    .history-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .btn-view { background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); color: var(--accent-cyan); padding: 4px 12px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn-view:hover { background: var(--accent-cyan); color: #000; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="nav-bar">
+    <div class="nav-brand">
+      <i class="fa-solid fa-robot" style="color: var(--accent-cyan);"></i>
+      BPA V3 <span>Forebet Crawler & Archive Hub</span>
+    </div>
+    <div class="nav-right" style="display: flex; gap: 12px; align-items: center;">
+      <a href="/output/karsilastirma.html" target="_blank" class="btn-view" style="padding: 6px 14px;">
+        <i class="fa-solid fa-flask-vial"></i> 10 Maç Karşılaştırma Vitrini
+      </a>
+      <button class="btn-danger" id="btnTopStop" onclick="stopAllOperations()" style="padding: 6px 14px; font-size: 12px;">
+        <i class="fa-solid fa-hand"></i> Tüm İşlemleri Durdur
+      </button>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="serverStatusText">Canlı Motor Bağlı</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Tab Navigation -->
+    <div class="tab-switcher">
+      <button class="tab-btn active" id="tabRangeBtn" onclick="switchTab('range')">
+        <i class="fa-solid fa-moon"></i> Tarih Aralığı Arşivleme (Gece Modu)
+      </button>
+      <button class="tab-btn" id="tabDailyBtn" onclick="switchTab('daily')">
+        <i class="fa-solid fa-calendar-day"></i> Tek Günlük Tarayıcı
+      </button>
+      <button class="tab-btn" id="tabSingleBtn" onclick="switchTab('single')">
+        <i class="fa-solid fa-bullseye"></i> Tekil Maç Kazıma
+      </button>
+    </div>
+
+    <!-- TAB 1: DATE-RANGE ARCHIVER (GECE MODU) -->
+    <div id="tabRangeContent" class="glass-card">
+      <div class="card-title">
+        <i class="fa-solid fa-layer-group"></i> Geçmiş Tarih Aralığı Arşivleme Motoru (PC Arşivi)
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Belirlediğiniz tarih aralığındaki tüm oranlı maçları 4 sekme ile çeker, takım logolarını ve lig bayraklarını bilgisayarınıza indirir, eksik maçları otomatik tekrar dener ve <code>botv3/archive/</code> klasörüne kaydeder.
+      </p>
+
+      <div class="form-row" style="margin-bottom: 20px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">BAŞLANGIÇ TARİHİ</label>
+          <input type="date" id="rangeStartDateInput" value="2026-07-25" class="input-field" style="width: 160px;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">BİTİŞ TARİHİ</label>
+          <input type="date" id="rangeEndDateInput" value="2026-08-19" class="input-field" style="width: 160px;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">EŞZAMANLI SEKME</label>
+          <select id="rangeConcurrencySelect" class="input-field" style="width: 140px;">
+            <option value="4" selected>4 Sekme (Önerilen)</option>
+            <option value="2">2 Sekme</option>
+            <option value="1">1 Sekme</option>
+          </select>
+        </div>
+
+        <div style="margin-left: auto; margin-top: 16px; display: flex; gap: 10px;">
+          <button id="btnStartRange" class="btn-primary" onclick="startRangeArchiver()">
+            <i class="fa-solid fa-play"></i> Tarih Aralığı Arşivlemeyi Başlat
+          </button>
+          <button id="btnStopRange" class="btn-danger" onclick="stopAllOperations()">
+            <i class="fa-solid fa-stop"></i> Durdur
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-time Metrics -->
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-label">Toplam Gün / İlerleme</div>
+          <div class="stat-val" id="metricRangeDays">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Şu An Taranan Tarih</div>
+          <div class="stat-val cyan" id="metricRangeCurrentDate">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Toplam Arşivlenen Maç</div>
+          <div class="stat-val green" id="metricRangeMatches">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ortalama Tarama Hızı</div>
+          <div class="stat-val magenta" id="metricRangeSpeed">0 m/s</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-bar-wrap">
+        <div class="progress-fill" id="rangeProgressFill"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-weight: 700;">
+        <span id="rangeProgressText">Durum: Bekleniyor</span>
+        <span id="rangeProgressPct">%0</span>
+      </div>
+
+      <!-- 4-Worker Visualizer -->
+      <div style="margin-top: 20px;">
+        <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
+          <i class="fa-solid fa-layer-group"></i> 4 Paralel Sekme Durumu
+        </div>
+        <div class="grid-4">
+          <div class="worker-slot"><div class="worker-name"><i class="fa-solid fa-window-maximize"></i> Sekme #1</div><div class="worker-match" id="worker1Match">Boşta</div></div>
+          <div class="worker-slot"><div class="worker-name"><i class="fa-solid fa-window-maximize"></i> Sekme #2</div><div class="worker-match" id="worker2Match">Boşta</div></div>
+          <div class="worker-slot"><div class="worker-name"><i class="fa-solid fa-window-maximize"></i> Sekme #3</div><div class="worker-match" id="worker3Match">Boşta</div></div>
+          <div class="worker-slot"><div class="worker-name"><i class="fa-solid fa-window-maximize"></i> Sekme #4</div><div class="worker-match" id="worker4Match">Boşta</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: SINGLE DATE -->
+    <div id="tabDailyContent" class="glass-card" style="display: none;">
+      <div class="card-title">
+        <i class="fa-solid fa-calendar-day"></i> Tek Günlük Fikstür Tarayıcı
+      </div>
+      <div class="form-row" style="margin-bottom: 20px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">HEDEF TARİH</label>
+          <input type="date" id="dailyDateInput" class="input-field" style="width: 170px;">
+        </div>
+        <div style="margin-left: auto; margin-top: 16px; display: flex; gap: 10px;">
+          <button id="btnStartDaily" class="btn-primary" onclick="startDailyCrawler()">
+            <i class="fa-solid fa-play"></i> Günü Tara
+          </button>
+          <button class="btn-danger" onclick="stopAllOperations()">
+            <i class="fa-solid fa-stop"></i> Durdur
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SINGLE MATCH -->
+    <div id="tabSingleContent" class="glass-card" style="display: none;">
+      <div class="card-title">
+        <i class="fa-solid fa-crosshairs"></i> Tekil Maç Kazıma Motoru
+      </div>
+      <div class="form-row" style="margin-bottom: 14px;">
+        <input type="text" id="singleUrlInput" class="input-field" style="flex: 1;" placeholder="https://www.forebet.com/en/football/matches/...">
+        <button id="btnScrapeSingle" class="btn-primary" onclick="startSingleScrape()">
+          <i class="fa-solid fa-bolt"></i> Kazı ve Görüntüle
+        </button>
+      </div>
+    </div>
+
+    <!-- Terminal & History Section -->
+    <div class="grid-2">
+      <!-- Terminal -->
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+          </div>
+          <div style="font-size: 11px; font-weight: 700; color: #64748b;">CANLI KONSOL GÜNLÜĞÜ</div>
+          <div>
+            <i class="fa-solid fa-trash-can" style="color: #64748b; cursor: pointer;" title="Temizle" onclick="clearTerminal()"></i>
+          </div>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <div class="log-line"><span class="log-time">[00:00:00]</span><span class="log-info">BPA V3 Canlı Bot Konsolu Hazır.</span></div>
+        </div>
+      </div>
+
+      <!-- Scraped Fixtures Table -->
+      <div class="glass-card" style="padding: 16px; overflow-y: auto; max-height: 380px;">
+        <div style="font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <span><i class="fa-solid fa-history"></i> Son Kazınan Maçlar</span>
+          <span style="font-size: 11px; color: var(--accent-cyan); cursor: pointer;" onclick="loadHistory()"><i class="fa-solid fa-arrows-rotate"></i> Yenile</span>
+        </div>
+
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Maç</th>
+              <th>Tarih</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="historyTbody">
+            <tr>
+              <td colspan="3" style="text-align: center; color: #64748b; padding: 24px;">Kayıtlar yükleniyor...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    document.getElementById('dailyDateInput').value = new Date().toISOString().split('T')[0];
+
+    function switchTab(mode) {
+      document.getElementById('tabRangeBtn').classList.toggle('active', mode === 'range');
+      document.getElementById('tabDailyBtn').classList.toggle('active', mode === 'daily');
+      document.getElementById('tabSingleBtn').classList.toggle('active', mode === 'single');
+      document.getElementById('tabRangeContent').style.display = mode === 'range' ? 'block' : 'none';
+      document.getElementById('tabDailyContent').style.display = mode === 'daily' ? 'block' : 'none';
+      document.getElementById('tabSingleContent').style.display = mode === 'single' ? 'block' : 'none';
+    }
+
+    const termBody = document.getElementById('terminalBody');
+    function appendLog(time, msg, type = 'info') {
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      let typeCls = 'log-info';
+      if (type === 'success') typeCls = 'log-success';
+      if (type === 'warning') typeCls = 'log-warning';
+      if (type === 'error') typeCls = 'log-error';
+
+      line.innerHTML = `<span class="log-time">[${time}]</span><span class="${typeCls}">${msg}</span>`;
+      termBody.appendChild(line);
+      termBody.scrollTop = termBody.scrollHeight;
+    }
+
+    function clearTerminal() { termBody.innerHTML = ''; }
+
+    const evtSource = new EventSource('/api/stream');
+    evtSource.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.event === 'log') {
+          appendLog(data.timestamp, data.message, data.type);
+        } else if (data.event === 'range_progress') {
+          updateRangeProgress(data);
+        } else if (data.event === 'daily_progress') {
+          updateDailyProgress(data);
+        } else if (data.event === 'daily_match') {
+          updateWorkerSlot(data);
+        } else if (data.event === 'range_complete' || data.event === 'daily_complete') {
+          onFinished(data);
+        } else if (data.event === 'job_stopped') {
+          onStopped(data);
+        }
+      } catch (err) {}
+    };
+
+    function updateRangeProgress(prog) {
+      document.getElementById('metricRangeDays').innerText = `${prog.dayIndex} / ${prog.totalDays} Gün`;
+      document.getElementById('metricRangeCurrentDate').innerText = prog.currentDate;
+      document.getElementById('metricRangeMatches').innerText = prog.completed;
+      document.getElementById('metricRangeSpeed').innerText = `${prog.speedMatchesPerSec} m/s`;
+      document.getElementById('rangeProgressFill').style.width = `${prog.progressPct}%`;
+      document.getElementById('rangeProgressPct').innerText = `%${prog.progressPct}`;
+      document.getElementById('rangeProgressText').innerText = `${prog.currentDate}: ${prog.completed}/${prog.total} Maç İşlendi`;
+    }
+
+    function updateDailyProgress(prog) {
+      document.getElementById('rangeProgressFill').style.width = `${prog.progressPct}%`;
+      document.getElementById('rangeProgressPct').innerText = `%${prog.progressPct}`;
+      document.getElementById('rangeProgressText').innerText = `İşleniyor: ${prog.completed}/${prog.total} Maç`;
+    }
+
+    function updateWorkerSlot(info) {
+      const slotEl = document.getElementById(`worker${info.workerId}Match`);
+      if (slotEl) {
+        slotEl.innerText = `${info.home_team} vs ${info.away_team} (${info.odd || '-'})`;
+      }
+    }
+
+    function onFinished(data) {
+      document.getElementById('btnStartRange').disabled = false;
+      document.getElementById('btnStartRange').innerHTML = '<i class="fa-solid fa-play"></i> Tarih Aralığı Arşivlemeyi Başlat';
+      document.getElementById('rangeProgressText').innerText = `Tüm Arşivleme Tamamlandı! Toplam ${data.completedMatches || data.completed || 0} maç kaydedildi.`;
+      loadHistory();
+    }
+
+    function onStopped(data) {
+      document.getElementById('btnStartRange').disabled = false;
+      document.getElementById('btnStartRange').innerHTML = '<i class="fa-solid fa-play"></i> Tarih Aralığı Arşivlemeyi Başlat';
+      document.getElementById('rangeProgressText').innerText = `İşlemler Durduruldu.`;
+      ['1', '2', '3', '4'].forEach(i => {
+        const el = document.getElementById(`worker${i}Match`);
+        if (el) el.innerText = 'Durduruldu';
+      });
+    }
+
+    async function startRangeArchiver() {
+      const startDate = document.getElementById('rangeStartDateInput').value;
+      const endDate = document.getElementById('rangeEndDateInput').value;
+      const concurrency = document.getElementById('rangeConcurrencySelect').value;
+
+      document.getElementById('btnStartRange').disabled = true;
+      document.getElementById('btnStartRange').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Arşivleniyor...';
+
+      try {
+        const res = await fetch('/api/range/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startDate, endDate, concurrency, saveDb: false })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert('Hata: ' + (data.error || 'İşlem başlatılamadı'));
+          document.getElementById('btnStartRange').disabled = false;
+          document.getElementById('btnStartRange').innerHTML = '<i class="fa-solid fa-play"></i> Tarih Aralığı Arşivlemeyi Başlat';
+        }
+      } catch (e) {
+        alert('Bağlantı hatası: ' + e.message);
+        document.getElementById('btnStartRange').disabled = false;
+      }
+    }
+
+    async function stopAllOperations() {
+      try {
+        const res = await fetch('/api/stop', { method: 'POST' });
+        const data = await res.json();
+        appendLog(new Date().toLocaleTimeString(), '🛑 Durdurma talebi iletildi...', 'warning');
+      } catch (e) {
+        alert('Durdurma hatası: ' + e.message);
+      }
+    }
+
+    async function startDailyCrawler() {
+      const dateVal = document.getElementById('dailyDateInput').value;
+      try {
+        await fetch('/api/daily/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: dateVal, concurrency: 4, saveDb: false })
+        });
+      } catch (e) {}
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/history');
+        const list = await res.json();
+        const tbody = document.getElementById('historyTbody');
+        if (list && list.length > 0) {
+          tbody.innerHTML = list.slice(0, 25).map(m => `
+            <tr>
+              <td style="font-weight: 700; color: #fff;">${m.home || 'Ev'} vs ${m.away || 'Dep'}</td>
+              <td style="color: #94a3b8; font-size: 11px;">${m.date || '-'}</td>
+              <td>
+                <a href="${m.viewerUrl}" target="_blank" class="btn-view">
+                  <i class="fa-solid fa-eye"></i> Görüntüle
+                </a>
+              </td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #64748b; padding: 18px;">Henüz taranmış maç bulunmuyor.</td></tr>';
+        }
+      } catch (e) {}
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>
