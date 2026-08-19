@@ -9,7 +9,7 @@
  * - Yellow Cards ('ycard_img'), Red Cards ('rcard_img'), 2nd Yellow ('yred_img')
  * - Substitutions ('subs-arrows.png')
  * - Scoreboards (HT, FT, AET, Penalty Shootout)
- * - Pitch Line-ups (Starting XI on tactical pitch + Substitutes bench)
+ * - Pitch Line-ups (Starting XI on tactical pitch + Substitutes bench + Coaches + In/Out changes)
  * - In-Match Live Stats
  * ====================================================================
  */
@@ -28,8 +28,8 @@ async function parseMatchCenter(page, hero = {}) {
       venue: '',
       capacity: '',
       referee: '',
-      home: { formation: '', coach: '', startingXI: [], substitutes: [] },
-      away: { formation: '', coach: '', startingXI: [], substitutes: [] }
+      home: { formation: '', coach: '', startingXI: [], substitutes: [], inOutChanges: [] },
+      away: { formation: '', coach: '', startingXI: [], substitutes: [], inOutChanges: [] }
     },
     inMatchStats: {}
   };
@@ -228,7 +228,7 @@ async function parseMatchCenter(page, hero = {}) {
     matchCenter.periods = eventsData.periods || matchCenter.periods;
     matchCenter.hasEvents = matchCenter.events.length > 0 || Boolean(matchCenter.periods.ht || matchCenter.periods.ft);
 
-    // 3. PARSE LINE-UPS TAB (Pitch formation + Starting XI + Substitutes)
+    // 3. PARSE LINE-UPS TAB (Tactical Pitch + Starting XI + Substitutes + Substitutions In/Out + Coaches)
     try {
       await page.evaluate(() => {
         const btn = document.querySelector('button[data-menu="line-ups"]');
@@ -258,62 +258,142 @@ async function parseMatchCenter(page, hero = {}) {
           referee = clean(rMatch[1]);
         }
 
-        const formations = text.match(/\b\d\-\d\-\d(?:\-\d)?\b/g) || [];
-        const homeFormation = formations[0] || '';
-        const awayFormation = formations[1] || '';
+        // Formations & Coaches
+        const formationContainers = Array.from(lineupsSec.querySelectorAll('.mc-formation--container'));
+        let homeFormation = '';
+        let awayFormation = '';
+        let homeCoach = '';
+        let awayCoach = '';
 
-        // Extract pitch players for Home and Away
-        const parsePitchPlayers = (teamContainer) => {
-          if (!teamContainer) return [];
-          const playerEls = Array.from(teamContainer.querySelectorAll('.mc-player, [class*="player"]'));
-          return playerEls.map(p => {
-            const num = clean(p.querySelector('.mc-player__num, .number, .num')?.innerText);
-            const name = clean(p.querySelector('.mc-player__name, .name')?.innerText);
-            if (name) {
-              return { num: num || '', name };
-            }
-            return null;
-          }).filter(Boolean);
-        };
-
-        const homeTeamEl = lineupsSec.querySelector('.mc-team__home, .pitch-half:first-child');
-        const awayTeamEl = lineupsSec.querySelector('.mc-team__away, .pitch-half:last-child');
-
-        let homeStarting = parsePitchPlayers(homeTeamEl);
-        let awayStarting = parsePitchPlayers(awayTeamEl);
-
-        // Fallback if specific team containers not found
-        if (homeStarting.length === 0 && awayStarting.length === 0) {
-          const allPitch = Array.from(lineupsSec.querySelectorAll('.mc-player')).map(p => {
-            const num = clean(p.querySelector('.mc-player__num, .number, .num')?.innerText);
-            const name = clean(p.querySelector('.mc-player__name, .name')?.innerText);
-            return name ? { num: num || '', name } : null;
-          }).filter(Boolean);
-
-          if (allPitch.length >= 22) {
-            homeStarting = allPitch.slice(0, 11);
-            awayStarting = allPitch.slice(11, 22);
-          } else if (allPitch.length > 0) {
-            const half = Math.ceil(allPitch.length / 2);
-            homeStarting = allPitch.slice(0, half);
-            awayStarting = allPitch.slice(half);
-          }
+        if (formationContainers.length >= 1) {
+          const fcHome = formationContainers[0];
+          homeFormation = clean(fcHome.querySelector('.mc-formation')?.innerText);
+          homeCoach = clean(fcHome.querySelector('.mc-coach--text')?.innerText);
+        }
+        if (formationContainers.length >= 2) {
+          const fcAway = formationContainers[1];
+          awayFormation = clean(fcAway.querySelector('.mc-formation')?.innerText);
+          awayCoach = clean(fcAway.querySelector('.mc-coach--text')?.innerText);
         }
 
-        // Extract substitutes
-        const subEls = Array.from(lineupsSec.querySelectorAll('.mc-sub__substitute, .mc-substitutes .player, .substitutes tr'));
-        const subNames = subEls.map(s => clean(s.innerText)).filter(Boolean);
+        // Extract pitch starting XI players with roles & statuses
+        const parsePitchSide = (container) => {
+          if (!container) return [];
+          const roleRows = Array.from(container.querySelectorAll('.mc-role'));
+          const players = [];
 
-        const halfSub = Math.ceil(subNames.length / 2);
-        const homeSubs = subNames.slice(0, halfSub).map(name => ({ num: '', name }));
-        const awaySubs = subNames.slice(halfSub).map(name => ({ num: '', name }));
+          roleRows.forEach((roleRow, roleIdx) => {
+            const playerEls = Array.from(roleRow.querySelectorAll('.mc-player'));
+            playerEls.forEach(p => {
+              const num = clean(p.querySelector('.mc-player__num, .number, .num')?.innerText);
+              const name = clean(p.querySelector('.mc-player__name, .name')?.innerText);
+              const pHtml = p.innerHTML || '';
+              const pText = clean(p.innerText);
+
+              const hasGoal = pHtml.includes('goal.png') || pText.includes('Goal');
+              const hasAssist = pHtml.includes('mc-player-assist') || pHtml.includes('>A<');
+              const hasYellow = pHtml.includes('ycard_img') || pHtml.includes('ycard');
+              const hasRed = pHtml.includes('rcard_img') || pHtml.includes('yred_img');
+
+              // Sub minute if substituted out (e.g. > 85')
+              const subMatch = pText.match(/>\s*(\d+['\+]*)/);
+              const subMinute = subMatch ? subMatch[1] : null;
+
+              if (name) {
+                players.push({
+                  num: num || '',
+                  name: name.replace(/>\s*\d+['\+]*/, '').trim(),
+                  line: roleIdx, // tactical line (0 = GK, 1 = DEF, 2 = MID, etc.)
+                  hasGoal,
+                  hasAssist,
+                  hasYellow,
+                  hasRed,
+                  subMinute
+                });
+              }
+            });
+          });
+
+          return players;
+        };
+
+        const homePitch = lineupsSec.querySelector('.mc-team__home, .mc-field--team:first-child');
+        const awayPitch = lineupsSec.querySelector('.mc-team__away, .mc-field--team:last-child');
+
+        let homeStarting = parsePitchSide(homePitch);
+        let awayStarting = parsePitchSide(awayPitch);
+
+        // Extract Substitutions (In / Out changes)
+        const inOutHome = [];
+        const inOutAway = [];
+
+        const subInContainers = Array.from(lineupsSec.querySelectorAll('.mc-sub'));
+        subInContainers.forEach(sc => {
+          const prevSep = sc.previousElementSibling;
+          const isSubstitutions = prevSep && prevSep.innerText && prevSep.innerText.includes('Substitutions');
+
+          if (isSubstitutions) {
+            const hSide = sc.querySelector('.mc-sub__home');
+            const aSide = sc.querySelector('.mc-sub__away');
+
+            const parseSubRows = (sideEl, targetList) => {
+              if (!sideEl) return;
+              const rows = Array.from(sideEl.querySelectorAll('.mc-sub__inner--container, div[class*="sub"], tr'));
+              rows.forEach(r => {
+                const text = clean(r.innerText);
+                if (text && text.includes('▲') || text.includes('▼') || text.includes('>')) {
+                  targetList.push(text);
+                }
+              });
+            };
+
+            parseSubRows(hSide, inOutHome);
+            parseSubRows(aSide, inOutAway);
+          }
+        });
+
+        // Extract Substitutes Bench List
+        let homeSubs = [];
+        let awaySubs = [];
+
+        const subBenchContainers = Array.from(lineupsSec.querySelectorAll('.mc-sub'));
+        subBenchContainers.forEach(sc => {
+          const prevSep = sc.previousElementSibling;
+          const isSubstitutes = prevSep && prevSep.innerText && prevSep.innerText.includes('Substitutes');
+
+          if (isSubstitutes) {
+            const hSide = sc.querySelector('.mc-sub__home');
+            const aSide = sc.querySelector('.mc-sub__away');
+
+            const parseBench = (sideEl) => {
+              if (!sideEl) return [];
+              return Array.from(sideEl.querySelectorAll('.mc-sub__substitute')).map(s => ({
+                num: '',
+                name: clean(s.innerText)
+              })).filter(p => p.name);
+            };
+
+            homeSubs = parseBench(hSide);
+            awaySubs = parseBench(aSide);
+          }
+        });
+
+        // Fallback for unified substitute elements
+        if (homeSubs.length === 0 && awaySubs.length === 0) {
+          const allSubEls = Array.from(lineupsSec.querySelectorAll('.mc-sub__substitute')).map(s => clean(s.innerText)).filter(Boolean);
+          if (allSubEls.length > 0) {
+            const half = Math.ceil(allSubEls.length / 2);
+            homeSubs = allSubEls.slice(0, half).map(name => ({ num: '', name }));
+            awaySubs = allSubEls.slice(half).map(name => ({ num: '', name }));
+          }
+        }
 
         return {
           venue,
           capacity,
           referee,
-          home: { formation: homeFormation, coach: '', startingXI: homeStarting, substitutes: homeSubs },
-          away: { formation: awayFormation, coach: '', startingXI: awayStarting, substitutes: awaySubs }
+          home: { formation: homeFormation, coach: homeCoach, startingXI: homeStarting, substitutes: homeSubs, inOutChanges: inOutHome },
+          away: { formation: awayFormation, coach: awayCoach, startingXI: awayStarting, substitutes: awaySubs, inOutChanges: inOutAway }
         };
       });
 

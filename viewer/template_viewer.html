@@ -1746,6 +1746,631 @@
     .fdr-3 { background: #eab308; }
     .fdr-4 { background: #f97316; }
     .fdr-5 { background: #ef4444; }
+
+    /* ==================================================================== */
+    /* MATCH CENTER MODAL & 1:1 FOREBET TACTICAL PITCH STYLES */
+    /* ==================================================================== */
+    .mc-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .mc-modal-box {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .mc-header {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .mc-team-col {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .mc-team-col:last-of-type {
+      justify-content: flex-end;
+    }
+
+    .mc-logo {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+    .mc-tname {
+      font-size: 14px;
+      font-weight: 800;
+      max-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mc-score-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+    }
+
+    .mc-main-score {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+
+    .mc-status-text {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .mc-pen-badge {
+      font-size: 11px;
+      color: #38bdf8;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .mc-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .mc-close-btn:hover {
+      color: #ffffff;
+    }
+
+    .mc-nav-tabs {
+      display: flex;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+
+    .mc-tab-btn {
+      flex: 1;
+      padding: 12px 10px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .mc-tab-btn:hover {
+      color: #ffffff;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .mc-tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .mc-body {
+      flex: 1;
+      overflow-y: auto;
+      background: #ffffff;
+      padding: 16px;
+    }
+
+    /* EVENTS TAB */
+    .mc-events-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mc-event-row {
+      display: grid;
+      grid-template-columns: 1fr 44px 1fr;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      padding: 4px 0;
+    }
+
+    .mc-event-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mc-event-side.home {
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    .mc-event-side.away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .mc-event-min {
+      text-align: center;
+      font-weight: 800;
+      color: #64748b;
+      font-size: 11px;
+      background: #f1f5f9;
+      border-radius: 4px;
+      padding: 3px 0;
+    }
+
+    .mc-player-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mc-player-name {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .mc-player-name.in { color: #16a34a; font-weight: 800; }
+    .mc-player-sub.out { color: #dc2626; font-size: 10.5px; }
+
+    .mc-player-sub {
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    .mc-event-icon {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mc-event-icon.goal {
+      color: #0f172a;
+      gap: 4px;
+      font-weight: 800;
+    }
+
+    .mc-score-chip {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .mc-event-icon.card {
+      width: 10px;
+      height: 14px;
+      border-radius: 1px;
+    }
+
+    .mc-event-icon.card.yellow { background: #eab308; }
+    .mc-event-icon.card.red { background: #ef4444; }
+    .mc-event-icon.card.yellow-red {
+      background: linear-gradient(135deg, #eab308 50%, #ef4444 50%);
+    }
+
+    .mc-event-icon.sub {
+      color: #16a34a;
+      font-size: 12px;
+    }
+
+    .mc-badge-pill {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-top: 1px;
+    }
+
+    .mc-badge-pill.pen { background: #dcfce7; color: #15803d; }
+    .mc-badge-pill.og { background: #fee2e2; color: #b91c1c; }
+    .mc-badge-pill.pen-miss { background: #fee2e2; color: #b91c1c; }
+    .mc-badge-pill.var { background: #ede9fe; color: #6d28d9; }
+
+    .mc-event-scoreboard {
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 6px 12px;
+      text-align: center;
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 4px 0;
+    }
+
+    .mc-event-scoreboard .sb-lbl { color: #64748b; font-weight: 700; }
+    .mc-event-scoreboard .sb-val { font-size: 14px; font-weight: 900; }
+
+    /* ==================================================================== */
+    /* 1:1 FOREBET TACTICAL PITCH & LINEUPS DESIGN */
+    /* ==================================================================== */
+    .mc-lineups-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .mc-formation-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #2b2b2b;
+      color: #ffffff;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mc-formation-bar.home {
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .mc-formation-bar.away {
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      margin-top: 0;
+    }
+
+    .mc-form-team {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .mc-form-team img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .mc-form-center {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #ffffff;
+    }
+
+    .mc-form-coach {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #d1d5db;
+    }
+
+    /* FOOTBALL PITCH CONTAINER */
+    .mc-pitch-board {
+      background: #404040;
+      border: 2px solid #555555;
+      position: relative;
+      padding: 16px 8px;
+      overflow: hidden;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Field Markings */
+    .mc-pitch-markings {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+    }
+
+    .pitch-center-line {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      right: 10px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .pitch-center-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90px;
+      height: 90px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 50%;
+    }
+
+    .pitch-box-top {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 170px;
+      height: 55px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-top: none;
+    }
+
+    .pitch-box-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 170px;
+      height: 55px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-bottom: none;
+    }
+
+    /* Tactical Halves */
+    .mc-pitch-half {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      position: relative;
+      z-index: 2;
+      flex: 1;
+    }
+
+    .mc-pitch-half.home { padding-bottom: 12px; }
+    .mc-pitch-half.away { padding-top: 12px; }
+
+    .mc-pitch-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      width: 100%;
+      margin: 4px 0;
+    }
+
+    /* Player Token on Pitch */
+    .mc-player-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      cursor: default;
+      min-width: 55px;
+    }
+
+    .mc-jersey-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 24px;
+    }
+
+    .mc-jersey-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+    }
+
+    .mc-jersey-num {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -45%);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .mc-player-pname {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 2px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      white-space: nowrap;
+    }
+
+    .mc-player-submin {
+      font-size: 9.5px;
+      color: #cbd5e1;
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    /* Player Status Badges on Pitch */
+    .mc-pnode-status {
+      position: absolute;
+      top: -8px;
+      display: flex;
+      gap: 2px;
+      align-items: center;
+      z-index: 3;
+    }
+
+    .mc-pnode-goal { font-size: 10px; }
+
+    .mc-pnode-assist {
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 8px;
+      font-weight: 900;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #94a3b8;
+    }
+
+    .mc-pnode-card {
+      width: 7px;
+      height: 10px;
+      border-radius: 1px;
+      display: inline-block;
+    }
+
+    .mc-pnode-card.yellow { background: #eab308; }
+    .mc-pnode-card.red { background: #ef4444; }
+
+    /* SECTION SEPARATORS */
+    .mc-section-divider {
+      background: #333333;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      padding: 8px 12px;
+      margin: 16px 0 12px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* SUBSTITUTIONS IN/OUT GRID */
+    .mc-subs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #2b2b2b;
+      border-radius: 6px;
+      padding: 12px;
+      color: #ffffff;
+    }
+
+    .mc-subs-col-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #444444;
+    }
+
+    .mc-subs-col-header.away { justify-content: flex-end; }
+
+    .mc-sub-change-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 11.5px;
+    }
+
+    .mc-sub-change-pair {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mc-sub-in {
+      color: #ffffff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mc-sub-in-arrow {
+      color: #22c55e;
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .mc-sub-out {
+      color: #9ca3af;
+      font-size: 10.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 1px;
+    }
+
+    .mc-sub-out-arrow {
+      color: #ef4444;
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .mc-sub-minute {
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+      background: #404040;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* SUBSTITUTES BENCH LIST */
+    .mc-bench-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #2b2b2b;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+
+    .mc-bench-item {
+      font-size: 12px;
+      font-weight: 600;
+      color: #e5e7eb;
+      padding: 4px 0;
+    }
   </style>
 </head>
 <body>
@@ -4333,6 +4958,64 @@
       container.innerHTML = html;
     }
 
+    function renderPitchSide(players, formation, isAway = false, teamCode = 'HOM') {
+      if (!players || players.length === 0) {
+        return `<div style="text-align: center; color: #9ca3af; padding: 20px; font-size: 11px;">Squad not available</div>`;
+      }
+
+      let groups = [];
+      const hasLineIndex = players.some(p => p.line !== undefined);
+      if (hasLineIndex) {
+        const maxLine = Math.max(...players.map(p => p.line || 0));
+        for (let l = 0; l <= maxLine; l++) {
+          const row = players.filter(p => (p.line || 0) === l);
+          if (row.length > 0) groups.push(row);
+        }
+      } else {
+        const formParts = (formation || '4-4-2').split('-').map(n => parseInt(n, 10)).filter(n => !isNaN(n));
+        const layout = [1, ...formParts];
+        let curIdx = 0;
+        layout.forEach(count => {
+          const slice = players.slice(curIdx, curIdx + count);
+          if (slice.length > 0) groups.push(slice);
+          curIdx += count;
+        });
+        if (curIdx < players.length) {
+          groups.push(players.slice(curIdx));
+        }
+      }
+
+      if (isAway) {
+        groups = groups.reverse();
+      }
+
+      const jerseyColor = isAway ? '#F0F0F0' : '#1e293b';
+      const numColor = isAway ? '#000000' : '#ffffff';
+
+      return groups.map(row => `
+        <div class="mc-pitch-row">
+          ${row.map(p => `
+            <div class="mc-player-node">
+              <div class="mc-pnode-status">
+                ${p.hasGoal ? '<span class="mc-pnode-goal">⚽</span>' : ''}
+                ${p.hasAssist ? '<span class="mc-pnode-assist">A</span>' : ''}
+                ${p.hasYellow ? '<span class="mc-pnode-card yellow"></span>' : ''}
+                ${p.hasRed ? '<span class="mc-pnode-card red"></span>' : ''}
+              </div>
+              <div class="mc-jersey-wrap">
+                <svg class="mc-jersey-svg" viewBox="0 0 25.1 20.9">
+                  <path fill="${jerseyColor}" stroke="#555" stroke-width="0.5" d="M24.8,2.5L16.4,0l0,0c-0.1,0-0.2,0-0.3,0c-1.1,0.5-2.3,0.8-3.6,0.8c-1.2,0-2.5-0.2-3.6-0.8 C8.9,0,8.8,0,8.7,0l0,0L0.3,2.5C0.1,2.6,0,2.8,0,3l0.8,5c0,0.2,0.2,0.3,0.4,0.3H5v12.1c0,0.2,0.2,0.4,0.4,0.4h14.2 c0.2,0,0.4-0.2,0.4-0.4V8.4h3.8c0.2,0,0.4-0.1,0.4-0.3l0.8-5C25.1,2.8,25,2.6,24.8,2.5z"/>
+                </svg>
+                <span class="mc-jersey-num" style="color: ${numColor};">${p.num || ''}</span>
+              </div>
+              <div class="mc-player-pname">${p.name || ''}</div>
+              ${p.subMinute ? `<div class="mc-player-submin">&gt; ${p.subMinute}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    }
+
     function renderMcLineups(mc, hero) {
       const section = document.getElementById('mcLineupsSection');
       if (!section) return;
@@ -4341,39 +5024,69 @@
       const home = lu.home || {};
       const away = lu.away || {};
 
-      const venueEl = document.getElementById('mcVenueText');
-      if (venueEl) venueEl.innerText = lu.venue ? `${lu.venue} (${lu.capacity || ''})` : '-';
-      
-      const refEl = document.getElementById('mcRefereeText');
-      if (refEl) refEl.innerText = lu.referee || '-';
+      // 1. Meta (Venue, Referee)
+      document.getElementById('mcVenueText').innerText = lu.venue ? `${lu.venue} (${lu.capacity || ''})` : '-';
+      document.getElementById('mcRefereeText').innerText = lu.referee || '-';
 
-      const homeFormEl = document.getElementById('mcHomeFormation');
-      if (homeFormEl) homeFormEl.innerText = home.formation || '-';
+      // 2. Home Top Formation Bar
+      if (hero.homeLogo) document.getElementById('mcHomeFormLogo').src = hero.homeLogo;
+      document.getElementById('mcHomeFormCode').innerText = hero.homeCode || 'HOM';
+      document.getElementById('mcHomeFormVal').innerText = home.formation || '4-2-3-1';
+      document.getElementById('mcHomeCoachText').innerText = home.coach || '-';
+      document.getElementById('mcHomeCoachWrap').style.display = home.coach ? 'flex' : 'none';
 
-      const awayFormEl = document.getElementById('mcAwayFormation');
-      if (awayFormEl) awayFormEl.innerText = away.formation || '-';
+      // 3. Away Bottom Formation Bar
+      if (hero.awayLogo) document.getElementById('mcAwayFormLogo').src = hero.awayLogo;
+      document.getElementById('mcAwayFormCode').innerText = hero.awayCode || 'AWY';
+      document.getElementById('mcAwayFormVal').innerText = away.formation || '4-2-3-1';
+      document.getElementById('mcAwayCoachText').innerText = away.coach || '-';
+      document.getElementById('mcAwayCoachWrap').style.display = away.coach ? 'flex' : 'none';
 
-      const renderPlayerRows = (list) => {
-        if (!list || list.length === 0) return `<div style="color: #94a3b8; font-size: 11px; padding: 6px;">Squad not announced</div>`;
-        return list.map(p => `
-          <div class="mc-player-item">
-            <span class="mc-pnum">${p.num || '-'}</span>
-            <span class="mc-pname">${p.name || '-'}</span>
-          </div>
-        `).join('');
+      // 4. Tactical Pitch Halves
+      document.getElementById('mcPitchHomeHalf').innerHTML = renderPitchSide(home.startingXI, home.formation, false, hero.homeCode);
+      document.getElementById('mcPitchAwayHalf').innerHTML = renderPitchSide(away.startingXI, away.formation, true, hero.awayCode);
+
+      // 5. Substitutions (In/Out changes)
+      const events = mc.events || [];
+      const subEvents = events.filter(e => e.type === 'sub');
+      const homeSubEvents = subEvents.filter(e => e.team === 'home');
+      const awaySubEvents = subEvents.filter(e => e.team === 'away');
+
+      const subsWrap = document.getElementById('mcSubstitutionsSection');
+      if (homeSubEvents.length > 0 || awaySubEvents.length > 0 || (home.inOutChanges && home.inOutChanges.length > 0)) {
+        subsWrap.style.display = 'block';
+        document.getElementById('mcSubsHomeCode').innerText = hero.homeCode || 'HOM';
+        document.getElementById('mcSubsAwayCode').innerText = hero.awayCode || 'AWY';
+        if (hero.homeLogo) document.getElementById('mcSubsHomeLogo').src = hero.homeLogo;
+        if (hero.awayLogo) document.getElementById('mcSubsAwayLogo').src = hero.awayLogo;
+
+        const renderSubCol = (subList) => {
+          if (!subList || subList.length === 0) return `<div style="color: #6b7280; font-size: 11px; padding: 4px;">-</div>`;
+          return subList.map(s => `
+            <div class="mc-sub-change-row">
+              <div class="mc-sub-change-pair">
+                <div class="mc-sub-in"><span class="mc-sub-in-arrow">▲</span> ${s.playerIn || s}</div>
+                <div class="mc-sub-out"><span class="mc-sub-out-arrow">▼</span> ${s.playerOut || '-'}</div>
+              </div>
+              <div class="mc-sub-minute">${s.minute ? s.minute + "'" : ''}</div>
+            </div>
+          `).join('');
+        };
+
+        document.getElementById('mcSubsHomeList').innerHTML = renderSubCol(homeSubEvents.length ? homeSubEvents : home.inOutChanges);
+        document.getElementById('mcSubsAwayList').innerHTML = renderSubCol(awaySubEvents.length ? awaySubEvents : away.inOutChanges);
+      } else {
+        subsWrap.style.display = 'none';
+      }
+
+      // 6. Substitutes Bench List
+      const renderBenchCol = (list) => {
+        if (!list || list.length === 0) return `<div style="color: #6b7280; font-size: 11px; padding: 4px;">No substitutes listed</div>`;
+        return list.map(p => `<div class="mc-bench-item">${p.name || p}</div>`).join('');
       };
 
-      const homeStartEl = document.getElementById('mcHomeStarting');
-      if (homeStartEl) homeStartEl.innerHTML = renderPlayerRows(home.startingXI);
-
-      const awayStartEl = document.getElementById('mcAwayStarting');
-      if (awayStartEl) awayStartEl.innerHTML = renderPlayerRows(away.startingXI);
-
-      const homeSubEl = document.getElementById('mcHomeSubs');
-      if (homeSubEl) homeSubEl.innerHTML = renderPlayerRows(home.substitutes);
-
-      const awaySubEl = document.getElementById('mcAwaySubs');
-      if (awaySubEl) awaySubEl.innerHTML = renderPlayerRows(away.substitutes);
+      document.getElementById('mcBenchHomeList').innerHTML = renderBenchCol(home.substitutes);
+      document.getElementById('mcBenchAwayList').innerHTML = renderBenchCol(away.substitutes);
     }
 
     function renderMcStats(mc, hero) {
@@ -4477,7 +5190,7 @@
   </script>
 
   <!-- ==================================================================== -->
-  <!-- MATCH CENTER MODAL OVERLAY -->
+  <!-- MATCH CENTER MODAL OVERLAY (1:1 FOREBET SYSTEM) -->
   <!-- ==================================================================== -->
   <div id="matchCenterModal" class="mc-modal-overlay" style="display: none;" onclick="if(event.target === this) closeMatchCenterModal()">
     <div class="mc-modal-box">
@@ -4513,29 +5226,82 @@
           <div id="mcEventsList" class="mc-events-container"></div>
         </div>
 
-        <!-- 2. LINEUPS TAB -->
+        <!-- 2. LINEUPS TAB (1:1 FOREBET TACTICAL PITCH) -->
         <div id="mcLineupsSection" class="mc-tab-content" style="display: none;">
+          <!-- Top Meta -->
           <div class="mc-lineups-meta">
             <div><b>Venue:</b> <span id="mcVenueText">-</span></div>
             <div><b>Referee:</b> <span id="mcRefereeText">-</span></div>
           </div>
-          <div class="mc-formations-bar">
-            <div><b>Home:</b> <span id="mcHomeFormation">-</span></div>
-            <div><b>Away:</b> <span id="mcAwayFormation">-</span></div>
+
+          <!-- Home Formation Bar -->
+          <div class="mc-formation-bar home">
+            <div class="mc-form-team">
+              <img id="mcHomeFormLogo" src="" alt="" onerror="this.style.display='none'">
+              <span id="mcHomeFormCode">HOM</span>
+            </div>
+            <div class="mc-form-center" id="mcHomeFormVal">4-2-3-1</div>
+            <div class="mc-form-coach" id="mcHomeCoachWrap">
+              <span id="mcHomeCoachText">-</span>
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
           </div>
-          <div class="mc-squads-grid">
-            <div class="mc-squad-column">
-              <div class="mc-squad-title">Starting XI</div>
-              <div id="mcHomeStarting"></div>
-              <div class="mc-squad-title" style="margin-top: 14px;">Substitutes</div>
-              <div id="mcHomeSubs"></div>
+
+          <!-- Tactical Football Pitch Diagram -->
+          <div class="mc-pitch-board">
+            <div class="mc-pitch-markings">
+              <div class="pitch-box-top"></div>
+              <div class="pitch-center-line"></div>
+              <div class="pitch-center-circle"></div>
+              <div class="pitch-box-bottom"></div>
             </div>
-            <div class="mc-squad-column">
-              <div class="mc-squad-title">Starting XI</div>
-              <div id="mcAwayStarting"></div>
-              <div class="mc-squad-title" style="margin-top: 14px;">Substitutes</div>
-              <div id="mcAwaySubs"></div>
+
+            <!-- Home Half -->
+            <div class="mc-pitch-half home" id="mcPitchHomeHalf"></div>
+
+            <!-- Away Half -->
+            <div class="mc-pitch-half away" id="mcPitchAwayHalf"></div>
+          </div>
+
+          <!-- Away Formation Bar -->
+          <div class="mc-formation-bar away">
+            <div class="mc-form-team">
+              <img id="mcAwayFormLogo" src="" alt="" onerror="this.style.display='none'">
+              <span id="mcAwayFormCode">AWY</span>
             </div>
+            <div class="mc-form-center" id="mcAwayFormVal">4-2-3-1</div>
+            <div class="mc-form-coach" id="mcAwayCoachWrap">
+              <span id="mcAwayCoachText">-</span>
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+          </div>
+
+          <!-- Substitutions Section -->
+          <div id="mcSubstitutionsSection" style="display: none;">
+            <div class="mc-section-divider">Substitutions</div>
+            <div class="mc-subs-grid">
+              <div>
+                <div class="mc-subs-col-header">
+                  <img id="mcSubsHomeLogo" src="" style="width: 18px; height: 18px; object-fit: contain;">
+                  <span id="mcSubsHomeCode">HOM</span>
+                </div>
+                <div id="mcSubsHomeList"></div>
+              </div>
+              <div>
+                <div class="mc-subs-col-header away">
+                  <span id="mcSubsAwayCode">AWY</span>
+                  <img id="mcSubsAwayLogo" src="" style="width: 18px; height: 18px; object-fit: contain;">
+                </div>
+                <div id="mcSubsAwayList"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Substitutes Bench List Section -->
+          <div class="mc-section-divider">Substitutes</div>
+          <div class="mc-bench-grid">
+            <div id="mcBenchHomeList"></div>
+            <div id="mcBenchAwayList"></div>
           </div>
         </div>
 
@@ -4549,293 +5315,5 @@
 
   <!-- FLOATING ODDS TOOLTIP -->
   <div id="oddsFloatingTooltip" class="odds-floating-tooltip" style="display: none;"></div>
-
-  <style>
-    /* MATCH CENTER MODAL STYLES */
-    .mc-modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(4px);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 15px;
-    }
-    .mc-modal-box {
-      background: #ffffff;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 650px;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      overflow: hidden;
-    }
-    .mc-header {
-      background: #142231;
-      color: #ffffff;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-    }
-    .mc-team-col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 35%;
-      text-align: center;
-    }
-    .mc-logo {
-      width: 38px;
-      height: 38px;
-      object-fit: contain;
-      margin-bottom: 4px;
-    }
-    .mc-tname {
-      font-size: 13px;
-      font-weight: 800;
-      color: #ffffff;
-    }
-    .mc-score-col {
-      text-align: center;
-      width: 30%;
-    }
-    .mc-pen-badge {
-      font-size: 11px;
-      font-weight: 800;
-      color: #fbbf24;
-      margin-bottom: 2px;
-    }
-    .mc-main-score {
-      font-size: 28px;
-      font-weight: 900;
-      color: #ffffff;
-      letter-spacing: 2px;
-    }
-    .mc-status-text {
-      font-size: 11px;
-      color: #94a3b8;
-      font-weight: 700;
-    }
-    .mc-close-btn {
-      position: absolute;
-      top: 10px;
-      right: 14px;
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 18px;
-      cursor: pointer;
-    }
-    .mc-close-btn:hover { color: #ffffff; }
-
-    .mc-nav-tabs {
-      display: flex;
-      background: #1e293b;
-      border-bottom: 1px solid #334155;
-    }
-    .mc-tab-btn {
-      flex: 1;
-      background: none;
-      border: none;
-      color: #94a3b8;
-      padding: 10px 0;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .mc-tab-btn.active {
-      color: #38bdf8;
-      border-bottom: 2px solid #38bdf8;
-      background: #0f172a;
-    }
-
-    .mc-body {
-      padding: 16px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    /* EVENTS LIST */
-    .mc-events-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .mc-event-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 10px;
-      border-radius: 6px;
-      background: #f8fafc;
-      font-size: 12px;
-    }
-    .mc-event-side {
-      width: 44%;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .mc-event-side.home { justify-content: flex-end; text-align: right; }
-    .mc-event-side.away { justify-content: flex-start; text-align: left; }
-    .mc-event-min {
-      width: 12%;
-      text-align: center;
-      font-weight: 800;
-      color: #475569;
-      background: #e2e8f0;
-      border-radius: 4px;
-      padding: 2px 0;
-      font-size: 11px;
-    }
-    .mc-player-name { font-weight: 800; color: #0f172a; display: block; }
-    .mc-player-name.in { color: #16a34a; }
-    .mc-player-sub { font-size: 10px; color: #64748b; display: block; }
-    .mc-player-sub.out { color: #dc2626; }
-    .mc-event-icon.card {
-      width: 12px;
-      height: 16px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .mc-event-icon.card.yellow { background: #eab308; }
-    .mc-event-icon.card.red { background: #ef4444; }
-    .mc-event-icon.card.yellow-red { background: linear-gradient(135deg, #eab308 50%, #ef4444 50%); }
-    .mc-event-icon.goal { color: #16a34a; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
-    .mc-score-chip { background: #16a34a; color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; }
-    .mc-event-icon.sub { color: #3b82f6; font-size: 12px; }
-    .mc-badge-pill { font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 800; }
-    .mc-badge-pill.pen { background: #fef08a; color: #854d0e; }
-    .mc-badge-pill.og { background: #fee2e2; color: #991b1b; }
-    .mc-event-icon.pen-scored { color: #16a34a; font-weight: 900; }
-    .mc-event-icon.pen-missed { color: #ef4444; font-weight: 900; }
-
-    /* LINEUPS */
-    .mc-lineups-meta {
-      background: #f1f5f9;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 11px;
-      color: #334155;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .mc-formations-bar {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 800;
-      color: #0f172a;
-      padding: 0 10px 8px;
-      border-bottom: 1px solid #e2e8f0;
-      margin-bottom: 10px;
-    }
-    .mc-squads-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .mc-squad-title {
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      color: #64748b;
-      margin-bottom: 6px;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 2px;
-    }
-    .mc-player-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-    .mc-player-item:nth-child(even) { background: #f8fafc; }
-    .mc-pnum { font-weight: 900; color: #475569; width: 18px; text-align: center; }
-    .mc-pname { font-weight: 700; color: #1e293b; }
-
-    /* STATS */
-    .mc-stats-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .mc-stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .mc-stat-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 800;
-    }
-    .mc-stat-header .s-label { color: #475569; font-weight: 700; font-size: 11px; }
-    .mc-stat-header .h-val { color: #0046A8; }
-    .mc-stat-header .a-val { color: #16a34a; }
-    .mc-stat-bar-track {
-      height: 6px;
-      background: #e2e8f0;
-      border-radius: 3px;
-      display: flex;
-      overflow: hidden;
-    }
-    .mc-stat-bar-fill.home { background: #0046A8; }
-    .mc-stat-bar-fill.away { background: #16a34a; }
-
-    /* FLOATING ODDS TOOLTIP */
-    .odds-floating-tooltip {
-      position: absolute;
-      background: #142231;
-      color: #ffffff;
-      border-radius: 6px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      padding: 10px;
-      z-index: 10000;
-      min-width: 180px;
-      font-size: 12px;
-    }
-    .odds-tt-header {
-      font-size: 11px;
-      font-weight: 800;
-      color: #94a3b8;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 4px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .odds-tt-header .tt-close { cursor: pointer; color: #cbd5e1; }
-    .odds-tt-cols {
-      display: flex;
-      justify-content: space-around;
-      gap: 8px;
-    }
-    .odds-tt-col {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .odds-tt-col .col-lbl { font-size: 10px; color: #94a3b8; font-weight: 800; }
-    .odds-tt-col .col-val { font-size: 14px; font-weight: 900; color: #38bdf8; }
-    .trend-arr.up { color: #22c55e; font-size: 10px; }
-    .trend-arr.down { color: #ef4444; font-size: 10px; }
-  </style>
 </body>
 </html>
