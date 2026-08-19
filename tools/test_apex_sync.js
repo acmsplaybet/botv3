@@ -13,7 +13,7 @@ const path = require('path');
 const { formatMatchForIngest } = require('../core/db_ingester');
 
 const APEX_IMPORT_URL = process.env.APEX_IMPORT_URL || 'http://localhost/apex-api/api/import.php';
-const APEX_SECRET = process.env.APEX_SECRET || 'BPA_g7wXmi9oa32slLeb';
+const APEX_SECRET = process.env.APEX_SECRET || 'apex_secret_key_2026';
 
 async function sendToApex(payload) {
   return new Promise((resolve, reject) => {
@@ -90,18 +90,15 @@ async function testApexSync() {
   console.log(`📂 Test İçin Kullanılan Maç: ${path.basename(path.dirname(sampleJsonPath))}`);
   const rawData = JSON.parse(fs.readFileSync(sampleJsonPath, 'utf8'));
 
-  // 2. Payload formatlama
-  console.log('🔄 Payload APEX 19-Tablo formatına dönüştürülüyor...');
-  const payload = formatMatchForIngest(rawData, {
-    match_id: rawData.hero?.matchId || 'test_999999',
-    league: { name_hint: rawData.hero?.league || 'Test League' }
-  });
+  // 2. Payload: APEX Importer expects match_data.json structure
+  console.log('🔄 Payload APEX 19-Tablo formatına hazırlanıyor...');
+  const payload = rawData;
 
   // 3. API'ye ilet
   console.log('📡 APEX API import.php endpointine POST isteği gönderiliyor...');
   try {
     const startTime = Date.now();
-    const res = await sendToApex(payload);
+    const res = await sendToApex({ matches: [payload] });
     const elapsed = Date.now() - startTime;
 
     console.log(`\n📥 Yanıt Alındı (HTTP ${res.statusCode}) - ${elapsed}ms:`);

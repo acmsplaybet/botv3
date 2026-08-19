@@ -5,12 +5,12 @@
  */
 
 async function parseOverallStats(page) {
-  // 1. Wait up to 5s for get_ovd function or script tag to appear
+  // 1. Fast check for get_ovd function or script tag (max 1.5s)
   try {
     await page.waitForFunction(() => {
       if (typeof get_ovd === 'function') return true;
-      return Array.from(document.querySelectorAll('script')).some(s => s.innerText.includes('function get_ovd'));
-    }, { timeout: 5000 });
+      return Array.from(document.querySelectorAll('script')).some(s => (s.innerText || '').includes('function get_ovd'));
+    }, { timeout: 1500 });
   } catch (e) {}
 
   return await page.evaluate(() => {

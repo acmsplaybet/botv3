@@ -12,7 +12,7 @@ async function parseHero(page) {
     const scoreEl = await page.$('#evhdbte');
     if (scoreEl) {
       await scoreEl.click();
-      await new Promise(r => setTimeout(r, 1800));
+      await page.waitForSelector('.ft-events__section.match-events, .ft-events__section, .match-events', { timeout: 1200 }).catch(() => null);
       htFromEvents = await page.evaluate(() => {
         const evSection = document.querySelector('.ft-events__section.match-events, .ft-events__section, .match-events');
         if (!evSection) return '';
@@ -299,6 +299,7 @@ async function parseHero(page) {
       awayCode,
       homeLogo,
       awayLogo,
+      league: leagueName,
       leagueName,
       country,
       round,
@@ -306,6 +307,11 @@ async function parseHero(page) {
       stadium: venue,
       weather,
       weatherIcon: '',
+      status,
+      score,
+      finalScore: score,
+      ftScore,
+      htScore,
       result: {
         status,
         score,

@@ -2,21 +2,21 @@
  * ====================================================================
  * PARSER: STEP 7 - NEXT MATCHES & FDR DIFFICULTY RATINGS (1-5)
  * ====================================================================
+ * Zero-Mock Compliant: Returns only real scraped fixtures or empty arrays.
  */
 
-async function parseNextMatches(page, homeCode, awayCode) {
+async function parseNextMatches(page, homeCode = '', awayCode = '') {
   return await page.evaluate((hCode, aCode) => {
     const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
 
     const homeList = [];
     const awayList = [];
 
-    // Parse from diff_blocks_container if present
+    // 1. Primary: Parse from .diff_blocks_container
     const diffContainer = document.querySelector('.diff_blocks_container');
     if (diffContainer) {
       const rows = diffContainer.querySelectorAll('.diff_blocks_row');
       rows.forEach(r => {
-        const teamA = r.querySelector('.active-team a, a');
         const txt = clean(r.innerText);
         const m = txt.match(/([A-Za-zÇĞİÖŞÜçğıöşü\s\-\.\(\)]+)\s+([A-Za-z0-9]+)\s+(\d{2}\/\d{2}\/\d{4})\s+(\d)/);
         if (m) {
@@ -32,29 +32,29 @@ async function parseNextMatches(page, homeCode, awayCode) {
       });
     }
 
-    // High quality fallbacks matching real Forebet fixtures for BJK and EYU
-    if (homeList.length === 0) {
-      homeList.push(
-        { opponent: "Eyüpspor (H)", league: "Tr1", date: "16/08/2026", diff: 2 },
-        { opponent: "Alanyaspor (A)", league: "Tr1", date: "23/08/2026", diff: 3 },
-        { opponent: "Çorum Belediyesi (H)", league: "Tr1", date: "30/08/2026", diff: 2 },
-        { opponent: "Fenerbahçe (A)", league: "Tr1", date: "06/09/2026", diff: 5 },
-        { opponent: "Erzurum BB (H)", league: "Tr1", date: "13/09/2026", diff: 3 },
-        { opponent: "Amedspor (A)", league: "Tr1", date: "20/09/2026", diff: 2 }
-      );
+    // 2. Secondary: Fallback to next fixture table rows (.st_next_matches or .mod_next_matches)
+    if (homeList.length === 0 && awayList.length === 0) {
+      const nextTables = Array.from(document.querySelectorAll('.moduletable')).filter(m => {
+        const t = clean(m.querySelector('.mptlt')?.innerText).toLowerCase();
+        return t.includes('next matches') || t.includes('upcoming');
+      });
+
+      nextTables.forEach((mod, idx) => {
+        const rows = mod.querySelectorAll('.st_row');
+        rows.forEach(r => {
+          const opp = clean(r.querySelector('.st_hteam, .st_ateam')?.innerText);
+          const lgs = clean(r.querySelector('.st_ltag, .st_lg')?.innerText);
+          const dt = clean(r.querySelector('.st_date')?.innerText);
+          if (opp && dt) {
+            const item = { opponent: opp, league: lgs || '-', date: dt, diff: 3 };
+            if (idx === 0) homeList.push(item);
+            else awayList.push(item);
+          }
+        });
+      });
     }
 
-    if (awayList.length === 0) {
-      awayList.push(
-        { opponent: "Besiktas (A)", league: "Tr1", date: "16/08/2026", diff: 4 },
-        { opponent: "Gaziantep (H)", league: "Tr1", date: "23/08/2026", diff: 2 },
-        { opponent: "Alanyaspor (H)", league: "Tr1", date: "30/08/2026", diff: 3 },
-        { opponent: "Çorum Belediyesi (A)", league: "Tr1", date: "06/09/2026", diff: 2 },
-        { opponent: "Rizespor (H)", league: "Tr1", date: "13/09/2026", diff: 3 },
-        { opponent: "Fenerbahçe (A)", league: "Tr1", date: "20/09/2026", diff: 5 }
-      );
-    }
-
+    // Zero-Mock Rule: Return empty array if not present on page, never inject synthetic mock fixtures!
     return {
       home: homeList,
       away: awayList

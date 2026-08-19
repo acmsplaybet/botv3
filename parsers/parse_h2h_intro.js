@@ -1,59 +1,54 @@
 /**
  * ====================================================================
- * PARSER: STEP 3 - H2H, MATCH INTRO & STRAIGHT LINE DISTANCE
+ * PARSER: STEP 3 - H2H, MATCH INTRO & HEAD TO HEAD MATCHES
  * ====================================================================
+ * Optimized: Scoped selector evaluation without heavy full-page reflows.
  */
 
 async function parseH2HAndIntro(page, expectedHomeTeam = '', expectedAwayTeam = '') {
   // 1. Expand "View all" / "View More" strictly inside H2H module if present
   try {
     await page.evaluate(() => {
-      // Find all buttons or links with "view all" or "view more" in or around H2H
-      const allBtns = Array.from(document.querySelectorAll('a, button, span, div')).filter(el => {
+      const h2hBtns = Array.from(document.querySelectorAll('.mod_h2h a, .mod_h2h button, .schema_mod a, .moduletable a, .moduletable button')).filter(el => {
         const t = (el.innerText || '').trim().toLowerCase();
         const cls = (el.className || '').toLowerCase();
-        return t === 'view more' || t === 'view all' || t === 'all' || cls.includes('view_all') || cls.includes('view_more') || cls.includes('st_view_all');
+        return t === 'view more' || t === 'view all' || t === 'all' || cls.includes('view_all') || cls.includes('view_more');
       });
 
-      allBtns.forEach(btn => {
-        // Only click if inside or near H2H moduletable
-        const parentMod = btn.closest('.moduletable, .schema_mod, .mod_h2h, section, div');
+      h2hBtns.forEach(btn => {
+        const parentMod = btn.closest('.moduletable, .schema_mod, .mod_h2h');
         const txt = (parentMod?.innerText || '').toUpperCase();
         if (txt.includes('HEAD TO HEAD') || txt.includes('H2H') || txt.includes('DRAW')) {
           try { btn.click(); } catch(e) {}
         }
       });
     });
-    await page.evaluate(() => new Promise(r => setTimeout(r, 800)));
-  } catch (e) {
-    // Ignore if not present
-  }
+  } catch (e) {}
 
   return await page.evaluate((expHome, expAway) => {
     const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
 
-    // 1. Forebet AI Match Intro Text (Disabled per user request)
     const introText = '';
     const introDate = '';
 
-    // 2. Target the SPECIFIC H2H Moduletable strictly
     const matches = [];
     const availableLeagues = [];
-    const leagueMap = {}; // id -> name
+    const leagueMap = {};
 
-    const allHeadings = Array.from(document.querySelectorAll('.mptlt, .m_title, h3, .mod_title, .sch_title, .schema_title, div, h2, h4'));
+    // Scoped heading lookup without querying all plain divs
+    const allHeadings = Array.from(document.querySelectorAll('.mptlt, .m_title, h2, h3, h4, .mod_title, .sch_title, .schema_title'));
     const h2hHeading = allHeadings.find(el => {
       const txt = clean(el.innerText).toLowerCase();
-      return (txt === 'head to head' || txt === 'h2h') && el.children.length === 0;
+      return txt === 'head to head' || txt === 'h2h';
     }) || allHeadings.find(el => {
       const txt = clean(el.innerText).toLowerCase();
-      return (txt.includes('head to head') || txt === 'h2h') && el.children.length <= 1;
+      return txt.includes('head to head') || txt === 'h2h';
     });
 
-    const h2hModule = h2hHeading ? (h2hHeading.closest('.moduletable') || h2hHeading.parentElement) : null;
+    const h2hModule = h2hHeading ? (h2hHeading.closest('.moduletable') || h2hHeading.parentElement) :
+                                   document.querySelector('.mod_h2h, .schema_h2h');
 
     if (h2hModule) {
-      // Find tabs ONLY inside this H2H module in .tabs-ul or .st_lgs
       const tabLis = h2hModule.querySelectorAll('.tbl_head.st_lgs ul.tabs-ul li, .tbl_head.st_lgs li, .tabs-ul li');
       tabLis.forEach(li => {
         const name = clean(li.querySelector('button, a, span')?.innerText || li.innerText);
@@ -81,7 +76,6 @@ async function parseH2HAndIntro(page, expectedHomeTeam = '', expectedAwayTeam = 
         const htText = clean(r.querySelector('.st_htscr')?.innerText).replace(/[()]/g, '');
         const lgs = clean(r.querySelector('.st_ltag, .shortTag, .st_lgs, .st_tag')?.innerText) || 'League';
 
-        // Determine league name from row class (e.g. stlg_97 -> leagueMap['97'])
         const rCls = r.className || '';
         const matchLg = rCls.match(/stlg_(-?\d+)/);
         const lgId = matchLg ? matchLg[1] : null;
@@ -113,10 +107,8 @@ async function parseH2HAndIntro(page, expectedHomeTeam = '', expectedAwayTeam = 
             const aGoals = parts[1];
 
             if (hGoals > aGoals) {
-              // Row home team won
               resBadge = isRowHomeCurrentHome ? 'W' : 'L';
             } else if (aGoals > hGoals) {
-              // Row away team won
               resBadge = isRowAwayCurrentHome ? 'W' : 'L';
             } else {
               resBadge = 'D';
@@ -150,27 +142,22 @@ async function parseH2HAndIntro(page, expectedHomeTeam = '', expectedAwayTeam = 
       else draws++;
     });
 
-    const homeWinsPct = totalMatches > 0 ? Math.round((homeWins / totalMatches) * 100) + '%' : '0%';
-    const drawsPct = totalMatches > 0 ? Math.round((draws / totalMatches) * 100) + '%' : '0%';
-    const awayWinsPct = totalMatches > 0 ? Math.round((awayWins / totalMatches) * 100) + '%' : '0%';
+    const calcPct = (cnt) => totalMatches > 0 ? `${Math.round((cnt / totalMatches) * 100)}%` : '0%';
 
     const summary = {
       total: totalMatches,
       homeTeam: expHome,
       awayTeam: expAway,
       homeWins,
-      homeWinsPct,
+      homeWinsPct: calcPct(homeWins),
       draws,
-      drawsPct,
+      drawsPct: calcPct(draws),
       awayWins,
-      awayWinsPct
+      awayWinsPct: calcPct(awayWins)
     };
 
     return {
-      intro: {
-        text: introText,
-        date: introDate
-      },
+      intro: { introText, introDate },
       h2h: {
         availableLeagues,
         summary,

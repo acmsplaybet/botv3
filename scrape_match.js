@@ -2,6 +2,8 @@
  * ====================================================================
  * BPA V3 SINGLE MATCH SCRAPER RUNNER (CLI & PROGRAMMATIC ENGINE)
  * ====================================================================
+ * High-performance single match scraper with full ad/tracker interception,
+ * Cloudflare session reuse, 9 modular parsers, and zero dummy data standard.
  */
 
 const path = require('path');
@@ -48,68 +50,42 @@ async function scrapeMatch(url, options = {}) {
     logger(`🚀 BPA V3 Forebet Scraper başlatılıyor...`, COLORS.cyan);
     logger(`🌐 Hedef URL: ${url}`, COLORS.cyan);
 
-    browser = await puppeteer.launch({
-      headless,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-        '--window-size=1920,1080'
-      ]
-    });
-
+    // 1. Launch Browser with optimized stealth flags
+    browser = await createBrowser({ headless });
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
-    // Ağ direnci: Yeniden deneme döngüsü
-    let loaded = false;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        logger(`[Ağ] (${attempt}/3) Sayfaya bağlanılıyor: ${url}`);
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        loaded = true;
-        break;
-      } catch (navErr) {
-        logger(`[Ağ] ⚠️ Bağlantı denemesi ${attempt} hatası: ${navErr.message}`, COLORS.yellow);
-        if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
-      }
-    }
+    // 2. Setup Ad-blocking and request interception for high speed
+    await setupPageInterception(page);
 
-    if (!loaded) {
-      throw new Error(`Sayfa 3 denemede de yüklenemedi: ${url}`);
-    }
-
-    // Ekstra dinamik içerik beklemesi
-    await new Promise(r => setTimeout(r, 2500));
+    // 3. Navigate with network resilience and retry
+    await navigateWithRetry(page, url, (m) => logger(m, COLORS.yellow), 3);
     logger(`✅ Sayfaya başarıyla bağlanıldı ve DOM yüklendi.`, COLORS.green);
 
-    // 2. ADIM 1: Hero & Takım Bilgileri
-    logger(`⏳ [1/8] Hero, Takım Bilgileri, Logolar ve Formlar ayrıştırılıyor...`);
+    // 4. ADIM 1: Hero & Takım Bilgileri
+    logger(`⏳ [1/9] Hero, Takım Bilgileri, Logolar ve Formlar ayrıştırılıyor...`);
     const hero = await parseHero(page);
     logger(`  ↳ ✅ Takımlar: ${hero.homeTeam} (${hero.homeCode}) vs ${hero.awayTeam} (${hero.awayCode})`, COLORS.green);
     logger(`  ↳ ✅ Skor: ${hero.finalScore || hero.score} • Tarih: ${hero.matchDate} ${hero.matchTime}`, COLORS.green);
 
-    // 3. ADIM 2: 9 Tahmin Pazarı
-    logger(`⏳ [2/8] 9 Tahmin Pazarı (1X2, U/O, HT, HT/FT, BTTS, Handicap, Scorers, Corners, Cards) ayrıştırılıyor...`);
+    // 5. ADIM 2: 9 Tahmin Pazarı
+    logger(`⏳ [2/9] 9 Tahmin Pazarı (1X2, U/O, HT, HT/FT, BTTS, Handicap, Scorers, Corners, Cards) ayrıştırılıyor...`);
     const markets = await parseMarkets(page);
     logger(`  ↳ ✅ 1X2: 1(${markets['1X2']?.prob1}) X(${markets['1X2']?.probX}) 2(${markets['1X2']?.prob2}) | Tahmin: ${markets['1X2']?.pick}`, COLORS.green);
     logger(`  ↳ ✅ Alt/Üst 2.5: Alt(${markets['UnderOver']?.probUnder}) Üst(${markets['UnderOver']?.probOver}) | Tahmin: ${markets['UnderOver']?.pick}`, COLORS.green);
 
-    // 4. ADIM 3: H2H & Match Intro
-    logger(`⏳ [3/8] H2H Karşılaşmaları ve Forebet AI Analiz Metni ayrıştırılıyor...`);
+    // 6. ADIM 3: H2H & Match Intro
+    logger(`⏳ [3/9] H2H Karşılaşmaları ayrıştırılıyor...`);
     const h2hAndIntro = await parseH2HAndIntro(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ H2H: ${h2hAndIntro.h2h?.matches?.length || 0} geçmiş maç bulundu.`, COLORS.green);
 
-    // 5. ADIM 4: Straight Line Distance (Ayrı Modül)
-    logger(`⏳ [4/8] Straight Line Distance (Kuş Uçuşu Mesafe & Stadyum Coğrafyası) ayrıştırılıyor...`);
+    // 7. ADIM 4: Straight Line Distance
+    logger(`⏳ [4/9] Straight Line Distance (Kuş Uçuşu Mesafe & Stadyum Coğrafyası) ayrıştırılıyor...`);
     const distance = await parseDistance(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ Kuş Uçuşu Mesafe: ${distance.km || '-'} (${distance.homeCity} ↔ ${distance.awayCity}) | Stadyum: ${distance.homeStadium || '-'}`, COLORS.green);
 
-    // 6. ADIM 5: Standings (Puan Durumu)
-    logger(`⏳ [5/8] Lig Puan Durumu Tablosu ayrıştırılıyor...`);
+    // 8. ADIM 5: Standings (Puan Durumu)
+    logger(`⏳ [5/9] Lig Puan Durumu Tablosu ayrıştırılıyor...`);
     const standings = await parseStandings(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ Puan Durumu: ${standings.length} takım tablosu çıkarıldı.`, COLORS.green);
 
@@ -133,7 +109,7 @@ async function scrapeMatch(url, options = {}) {
       if (aRow) hero.awayRank = formatRankPlace(aRow.rank);
     }
 
-    // 7. ADIM 6: Injured & Suspended Players
+    // 9. ADIM 6: Injured & Suspended Players
     logger(`⏳ [6/9] Sakat ve Cezalı Oyuncular (Injured & Suspended) ayrıştırılıyor...`);
     const injuries = await parseInjuries(page, hero.homeTeam, hero.awayTeam);
     if (injuries.hasInjuries) {
@@ -142,18 +118,18 @@ async function scrapeMatch(url, options = {}) {
       logger(`  ↳ ℹ️ Bu maç için sakat veya cezalı oyuncu bilgisi bulunmuyor.`, COLORS.yellow);
     }
 
-    // 8. ADIM 7: Last 6 Matches (2x2 Grid)
+    // 10. ADIM 7: Last 6 Matches (2x2 Grid)
     logger(`⏳ [7/9] Son 6 Maç & İç/Dış Saha Form Tabloları ayrıştırılıyor...`);
     const lastMatches = await parseLastMatches(page, hero.homeTeam, hero.awayTeam);
     logger(`  ↳ ✅ Ev Sahibi Genel: ${lastMatches.homeOverall?.matches?.length || 0} maç | Deplasman Genel: ${lastMatches.awayOverall?.matches?.length || 0} maç`, COLORS.green);
 
-    // 9. ADIM 8: Overall Statistics
+    // 11. ADIM 8: Overall Statistics
     logger(`⏳ [8/9] Overall İstatistikler (Şutlar, Paslar, Histogram, Disiplin) ayrıştırılıyor...`);
     const overallStats = await parseOverallStats(page);
-    logger(`  ↳ ✅ Şutlar: ${hero.homeCode}(${overallStats.shots?.home?.total}) vs ${hero.awayCode}(${overallStats.shots?.away?.total})`, COLORS.green);
-    logger(`  ↳ ✅ Paslar: ${hero.homeCode}(${overallStats.passes?.total?.home}) vs ${hero.awayCode}(${overallStats.passes?.total?.away})`, COLORS.green);
+    logger(`  ↳ ✅ Şutlar: ${hero.homeCode}(${overallStats.shots?.home?.total || 0}) vs ${hero.awayCode}(${overallStats.shots?.away?.total || 0})`, COLORS.green);
+    logger(`  ↳ ✅ Paslar: ${hero.homeCode}(${overallStats.passes?.total?.home || 0}) vs ${hero.awayCode}(${overallStats.passes?.total?.away || 0})`, COLORS.green);
 
-    // 10. ADIM 9: Next Matches & FDR
+    // 12. ADIM 9: Next Matches & FDR
     logger(`⏳ [9/9] Gelecek Maçlar & Zorluk Puanları ayrıştırılıyor...`);
     const nextMatches = await parseNextMatches(page, hero.homeCode, hero.awayCode);
     logger(`  ↳ ✅ Gelecek Fikstür: ${nextMatches.home?.length || 0} ev maçı, ${nextMatches.away?.length || 0} dep maçı`, COLORS.green);
@@ -178,10 +154,16 @@ async function scrapeMatch(url, options = {}) {
     };
 
     // Dosyalara Kaydetme
-    const slug = (hero.homeTeam + '-' + hero.awayTeam)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || ('match-' + Date.now());
+    let slug = '';
+    const urlMatch = url.match(/\/matches\/([^\/\?#]+)/);
+    if (urlMatch) {
+      slug = decodeURIComponent(urlMatch[1]).toLowerCase().replace(/[^a-z0-9\-]+/g, '-');
+    } else {
+      slug = (hero.homeTeam + '-' + hero.awayTeam + (hero.matchId ? `-${hero.matchId}` : ''))
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || ('match-' + Date.now());
+    }
 
     const outDir = path.join(__dirname, 'output', slug);
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });

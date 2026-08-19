@@ -197,9 +197,17 @@ async function discoverDailyMatches(dateStr, options = {}) {
     };
 
   } catch (err) {
-    await browser.close();
     logger(`[Keşif] ❌ Keşif hatası: ${err.message}`);
     throw err;
+  } finally {
+    if (browser) {
+      try {
+        const { closeBrowser } = require('./browser_engine');
+        await closeBrowser(browser);
+      } catch (e) {
+        try { await browser.close(); } catch (_) {}
+      }
+    }
   }
 }
 

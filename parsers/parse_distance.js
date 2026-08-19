@@ -2,6 +2,7 @@
  * ====================================================================
  * PARSER: Straight Line Distance & Stadium Geography (BPA V3)
  * ====================================================================
+ * Optimized for high performance (scoped DOM selectors).
  * Extracts:
  * - Straight line distance between home stadium and away location (e.g. "167km", 167)
  * - Home City, Home Country, Home Stadium name
@@ -15,12 +16,12 @@ async function parseDistance(page, heroHomeTeam = '', heroAwayTeam = '') {
     const data = await page.evaluate((hTeam, aTeam) => {
       const clean = (str) => (str || '').replace(/\s+/g, ' ').trim();
 
-      // Find distance module
-      const allDivs = Array.from(document.querySelectorAll('.moduletable, div, section'));
-      const distModule = allDivs.find(d => {
-        const txt = clean(d.innerText).toLowerCase();
-        return (txt.includes('straight line distance') || txt.includes('distance:')) && d.querySelectorAll('.moduletable').length === 0;
-      }) || allDivs.find(d => d.querySelector('.dist_block, .dist_cities'));
+      // Scoped find: Target only specific distance elements instead of all divs
+      const distModule = document.querySelector('.st_dstc, .st_distance, .dist_block, [class*="dist_block"]') ||
+                         Array.from(document.querySelectorAll('.moduletable')).find(d => {
+                           const txt = clean(d.innerText).toLowerCase();
+                           return txt.includes('straight line distance') || txt.includes('distance:');
+                         });
 
       if (!distModule) {
         return {
@@ -104,28 +105,29 @@ async function parseDistance(page, heroHomeTeam = '', heroAwayTeam = '') {
         }
       }
 
+      const hasDistance = Boolean(kmStr || homeCity || awayCity || homeStadium);
+
       return {
-        hasDistance: Boolean(kmStr || homeCity || homeStadium),
-        km: kmStr || (kmNum ? `${kmNum}km` : ''),
+        hasDistance,
+        km: kmStr,
         kmNum,
         homeTeam: hTeam || '',
         homeCode,
         homeLogo,
-        homeCity: homeCity || hTeam,
+        homeCity,
         homeCountry,
         homeStadium,
         awayTeam: aTeam || '',
         awayCode,
         awayLogo,
-        awayCity: awayCity || awayOrigin || aTeam,
+        awayCity,
         awayCountry,
-        awayStadium: awayOrigin || awayCity
+        awayStadium: awayOrigin
       };
     }, heroHomeTeam, heroAwayTeam);
 
     return data;
   } catch (err) {
-    console.error('Error in parseDistance:', err.message);
     return {
       hasDistance: false,
       km: '',
@@ -133,13 +135,13 @@ async function parseDistance(page, heroHomeTeam = '', heroAwayTeam = '') {
       homeTeam: heroHomeTeam,
       homeCode: '',
       homeLogo: '',
-      homeCity: heroHomeTeam,
+      homeCity: '',
       homeCountry: '',
       homeStadium: '',
       awayTeam: heroAwayTeam,
       awayCode: '',
       awayLogo: '',
-      awayCity: heroAwayTeam,
+      awayCity: '',
       awayCountry: '',
       awayStadium: ''
     };

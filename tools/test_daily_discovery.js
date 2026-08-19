@@ -25,11 +25,12 @@ async function testDailyDiscovery(targetDate = null) {
     browser = await initBrowser(true);
 
     console.log(`🔍 Forebet Tarih Listesi Taranıyor: ${dateStr}...`);
-    const matches = await discoverDailyMatches(dateStr, browser);
+    const discovery = await discoverDailyMatches(dateStr, { headless: 'new' });
+    const matches = discovery.matches || [];
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    console.log(`\n✅ Keşif Tamamlandı! Bulunan Toplam Maç: ${matches.length}`);
+    console.log(`\n✅ Keşif Tamamlandı! Bulunan Toplam Maç: ${discovery.total_matches_in_list || matches.length} (Oranlı: ${matches.length})`);
     console.log(`⏱️  İşlem Süresi: ${elapsed}s\n`);
 
     if (matches.length > 0) {

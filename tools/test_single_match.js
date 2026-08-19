@@ -23,7 +23,8 @@ async function testSingleMatch(targetUrl = null) {
   const startTime = Date.now();
 
   try {
-    const result = await scrapeMatch(url);
+    const rawResult = await scrapeMatch(url);
+    const result = rawResult.matchData || rawResult;
 
     if (!result || !result.hero) {
       console.error('❌ Maç verisi kazınamadı veya boş döndü!');

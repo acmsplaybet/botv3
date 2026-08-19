@@ -49,6 +49,7 @@ async function createBrowser(options = {}) {
     ]
   });
 
+  browser._tempUserDataDir = tempUserDataDir;
   return browser;
 }
 
@@ -142,8 +143,54 @@ async function navigateWithRetry(page, url, logger = console.log, maxRetries = 5
   return false;
 }
 
+async function bypassCloudflareIfNeeded(page, logger = () => {}) {
+  try {
+    let title = await page.title();
+    let isCf = title.includes('Just a moment') || title.includes('Attention Required') || title.includes('Cloudflare') || title === 'www.forebet.com';
+
+    if (isCf) {
+      logger(`[Ağ] ⚠️ Cloudflare Challenge tespit edildi, bekleniyor...`);
+      await new Promise(r => setTimeout(r, 3000));
+      title = await page.title();
+      isCf = title.includes('Just a moment') || title.includes('Attention Required') || title === 'www.forebet.com';
+
+      if (isCf) {
+        logger(`[Ağ] 🔄 Sayfa yenileniyor (Cloudflare Bypass)...`);
+        await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 });
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    try {
+      const cookies = await page.cookies();
+      if (cookies && cookies.length > 0) saveCachedCookies(cookies);
+    } catch (e) {}
+
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+async function closeBrowser(browser) {
+  if (!browser) return;
+  const tempDir = browser._tempUserDataDir;
+  try {
+    await browser.close();
+  } catch (e) {}
+
+  if (tempDir && fs.existsSync(tempDir)) {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch (e) {}
+  }
+}
+
 module.exports = {
   createBrowser,
+  initBrowser: createBrowser,
+  closeBrowser,
+  bypassCloudflareIfNeeded,
   setupPageInterception,
   navigateWithRetry,
   saveCachedCookies,
