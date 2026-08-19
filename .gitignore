@@ -2,11 +2,12 @@
 node_modules/
 package-lock.json
 
-# Scraped Output & Large Cache
+# Scraped Output, Large Cache & Assets
 output/
 archive/
 temp_profiles/
 scratch/
+assets/
 
 # Cloudflare Cookies & State (Do not commit active session tokens)
 data/cf_cookies_cache.json
