@@ -3223,7 +3223,7 @@
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'UnderOver')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -3256,7 +3256,7 @@
             <td><span class="score-exact-num">${p.htScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'HT')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -3284,7 +3284,7 @@
             <td><div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center;">${htB} ${ftB}</div></td>
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'HT_FT')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -3317,7 +3317,7 @@
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'BTTS')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -3350,7 +3350,7 @@
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'Double')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -3361,10 +3361,11 @@
           <tr>
             <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
             <th style="width: 18%;">Handicap Prob. %</th>
-            <th style="width: 14%;">Pred (Handicap)</th>
+            <th style="width: 12%;">Pred</th>
             <th style="width: 10%;">Correct score</th>
             <th style="width: 9%;">Avg. goals</th>
-            <th style="width: 9%;">Odds</th>
+            <th style="width: 10%;">Weather</th>
+            <th style="width: 8%;">Odds</th>
             <th style="width: 9%;">Live avg.</th>
             <th style="width: 8%;">Score</th>
           </tr>
@@ -3372,22 +3373,18 @@
         tbody.innerHTML = `
           <tr>
             <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
-            <td><span style="font-weight: 800; color: #0f172a; font-size: 13px;">${p.prob1 || '-'}</span></td>
+            <td><span style="font-weight: 800; color: #0f172a;">${p.prob1 || '-'}</span></td>
             <td>${renderBadge(p.pick, p.status)}</td>
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
-            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
+            <td>${hero.weather || '-'}</td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'Handicap')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
         `;
       } else if (activeMarketTab === 'Scorers') {
         const p = markets['Scorers'] || {};
-        const scorersList = p.predictedScorers || p.scorers || [];
-        thead.innerHTML = `
-          <tr>
-            <th style="width: 30%; text-align: left; padding-left: 12px;">Player</th>
-            <th style="width: 20%;">Team</th>
             <th style="width: 20%;">Probability %</th>
             <th style="width: 15%;">Odds</th>
             <th style="width: 15%;">Score</th>
@@ -4341,12 +4338,11 @@
 
       let oddsHtml = '';
       if (ext && (ext['1'] || ext['X'] || ext['2'])) {
-        const trends = ext.trends || {};
         oddsHtml = `
           <div class="odds-tt-cols">
-            <div class="odds-tt-col"><span class="col-lbl">1</span><b class="col-val">${ext['1'] || '-'}</b>${trends['1'] ? `<span class="trend-arr ${trends['1']}">${trends['1'] === 'up' ? '▲' : '▼'}</span>` : ''}</div>
-            <div class="odds-tt-col"><span class="col-lbl">X</span><b class="col-val">${ext['X'] || '-'}</b>${trends['X'] ? `<span class="trend-arr ${trends['X']}">${trends['X'] === 'up' ? '▲' : '▼'}</span>` : ''}</div>
-            <div class="odds-tt-col"><span class="col-lbl">2</span><b class="col-val">${ext['2'] || '-'}</b>${trends['2'] ? `<span class="trend-arr ${trends['2']}">${trends['2'] === 'up' ? '▲' : '▼'}</span>` : ''}</div>
+            <div class="odds-tt-col"><span class="col-lbl">1</span><b class="col-val">${ext['1'] || '-'}</b></div>
+            <div class="odds-tt-col"><span class="col-lbl">X</span><b class="col-val">${ext['X'] || '-'}</b></div>
+            <div class="odds-tt-col"><span class="col-lbl">2</span><b class="col-val">${ext['2'] || '-'}</b></div>
           </div>
         `;
       } else if (ext && (ext['under'] || ext['over'])) {

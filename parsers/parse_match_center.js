@@ -4,7 +4,7 @@
  * ====================================================================
  * Extracts complete live & finished match center overlay data:
  * 1. Events: Goals, Cards, Subs, HT/FT/AET/Penalty shootouts
- * 2. Line-ups: Formations, Coaches, Referee, Starting XI, Substitutes
+ * 2. Line-ups: Formations, Coaches, Referee, Venue, Starting XI, Substitutes
  * 3. Stats: Real in-match metrics (Shots, Passes, Possession, Attacks, Cards)
  * ====================================================================
  */
@@ -116,7 +116,7 @@ async function parseMatchCenter(page, hero = {}) {
           eventsList.push({
             type: 'penalty_kick',
             minute: minStr || 'Pen',
-            player: playerName || secondPlayer,
+            player: playerName || secondPlayer || 'Penalty Kick',
             scored: isScored,
             score: scoreAtTime,
             team
@@ -131,7 +131,7 @@ async function parseMatchCenter(page, hero = {}) {
           eventsList.push({
             type: 'goal',
             minute: minStr,
-            scorer: playerName || secondPlayer,
+            scorer: playerName || secondPlayer || (scoreAtTime ? `Goal (${scoreAtTime})` : 'Goal'),
             assist: assist || (secondPlayer && !secondPlayer.includes('pen') && !secondPlayer.includes('o.g.') ? secondPlayer : null),
             isPenalty: isPen,
             isOwnGoal: isOwn,
@@ -143,7 +143,7 @@ async function parseMatchCenter(page, hero = {}) {
             type: 'card',
             card: 'yellow_red',
             minute: minStr,
-            player: playerName || secondPlayer,
+            player: playerName || secondPlayer || 'Red Card (2nd Yellow)',
             team
           });
         } else if (isRedCard) {
@@ -151,7 +151,7 @@ async function parseMatchCenter(page, hero = {}) {
             type: 'card',
             card: 'red',
             minute: minStr,
-            player: playerName || secondPlayer,
+            player: playerName || secondPlayer || 'Red Card',
             team
           });
         } else if (isYellowCard) {
@@ -159,15 +159,15 @@ async function parseMatchCenter(page, hero = {}) {
             type: 'card',
             card: 'yellow',
             minute: minStr,
-            player: playerName || secondPlayer,
+            player: playerName || secondPlayer || 'Yellow Card',
             team
           });
         } else if (isSub || (secondPlayer && secondPlayer !== playerName)) {
           eventsList.push({
             type: 'sub',
             minute: minStr,
-            playerIn: playerName,
-            playerOut: secondPlayer,
+            playerIn: playerName || 'Sub In',
+            playerOut: secondPlayer || 'Sub Out',
             team
           });
         }
@@ -190,7 +190,7 @@ async function parseMatchCenter(page, hero = {}) {
 
       const lineupsData = await page.evaluate(() => {
         const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
-        const lineupsSec = document.querySelector('.ft-events__section[data-menu="line-ups"], .ft-events__main');
+        const lineupsSec = document.querySelector('.ft-events__section[data-menu="line-ups"], .ft-events__main, .ft-events');
         if (!lineupsSec) return null;
 
         const text = lineupsSec.innerText || '';
@@ -206,7 +206,9 @@ async function parseMatchCenter(page, hero = {}) {
         if (cMatch) capacity = clean(cMatch[1]);
 
         const rMatch = text.match(/Referee\s*\n+([^\n]+)/i);
-        if (rMatch) referee = clean(rMatch[1]);
+        if (rMatch && !rMatch[1].toLowerCase().includes('no data')) {
+          referee = clean(rMatch[1]);
+        }
 
         const formations = text.match(/\b\d\-\d\-\d(?:\-\d)?\b/g) || [];
         const homeFormation = formations[0] || '';
@@ -254,13 +256,14 @@ async function parseMatchCenter(page, hero = {}) {
 
       const inMatchStatsData = await page.evaluate(() => {
         const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
-        const statsSec = document.querySelector('.ft-events__section[data-menu="stats"], .ft-events__main');
+        const statsSec = document.querySelector('.ft-events__section[data-menu="stats"], .ft-events__main, .ft-events');
         if (!statsSec) return {};
 
         const rawText = statsSec.innerText || '';
         const lines = rawText.split('\n').map(l => clean(l)).filter(Boolean);
         const stats = {};
 
+        // Parse key-value triples: [Label, HomeVal, AwayVal]
         for (let i = 0; i < lines.length; i++) {
           const l = lines[i];
           const next1 = lines[i + 1];
@@ -271,11 +274,14 @@ async function parseMatchCenter(page, hero = {}) {
             const isVal2 = /^[\d%]+$/.test(next2);
             if (isVal1 && isVal2 && !/^[\d%]+$/.test(l)) {
               const key = l.toLowerCase().replace(/[^a-z0-9]/g, '_');
-              stats[key] = {
-                label: l,
-                home: next1,
-                away: next2
-              };
+              // Avoid duplicate overwrites if already set
+              if (!stats[key]) {
+                stats[key] = {
+                  label: l,
+                  home: next1,
+                  away: next2
+                };
+              }
             }
           }
         }

@@ -2,45 +2,88 @@
  * ====================================================================
  * PARSER: STEP 2 - PREDICTION MARKETS (EXACT & DYNAMIC FOR ANY MATCH)
  * ====================================================================
- * Extracts:
- * - Primary pick, probabilities, correct score, avg goals, main odds
- * - Extended Odds & Trends (1X2 full odds 1/X/2, Under/Over, BTTS Yes/No, HT)
- * ====================================================================
  */
 
 async function parseMarkets(page) {
   return await page.evaluate(() => {
     const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
 
-    const getStatusFromEl = (el) => {
-      if (!el) return 'pending';
-      if (el.classList.contains('predict_y') || el.closest('.predict_y') || el.querySelector('.predict_y') || el.classList.contains('exact_yes') || el.closest('.exact_yes')) {
-        return 'win';
+    const markets = {};
+
+    // Determine match final and half-time scores for automatic win/loss validation if FT
+    const heroScoreEl = document.getElementById('evhdbte') || document.querySelector('.lscrsp') || document.querySelector('.match_res');
+    const heroScoreText = clean(heroScoreEl?.innerText);
+    let matchFtHome = null;
+    let matchFtAway = null;
+    if (heroScoreText && heroScoreText.includes('-')) {
+      const parts = heroScoreText.split('-').map(p => parseInt(clean(p), 10));
+      if (!isNaN(parts[0]) && !isNaN(parts[1])) {
+        matchFtHome = parts[0];
+        matchFtAway = parts[1];
       }
-      if (el.classList.contains('predict_no') || el.closest('.predict_no') || el.querySelector('.predict_no')) {
-        return 'loss';
+    }
+
+    // Helper to evaluate win/loss status from DOM classes or score calculation
+    const evaluateStatus = (predWrap, pick, marketType) => {
+      // 1. Direct prediction container class check
+      if (predWrap) {
+        if (predWrap.classList.contains('predict_y')) return 'win';
+        if (predWrap.classList.contains('predict_no')) return 'loss';
       }
+
+      // 2. Calculation fallback if match is completed (FT)
+      const ftH = matchFtHome;
+      const ftA = matchFtAway;
+
+      if (ftH !== null && ftA !== null) {
+        if (marketType === '1X2') {
+          const actualResult = ftH > ftA ? '1' : (ftH < ftA ? '2' : 'X');
+          if (pick === actualResult) return 'win';
+          if (pick === '1' || pick === 'X' || pick === '2') return 'loss';
+        } else if (marketType === 'UnderOver') {
+          const totalGoals = ftH + ftA;
+          const isUnder = totalGoals < 2.5;
+          const pickLower = (pick || '').toLowerCase();
+          if (pickLower.includes('under') || pickLower === 'alt') {
+            return isUnder ? 'win' : 'loss';
+          }
+          if (pickLower.includes('over') || pickLower === 'üst') {
+            return !isUnder ? 'win' : 'loss';
+          }
+        } else if (marketType === 'BTTS') {
+          const bothScored = ftH > 0 && ftA > 0;
+          const pickLower = (pick || '').toLowerCase();
+          if (pickLower.includes('yes') || pickLower.includes('evet')) {
+            return bothScored ? 'win' : 'loss';
+          }
+          if (pickLower.includes('no') || pickLower.includes('hayır')) {
+            return !bothScored ? 'win' : 'loss';
+          }
+        } else if (marketType === 'Double') {
+          const actualResult = ftH > ftA ? '1' : (ftH < ftA ? '2' : 'X');
+          if (pick.includes(actualResult)) return 'win';
+          return 'loss';
+        }
+      }
+
       return 'pending';
     };
 
-    const markets = {};
-
     // Helper to extract fields from any market schema table row
-    const parseRow = (tableId) => {
+    const parseRow = (tableId, marketType) => {
       const el = document.getElementById(tableId);
       if (!el) return null;
 
       const row = el.querySelector('.rcnt') || el;
       const probSpans = row.querySelectorAll('.fprc span');
       const pickEl = row.querySelector('.forepr span, .forepr');
-      const predWrap = row.querySelector('.predict_y, .predict_no, .predict_e, .predict');
-      const status = getStatusFromEl(predWrap || pickEl);
-      
+      const pickText = clean(pickEl?.innerText);
+
       // Select exact tabonly correct score first to avoid mobile duplication
       const csEl = row.querySelector('.ex_sc.tabonly') || row.querySelector('.ex_sc');
       const avgEl = row.querySelector('.avg_sc.tabonly') || row.querySelector('.avg_sc');
       
-      // Main Odds: Extract strictly the single main odds value from .lscrsp, ignoring .haodd dropdown
+      // Main Odds
       const oddsEl = row.querySelector('.bigOnly.prmod .lscrsp, .prmod .lscrsp, .prmod > span, .prmod');
       let odds = '-';
       if (oddsEl) {
@@ -51,13 +94,12 @@ async function parseMarkets(page) {
         if (textVal && textVal !== '-') odds = textVal;
       }
 
-      // Extended Odds & Trends from .haodd (e.g. 1.48, 3.90, 5.75 + up/down/none)
+      // Extended Odds from .haodd
       const haoddEl = row.querySelector('.haodd');
       const haoddSpans = haoddEl ? Array.from(haoddEl.querySelectorAll('span')).map(s => clean(s.innerText)).filter(Boolean) : [];
       const haoddNumbers = haoddSpans.filter(s => /^\d+(\.\d+)?$/.test(s));
-      const haoddDirections = haoddSpans.filter(s => /^(up|down|none)$/i.test(s));
 
-      // Live Cost / Live Avg: Extract from .la_prmod
+      // Live Cost / Live Avg
       const liveEl = row.querySelector('.la_prmod .lscrsp, .la_prmod > span, .la_prmod');
       let liveCost = '-';
       if (liveEl) {
@@ -70,36 +112,35 @@ async function parseMarkets(page) {
 
       const ftScoreEl = row.querySelector('.lscr_td .l_scr');
       const htScoreEl = row.querySelector('.lscr_td .ht_scr');
+      const ftScoreVal = clean(ftScoreEl?.innerText);
+      const htScoreVal = clean(htScoreEl?.innerText);
+
+      const predWrap = row.querySelector('.predict_y, .predict_no, .predict, .predict_e');
+      const status = evaluateStatus(predWrap, pickText, marketType);
 
       return {
         exists: true,
         probs: Array.from(probSpans).map(s => clean(s.innerText)).filter(Boolean),
-        pick: clean(pickEl?.innerText),
+        pick: pickText,
         status: status,
         correctScore: clean(csEl?.innerText),
         avgGoals: clean(avgEl?.innerText),
         odds: odds,
         haoddNumbers,
-        haoddDirections,
         liveCost: liveCost,
-        ftScore: clean(ftScoreEl?.innerText),
-        htScore: clean(htScoreEl?.innerText)
+        ftScore: ftScoreVal,
+        htScore: htScoreVal
       };
     };
 
     // 1. 1X2
-    const d1x2 = parseRow('m1x2_table');
+    const d1x2 = parseRow('m1x2_table', '1X2');
     let ext1x2 = null;
     if (d1x2?.haoddNumbers && d1x2.haoddNumbers.length >= 3) {
       ext1x2 = {
         "1": d1x2.haoddNumbers[0],
         "X": d1x2.haoddNumbers[1],
-        "2": d1x2.haoddNumbers[2],
-        trends: d1x2.haoddDirections.length >= 3 ? {
-          "1": d1x2.haoddDirections[0],
-          "X": d1x2.haoddDirections[1],
-          "2": d1x2.haoddDirections[2]
-        } : null
+        "2": d1x2.haoddNumbers[2]
       };
     }
 
@@ -117,23 +158,19 @@ async function parseMarkets(page) {
     };
 
     // 2. Under / Over 2.5
-    const dUo = parseRow('uo_table');
+    const dUo = parseRow('uo_table', 'UnderOver');
     let extUo = null;
     if (dUo?.haoddNumbers && dUo.haoddNumbers.length >= 2) {
       extUo = {
         "under": dUo.haoddNumbers[0],
-        "over": dUo.haoddNumbers[1],
-        trends: dUo.haoddDirections.length >= 2 ? {
-          "under": dUo.haoddDirections[0],
-          "over": dUo.haoddDirections[1]
-        } : null
+        "over": dUo.haoddNumbers[1]
       };
     }
 
     markets['UnderOver'] = {
       probUnder: (dUo?.probs[0] || '0').replace('%', '') + '%',
       probOver: (dUo?.probs[1] || '0').replace('%', '') + '%',
-      pick: dUo?.pick || 'Over',
+      pick: dUo?.pick || 'Under',
       status: dUo?.status || 'pending',
       correctScore: dUo?.correctScore || '-',
       avgGoals: dUo?.avgGoals || '-',
@@ -143,18 +180,13 @@ async function parseMarkets(page) {
     };
 
     // 3. Half Time (HT)
-    const dHt = parseRow('ht_table');
+    const dHt = parseRow('ht_table', 'HT');
     let extHt = null;
     if (dHt?.haoddNumbers && dHt.haoddNumbers.length >= 3) {
       extHt = {
         "1": dHt.haoddNumbers[0],
         "X": dHt.haoddNumbers[1],
-        "2": dHt.haoddNumbers[2],
-        trends: dHt.haoddDirections.length >= 3 ? {
-          "1": dHt.haoddDirections[0],
-          "X": dHt.haoddDirections[1],
-          "2": dHt.haoddDirections[2]
-        } : null
+        "2": dHt.haoddNumbers[2]
       };
     }
 
@@ -172,7 +204,7 @@ async function parseMarkets(page) {
     };
 
     // 4. HT / FT
-    const dHtft = parseRow('htft_table');
+    const dHtft = parseRow('htft_table', 'HT_FT');
     const htftEl = document.getElementById('htft_table');
     let htftProb = '-';
     let htPick = '-';
@@ -192,7 +224,7 @@ async function parseMarkets(page) {
       if (htPredEl) {
         const s = htPredEl.querySelector('.forepr span, .forepr');
         htPick = clean(s?.innerText) || '-';
-        htStatus = getStatusFromEl(htPredEl);
+        htStatus = htPredEl.classList.contains('predict_y') ? 'win' : (htPredEl.classList.contains('predict_no') ? 'loss' : 'pending');
       }
 
       const allPreds = Array.from(row.querySelectorAll('.predict_y, .predict_no, .predict_e, .predict'));
@@ -200,7 +232,7 @@ async function parseMarkets(page) {
       if (ftPredEl) {
         const s = ftPredEl.querySelector('.forepr span, .forepr');
         ftPick = clean(s?.innerText) || '-';
-        ftStatus = getStatusFromEl(ftPredEl);
+        ftStatus = ftPredEl.classList.contains('predict_y') ? 'win' : (ftPredEl.classList.contains('predict_no') ? 'loss' : 'pending');
       }
     }
 
@@ -218,7 +250,7 @@ async function parseMarkets(page) {
     };
 
     // 5. Both Teams to Score (BTTS)
-    const dBtts = parseRow('bts_table');
+    const dBtts = parseRow('bts_table', 'BTTS');
     const btsEl = document.getElementById('bts_table');
     let btsProb = '-';
     if (btsEl) {
@@ -234,11 +266,7 @@ async function parseMarkets(page) {
     if (dBtts?.haoddNumbers && dBtts.haoddNumbers.length >= 2) {
       extBtts = {
         "yes": dBtts.haoddNumbers[0],
-        "no": dBtts.haoddNumbers[1],
-        trends: dBtts.haoddDirections.length >= 2 ? {
-          "yes": dBtts.haoddDirections[0],
-          "no": dBtts.haoddDirections[1]
-        } : null
+        "no": dBtts.haoddNumbers[1]
       };
     }
 
@@ -255,7 +283,7 @@ async function parseMarkets(page) {
     };
 
     // 6. Double Chance
-    const dDbc = parseRow('dbc_table');
+    const dDbc = parseRow('dbc_table', 'Double');
     const dbcEl = document.getElementById('dbc_table');
     let dbcProb = '-';
     if (dbcEl) {
@@ -277,7 +305,7 @@ async function parseMarkets(page) {
     };
 
     // 7. Asian Handicap
-    const dAh = parseRow('ah_table');
+    const dAh = parseRow('ah_table', 'Handicap');
     if (dAh && dAh.pick && dAh.pick !== '-') {
       markets['Handicap'] = {
         prob1: (dAh?.probs[0] ? dAh.probs[0].replace('%', '') : '0') + '%',
@@ -313,7 +341,7 @@ async function parseMarkets(page) {
     }
 
     if (scorersList.length > 0) {
-      const dGscr = parseRow('gscr_table');
+      const dGscr = parseRow('gscr_table', 'Scorers');
       markets['Scorers'] = {
         hasScorers: true,
         predictedScorers: scorersList,
@@ -325,7 +353,7 @@ async function parseMarkets(page) {
     }
 
     // 9. Corners
-    const dCor = parseRow('corner_table');
+    const dCor = parseRow('corner_table', 'Corners');
     if (dCor && dCor.pick && dCor.pick !== '-') {
       markets['Corners'] = {
         probUnder: (dCor?.probs[0] || '0').replace('%', '') + '%',
@@ -341,7 +369,7 @@ async function parseMarkets(page) {
     }
 
     // 10. Cards
-    const dCard = parseRow('card_table');
+    const dCard = parseRow('card_table', 'Cards');
     if (dCard && dCard.pick && dCard.pick !== '-') {
       markets['Cards'] = {
         probUnder: (dCard?.probs[0] || '0').replace('%', '') + '%',
