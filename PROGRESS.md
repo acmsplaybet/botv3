@@ -5,10 +5,15 @@
 
 ## 🎯 GÜNCEL DURUM ÖZETİ
 - **Proje Adı:** BPA V3 Forebet Master Scraper & APEX Data Ingestion Engine
-- **Versiyon:** 3.1.0-PRO
-- **Genel Durum:** Faz 1 (Temel 9 Modül & 1:1 Viewer), Faz 2 (Extended Odds & Trends across 9 Markets), Faz 3 (Finished Match Events, Line-ups & Stats) ve Teşhis Araç Paketi (`tools/` - 9 Araç) %100 TAMAMLANDI.
+- **Versiyon:** 3.2.0-PRO
+- **Genel Durum:** Faz 1 (Temel 9 Modül & 1:1 Viewer), Faz 2 (Extended Odds across 9 Markets), Faz 3 (1:1 Tactical Pitch, Events, Substitutions, Substitutes & Stats) ve Teşhis Araç Paketi (`tools/` - 9 Araç) %100 TAMAMLANDI.
 - **Aktif Faz:** Faz 4 (APEX Canlı Senkronizasyon & Cron Otomasyonu) ve Sonlandırma.
-- **Son Çalışma:** Kullanıcının sunduğu canlı maç örnekleriyle (`Aragua - Fundación Lara` ve `Independiente Rivadavia - Fluminense`) açılan oran popupları (`1X2 1/X/2, U/O, HT, BTTS`), oran yön hareketleri (`up/down`), bitmiş maç içi olaylar (dakika, goller, asistler, penaltı/KK, sarı/kırmızı kartlar, oyuncu değişiklikleri, penaltı atışları), kadrolar (stadyum, hakem, dizilişler, ilk 11 ve yedekler) ve maç istatistikleri (şut, pas, topla oynama, korner) eksiksiz kazınıp HTML Viewer modalına ve APEX API veri boru hattına entegre edildi.
+- **Son Çalışma:** 
+  1. **1:1 Taktik Futbol Sahası (Tactical Pitch):** Saha çizgileri, Ev/Deplasman Formasyon barları (`4-2-3-1`), Teknik direktörler, forma numaraları, oyuncu isimleri, gol (⚽), asist (`[A]`), sarı/kırmızı kart ve oyundan çıkış (`> dk`) rozetleri Forebet ile 1:1 inşa edildi.
+  2. **Substitutions (Oyuna Giriş/Çıkış):** `▲ Yeşil Ok (Giren Oyuncu) / ▼ Kırmızı Ok (Çıkan Oyuncu) [Dakika]` eşleşmeleri ayrı bir tablo olarak çekildi ve renderlandı.
+  3. **Substitutes (Yedek Kulübesi):** Her iki takımın yedek oyuncu listeleri eksiksiz listelendi.
+  4. **Canlı Maç Güvenliği:** Canlı maçlarda anlık dakika (`91'+5 (Live)`) çekildi, maç bitmeden tahminlerin sonuçlandırılması engellenerek `pending` olarak korunması sağlandı.
+  5. **Stats Sekmesi CSS:** Stats çubukları ve değerleri Forebet renklerine uygun olarak onarıldı.
 
 ---
 
@@ -16,7 +21,7 @@
 
 ### 🟢 FAZ 1: TEMEL KAZIMA, 1:1 VIEWER & TEST ARAÇLARI (TAMAMLANDI)
 - [x] **Adım 1.1: Puppeteer Stealth & Evasion Motoru** → `core/browser_engine.js`, WebGL spoofing, User-Agent rotasyonu, `data/cf_cookies_cache.json` çerez önbelleği.
-- [x] **Adım 1.2: Match Hero Parser** → `parsers/parse_hero.js` (Ev/Dep takımlar, logolar, lig, ülke, raunt, tarih/saat, hava durumu, skor, form dizileri).
+- [x] **Adım 1.2: Match Hero Parser** → `parsers/parse_hero.js` (Ev/Dep takımlar, logolar, lig, ülke, raunt, tarih/saat, hava durumu, skor, canlı durum, form dizileri).
 - [x] **Adım 1.3: 9 Tahmin Marketi Parser** → `parsers/parse_markets.js` (1X2, Under/Over 2.5, HT, HT/FT, BTTS, Handicap, Scorers, Corners, Cards).
 - [x] **Adım 1.4: H2H, Intro & Kuş Uçuşu Mesafe** → `parsers/parse_h2h_intro.js` + `parsers/parse_distance.js` (Geçmiş maçlar, özet oranlar, mesafe km).
 - [x] **Adım 1.5: Puan Durumu (Standings)** → `parsers/parse_standings.js` (Lig sıralaması, aktif takımların sarı vurgulanması).
@@ -41,9 +46,9 @@
 
 ### 🟢 FAZ 3: BİTMİŞ MAÇ MERKEZİ: OLAYLAR, KADROLAR & İSTATİSTİKLER (TAMAMLANDI)
 - [x] **Adım 3.1: Skor Tıklama / Match Center Tetikleme** → `parsers/parse_match_center.js` (Skor tıklandığında açılan `.ft-events` ve 3 sekme AJAX ile okundu).
-- [x] **Adım 3.2: Olaylar (Events) Zaman Çizelgesi** → Dakika bazlı goller (golü atan, asist, penaltı, kendi kalesine, anlık skor), sarı/kırmızı kartlar, oyuncu değişiklikleri ve penaltı atışları (`penalties: [ { player, scored, score } ]`).
-- [x] **Adım 3.3: Kadrolar (Line-ups)** → Stadyum, Kapasite, Hakem, Dizilişler (`4-4-2`, `4-2-3-1`), Ev & Deplasman İlk 11 ve Yedek kulübesi listesi.
-- [x] **Adım 3.4: Maç İçi Gerçek İstatistikler (Stats)** → Toplam şut, İsabetli şut, Ceza sahası içi/dışı şutlar, Topla oynama %, İsabetli paslar, Tehlikeli ataklar, Kornerler, Ofsaytlar, Fauller, Kartlar.
+- [x] **Adım 3.2: Olaylar (Events) Zaman Çizelgesi** → Dakika bazlı goller (golü atan, asist, penaltı, kendi kalesine, anlık skor), sarı/kırmızı kartlar, oyuncu değişiklikleri, VAR kararları, penaltı kaçırma ve penaltı atışları (`penalties: [ { player, scored, score } ]`), kronolojik `HT` ve `FT` skor panelleri.
+- [x] **Adım 3.3: 1:1 Taktik Futbol Sahası & Kadrolar (Line-ups)** → Stadyum, Kapasite, Hakem, Formasyon barları, Taktik saha üzerinde dizili ilk 11 oyuncu rozetleri (forma, numara, isim, gol, asist, kart, çıkış dakikası), Değişiklikler (Substitutions In/Out) ve Yedek kulübesi (Substitutes).
+- [x] **Adım 3.4: Maç İçi Gerçek İstatistikler (Stats)** → Toplam şut, İsabetli şut, Ceza sahası içi/dışı şutlar, Topla oynama %, İsabetli paslar, Tehlikeli ataklar, Kornerler, Ofsaytlar, Fauller, Kartlar (İki renkli progress bar tasarımıyla).
 - [x] **Adım 3.5: 1:1 HTML Viewer Match Center Modal** → Skora tıklandığında açılan 3 sekmeli (`Events`, `Line-ups`, `Stats`) canlı maç merkezi overlay ekranı yapıldı.
 
 ---
@@ -57,6 +62,5 @@
 ---
 
 ## 📝 SON NOTLAR & RAPORLAR
-- `2026-08-20`: Faz 2 (Açılan Oranlar) ve Faz 3 (Bitmiş Maç Merkezi - Events, Line-ups, Stats) başarıyla tamamlandı. İlettiğiniz `Aragua - Fundación Lara` maçında 1X2 `1: 1.48, X: 3.90, 2: 5.75` açılan oranları ve `Independiente Rivadavia - Fluminense` maçında 30 adet maç olayı (Goller, asistler, kartlar, oyuncu değişiklikleri, penaltı atışları), ilk 11 dizilişleri ve maç içi şut/pas/topla oynama istatistikleri başarıyla çıkarıldı. HTML Viewer'a tıklandığında açılan maç merkezi modali ve oran kutucukları eklendi. Master Test Suite %100 PASS verdi.
-- `2026-08-20`: Genel sistem denetimi ve hızlandırma paketi tamamlandı. Bot baştan aşağı tarandı; gereksiz DOM reflow'ları, bellek sızıntıları, gizli zero-mock ihlali giderildi. Tekil maç kazıma süresi 12 saniyeye indi. APEX API import senkronizasyonu doğrulanarak 19 tabloya anlık JSON iletimi sağlandı.
-- `2026-08-19`: Proje `c:/xampp/htdocs/botv3` dizinine taşındı. `apex-api` projesindeki gibi tam teşekküllü Agent kuralları (`.cursorrules`, `.agents/rules/`), 11 Yetenek (`.agents/skills/`), 9 Bağımsız Teşhis ve Test Aracı (`tools/`), Rehberler (`AGENTS.md`, `WORKFLOW.md`, `PROJECT_STANDARDS.md`, `GELISTIRICI.md`, `YONETICI.md`) ve Teknik Ek Doküman (`docs/BOT_FOREBET_ADDENDUM.md`) sıfırdan oluşturuldu.
+- `2026-08-20`: 1:1 Taktik Futbol Sahası (Tactical Pitch), Formasyon barları, Oyuna giriş/çıkış değişiklikleri (`Substitutions`) ve Yedek kulübesi (`Substitutes`) modülleri Forebet ile birebir aynı görselde tamamlandı. Canlı maçlarda tahminlerin `pending` kalması sağlandı. `Stats` sekmesi CSS çubukları düzeltildi.
+- `2026-08-20`: Faz 2 (Açılan Oranlar) ve Faz 3 (Bitmiş Maç Merkezi - Events, Line-ups, Stats) başarıyla tamamlandı. Master Test Suite %100 PASS verdi.

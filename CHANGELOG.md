@@ -2,6 +2,21 @@
 
 Tüm önemli değişiklikler, yeni modüller ve hata düzeltmeleri bu dosyada [Semantic Versioning](https://semver.org/) kurallarına göre tutulur.
 
+## [3.2.0-PRO] — 2026-08-20
+### ✨ 1:1 Taktik Futbol Sahası, Canlı Maç Güvenliği ve Kadro Değişiklikleri
+- **1:1 Taktik Futbol Sahası (Tactical Pitch):**
+  - Forebet'in saha çizgileri (orta saha yuvarlağı, ceza sahaları) ile donatılmış koyu gri taktik saha canvas'ı 1:1 inşa edildi.
+  - Ev ve Deplasman Formasyon barları (`4-2-3-1`, `4-4-2`), logolar, takım kodları ve teknik direktörler entegre edildi.
+  - Taktik saha üzerindeki oyuncular forma numarası, oyuncu ismi, gol (⚽), asist (`[A]`), sarı/kırmızı kart ve oyundan çıkış (`> 85'`) rozetleriyle render edildi.
+- **Substitutions (Oyuna Giriş/Çıkış Tablosu):**
+  - `▲ Yeşil Ok (Giren Oyuncu) / ▼ Kırmızı Ok (Çıkan Oyuncu) [Dakika]` eşleşmeleri ayrı bir tablo olarak çekildi ve renderlandı.
+- **Substitutes (Yedek Kulübesi):**
+  - Her iki takımın yedek oyuncuları eksiksiz 2 sütunlu kulübe listesi olarak eklendi.
+- **Canlı Maç ve Tahmin Güvenliği:**
+  - Oynanmakta olan canlı maçlarda dakika tespiti (`91'+5 (Live)`) sağlandı; maç resmi olarak FT bitmeden tahminlerin sonuçlandırılması engellenerek `pending` statüsünde kalması güvenceye alındı.
+- **Stats Sekmesi CSS Onarımı:**
+  - Stats sekmesindeki şut, pas, topla oynama ve korner çubukları iki renkli Forebet progress bar standardına kavuşturuldu.
+
 ## [3.1.0-PRO] — 2026-08-20
 ### ✨ Yeni Modüller ve Özellikler (Faz 2 & Faz 3)
 - **Açılan Detaylı Oranlar (Faz 2 - Extended Odds & Trends across 9 Markets):**
