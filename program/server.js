@@ -203,7 +203,17 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
     broadcastEvent('job_progress', activeJob);
 
     const cfg = loadConfig();
+    let failedMatches = [];
 
+    // Helper: 60-second timeout guard per match
+    const scrapeWithTimeout = (url, opts, ms = 60000) => {
+      return Promise.race([
+        scrapeMatch(url, opts),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Maç kazıma zaman aşımı (60s Timeout)')), ms))
+      ]);
+    };
+
+    // PASS 1: Ana Kazıma Turu
     for (let i = 0; i < matches.length; i++) {
       if (activeJob.cancelRequested) {
         broadcastLog(`[CANCEL] Kullanıcı isteği ile kazıma durduruldu.`, 'warning');
@@ -212,41 +222,97 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
 
       const m = matches[i];
       const matchUrl = m.url || m.link;
-      const title = m.homeTeam && m.awayTeam ? `${m.homeTeam} vs ${m.awayTeam}` : `Maç #${i + 1}`;
+      const home = m.home_team || m.homeTeam || m.home || '';
+      const away = m.away_team || m.awayTeam || m.away || '';
+      let title = home && away ? `${home} vs ${away}` : '';
+      if (!title && matchUrl) {
+        const slug = matchUrl.split('/').pop() || '';
+        title = slug.replace(/-\d+$/, '').replace(/-/g, ' ').toUpperCase();
+      }
+      if (!title) title = `Maç #${i + 1}`;
 
       activeJob.currentMatch = title;
-      broadcastLog(`[${i + 1}/${matches.length}] Kazınıyor: ${title}...`, 'info');
+      broadcastLog(`[PASS 1] [${i + 1}/${matches.length}] Kazınıyor: ${title}...`, 'info');
 
       try {
-        const res = await scrapeMatch(matchUrl, {
+        const res = await scrapeWithTimeout(matchUrl, {
           headless: cfg.headless || 'new',
           syncApex: cfg.autoSyncApex !== undefined ? cfg.autoSyncApex : true,
           apiUrl: cfg.apexImportUrl,
           apiKey: cfg.apexSecret
-        });
+        }, 65000);
 
-        if (res && res.success) {
+        if (res && res.success && res.data && res.data.hero?.homeTeam) {
+          const finalTitle = `${res.data.hero.homeTeam} vs ${res.data.hero.awayTeam}`;
+          const score = res.data.hero.finalScore || res.data.hero.score || '-';
           activeJob.completedMatches++;
-          broadcastLog(`[SUCCESS] [${i + 1}/${matches.length}] ${title}`, 'success');
+          broadcastLog(`[SUCCESS] [${i + 1}/${matches.length}] ${finalTitle} (${score})`, 'success');
+          broadcastEvent('match_scraped', { slug: res.data.meta?.slug, hero: res.data.hero });
         } else {
-          activeJob.failedMatches++;
-          broadcastLog(`[FAILED] [${i + 1}/${matches.length}] ${title}`, 'error');
+          failedMatches.push(m);
+          broadcastLog(`[RETRY_QUEUED] Eksik/Başarısız veri, telafi kuyruğuna eklendi: ${title}`, 'warning');
         }
       } catch (err) {
-        activeJob.failedMatches++;
-        broadcastLog(`[ERROR] [${i + 1}/${matches.length}] ${err.message}`, 'error');
+        failedMatches.push(m);
+        broadcastLog(`[RETRY_QUEUED] Hata (${err.message}), telafi kuyruğuna eklendi: ${title}`, 'warning');
       }
 
       activeJob.progressPct = Math.round(((i + 1) / matches.length) * 100);
       broadcastEvent('job_progress', activeJob);
 
       if (i < matches.length - 1 && !activeJob.cancelRequested) {
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1000));
       }
     }
 
+    // PASS 2 & 3: OTOMATİK TELAFİ TURU (Eğer eksik/hatalı maç kaldıysa)
+    let retryRound = 1;
+    while (failedMatches.length > 0 && retryRound <= 2 && !activeJob.cancelRequested) {
+      broadcastLog(`[SELF_HEALING] [TELAFİ TURU ${retryRound}] ${failedMatches.length} adet eksik/hatalı maç tekrar deneniyor...`, 'info');
+      await new Promise(r => setTimeout(r, 3000)); // 3 saniye dinlen
+
+      const currentRetryList = [...failedMatches];
+      failedMatches = []; // Kuyruğu sıfırla
+
+      for (let j = 0; j < currentRetryList.length; j++) {
+        if (activeJob.cancelRequested) break;
+
+        const rm = currentRetryList[j];
+        const rUrl = rm.url || rm.link;
+        const rTitle = rm.homeTeam && rm.awayTeam ? `${rm.homeTeam} vs ${rm.awayTeam}` : `Telafi #${j + 1}`;
+
+        activeJob.currentMatch = `[Telafi ${retryRound}] ${rTitle}`;
+        broadcastLog(`[RETRY ${retryRound}] [${j + 1}/${currentRetryList.length}] Tekrar deneniyor: ${rTitle}...`, 'info');
+
+        try {
+          const res = await scrapeWithTimeout(rUrl, {
+            headless: cfg.headless || 'new',
+            syncApex: cfg.autoSyncApex !== undefined ? cfg.autoSyncApex : true,
+            apiUrl: cfg.apexImportUrl,
+            apiKey: cfg.apexSecret
+          }, 65000);
+
+          if (res && res.success && res.data && res.data.hero?.homeTeam) {
+            activeJob.completedMatches++;
+            broadcastLog(`[RETRY_SUCCESS] Telafi edildi: ${rTitle}`, 'success');
+          } else {
+            failedMatches.push(rm);
+            broadcastLog(`[RETRY_STILL_FAIL] Telafi başarısız: ${rTitle}`, 'warning');
+          }
+        } catch (rErr) {
+          failedMatches.push(rm);
+          broadcastLog(`[RETRY_STILL_FAIL] Telafi hatası (${rErr.message}): ${rTitle}`, 'warning');
+        }
+
+        await new Promise(r => setTimeout(r, 1200));
+      }
+
+      retryRound++;
+    }
+
+    activeJob.failedMatches = failedMatches.length;
     const elapsed = ((Date.now() - activeJob.startTime) / 1000).toFixed(1);
-    broadcastLog(`[COMPLETED] Batch kazıma tamamlandı! (${activeJob.completedMatches} başarılı, ${activeJob.failedMatches} hatalı, ${elapsed}s)`, 'success');
+    broadcastLog(`[COMPLETED] Batch kazıma & Telafi süreci tamamlandı! (${activeJob.completedMatches} başarılı, ${failedMatches.length} kurtarılamayan, Toplam Süre: ${elapsed}s)`, 'success');
   } catch (err) {
     broadcastLog(`[CRITICAL] Batch Hatası: ${err.message}`, 'error');
   } finally {

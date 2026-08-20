@@ -1,2 +1,3 @@
-2026/08/20-06:02:18.640 3b24 Creating DB C:\xampp\htdocs\botv3\program\data\stealth_profile\Default\Local Storage\leveldb since it was missing.
-2026/08/20-06:02:18.776 3b24 Reusing MANIFEST C:\xampp\htdocs\botv3\program\data\stealth_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/20-06:07:34.223 2208 Reusing MANIFEST C:\xampp\htdocs\botv3\program\data\stealth_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/20-06:07:34.259 2208 Recovering log #3
+2026/08/20-06:07:34.361 2208 Reusing old log C:\xampp\htdocs\botv3\program\data\stealth_profile\Default\Local Storage\leveldb/000003.log 

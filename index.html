@@ -701,6 +701,9 @@
           const payload = JSON.parse(e.data);
           if (payload.event === 'log') {
             appendLog(payload.timeFormatted || payload.timestamp, payload.message, payload.type);
+          } else if (payload.event === 'match_scraped') {
+            fetchRecentMatches();
+            fetchHealthMetrics();
           } else if (payload.event === 'job_finished') {
             fetchRecentMatches();
             fetchHealthMetrics();
