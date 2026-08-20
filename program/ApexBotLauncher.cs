@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -10,39 +9,33 @@ namespace ApexBotDesktop
 {
     static class Program
     {
-        private static Process serverProcess = null;
-
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            // 1. Çalışma Dizinini Belirle (botv3 kök dizini)
+            // 1. Kök dizini bul
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string rootDir = Path.GetFullPath(Path.Combine(appDir, ".."));
             if (!File.Exists(Path.Combine(rootDir, "server.js")))
             {
-                rootDir = appDir; // Eğer program kök dizindeyse
+                rootDir = appDir;
             }
 
-            // 2. Arka Planda Node.js Sunucusunu Başlat
-            StartNodeServer(rootDir);
+            // 2. Node.js Sunucusunu Arka Planda Başlat (Eğer açık değilse)
+            EnsureNodeServerRunning(rootDir);
 
-            // 3. Ana Masaüstü Formunu Aç
-            Application.Run(new MainWindow(rootDir));
+            // 3. Modern Desktop App Penceresini Başlat (Edge / Chrome Chromium App Mode)
+            LaunchModernDesktopWindow();
         }
 
-        private static void StartNodeServer(string rootDir)
+        private static void EnsureNodeServerRunning(string rootDir)
         {
             try
             {
-                // Sunucu zaten ayakta mı kontrol et
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://localhost:3050/api/status");
-                request.Timeout = 1000;
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create("http://localhost:3050/api/status");
+                req.Timeout = 800;
+                using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
                 {
-                    if (response.StatusCode == HttpStatusCode.OK) return; // Zaten çalışıyor
+                    if (res.StatusCode == HttpStatusCode.OK) return; // Sunucu zaten çalışıyor
                 }
             }
             catch { }
@@ -58,64 +51,56 @@ namespace ApexBotDesktop
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
-                serverProcess = Process.Start(psi);
+                Process.Start(psi);
+                Thread.Sleep(1200); // Sunucunun ayağa kalkması için kısa bekleme
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Node.js sunucusu başlatılamadı: " + ex.Message + "\nLütfen Node.js'in sistemde kurulu olduğundan emin olun.", "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Node.js başlatılamadı: " + ex.Message + "\nNode.js'in kurulu olduğundan emin olun.", "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-    }
 
-    public class MainWindow : Form
-    {
-        private WebBrowser browser;
-        private NotifyIcon trayIcon;
-
-        public MainWindow(string rootDir)
+        private static void LaunchModernDesktopWindow()
         {
-            this.Text = "APEX-BOT — Master Forebet & APEX Ingestion Station";
-            this.Size = new Size(1080, 720);
-            this.MinimumSize = new Size(850, 580);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = Color.FromArgb(11, 15, 25);
-            this.Icon = SystemIcons.Application;
+            string url = "http://localhost:3050/program/index.html";
+            string args = string.Format("--app=\"{0}\" --window-size=1080,720 --app-id=APEX_BOT_PRO", url);
 
-            // WebBrowser Kontrolü
-            browser = new WebBrowser
+            // 1. Öncelik: Windows 10/11'de yerleşik olan Microsoft Edge (Chromium)
+            string edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe");
+            if (!File.Exists(edgePath))
             {
-                Dock = DockStyle.Fill,
-                ScriptErrorsSuppressed = true,
-                IsWebBrowserContextMenuEnabled = false
-            };
-            this.Controls.Add(browser);
+                edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Microsoft\Edge\Application\msedge.exe");
+            }
 
-            // Tray Icon
-            trayIcon = new NotifyIcon
+            // 2. Öncelik: Google Chrome
+            string chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Google\Chrome\Application\chrome.exe");
+            if (!File.Exists(chromePath))
             {
-                Icon = SystemIcons.Application,
-                Text = "APEX-BOT (Arka Planda Aktif)",
-                Visible = true
-            };
+                chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Google\Chrome\Application\chrome.exe");
+            }
 
-            ContextMenu contextMenu = new ContextMenu();
-            contextMenu.MenuItems.Add("Göster", (s, e) => { this.Show(); this.WindowState = FormWindowState.Normal; });
-            contextMenu.MenuItems.Add("Çıkış", (s, e) => { trayIcon.Visible = false; Application.Exit(); });
-            trayIcon.ContextMenu = contextMenu;
-            trayIcon.DoubleClick += (s, e) => { this.Show(); this.WindowState = FormWindowState.Normal; };
+            string browserPath = null;
+            if (File.Exists(edgePath)) browserPath = edgePath;
+            else if (File.Exists(chromePath)) browserPath = chromePath;
 
-            this.Load += (s, e) =>
+            if (browserPath != null)
             {
-                // Sunucu hazır olana kadar 1.5 saniye bekle ve sayfayı yükle
-                Thread.Sleep(1500);
-                browser.Navigate("http://localhost:3050/program/index.html");
-            };
+                try
+                {
+                    ProcessStartInfo appPsi = new ProcessStartInfo
+                    {
+                        FileName = browserPath,
+                        Arguments = args,
+                        UseShellExecute = false
+                    };
+                    Process.Start(appPsi);
+                    return;
+                }
+                catch { }
+            }
 
-            this.FormClosing += (s, e) =>
-            {
-                // Çıkış yaparken tray'i temizle
-                trayIcon.Visible = false;
-            };
+            // Fallback: Varsayılan tarayıcıda aç
+            Process.Start(url);
         }
     }
 }
