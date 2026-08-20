@@ -390,6 +390,7 @@
         <div class="nav-btn" onclick="handleScrapeBatch('tomorrow', null)"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten & Oranlar)</div>
         <div class="nav-btn" onclick="handleScrapeBatch('today', 10)"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Maç Test)</div>
         <div class="nav-btn" onclick="handleScrapeBatch('today', null)"><i class="fa-solid fa-forward-fast" style="color: var(--accent-primary);"></i> Bugün (Tüm Bülten)</div>
+        <div class="nav-btn" onclick="openDateRangeModal()" style="border: 1px dashed rgba(56, 189, 248, 0.4);"><i class="fa-solid fa-calendar-week" style="color: #38bdf8;"></i> Tarih Aralığı Kazı</div>
 
         <div class="nav-label">Otomasyon & Ayarlar</div>
         <div class="nav-btn active" id="tabBtn_dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
@@ -531,10 +532,19 @@
             </select>
           </div>
 
+          <!-- Windows Açılışında Otomatik Çalıştır (Start with Windows) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-weight: 600; color: #fff;">Windows Açılışında Çalıştır (Start with Windows)</div>
+              <div style="font-size: 11px; color: var(--text-dim);">Bilgisayar açıldığında veya yeniden başladığında APEX-BOT otomatik başlasın mı?</div>
+            </div>
+            <input type="checkbox" id="cfgStartWithWindows" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-primary);" onchange="saveGeneralSettings()">
+          </div>
+
           <!-- Açılışta Otomatik Kazıma Başlat -->
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div>
-              <div style="font-weight: 600; color: #fff;">Açılışta Otomatik Kazıma Başlat (Auto-Start)</div>
+              <div style="font-weight: 600; color: #fff;">Program Açıldığında Kazımayı Başlat (Auto-Start Scrape)</div>
               <div style="font-size: 11px; color: var(--text-dim);">Program açıldığı anda bugünün bültenini otomatik kazımaya başlasın mı?</div>
             </div>
             <input type="checkbox" id="cfgAutoStart" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-primary);" onchange="saveGeneralSettings()">
@@ -573,6 +583,41 @@
 
   </div>
 
+  <!-- Tarih Aralığı Kazıma Modalı -->
+  <div class="modal-backdrop" id="dateRangeModal">
+    <div class="modal-box" style="width: 480px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <b style="color: #fff; font-size: 14px;"><i class="fa-solid fa-calendar-week" style="color: var(--accent-primary);"></i> Tarih Aralığı Kazıma Maratonu</b>
+        <button style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px;" onclick="closeDateRangeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="margin: 14px 0; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Başlangıç Tarihi</div>
+          <input type="date" class="form-input" id="rangeStartDate" style="width: 100%; padding: 8px 10px; background: var(--bg-subpanel); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+        </div>
+
+        <div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Bitiş Tarihi</div>
+          <input type="date" class="form-input" id="rangeEndDate" style="width: 100%; padding: 8px 10px; background: var(--bg-subpanel); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+        </div>
+
+        <div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Gün Başına Limit (Opsiyonel)</div>
+          <select id="rangeLimitPerDay" style="width: 100%; padding: 8px 10px; background: var(--bg-subpanel); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;">
+            <option value="">Tüm Maçlar (Önerilen)</option>
+            <option value="10">Günde 10 Maç</option>
+            <option value="25">Günde 25 Maç</option>
+            <option value="50">Günde 50 Maç</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-sm" style="flex: none; padding: 7px 14px;" onclick="closeDateRangeModal()">İptal</button>
+        <button class="btn-action" style="padding: 7px 18px;" onclick="handleStartRangeScrape()"><i class="fa-solid fa-play"></i> Maratonu Başlat</button>
+      </div>
+    </div>
   <!-- Log Geçmişi Modalı -->
   <div class="modal-backdrop" id="logModal">
     <div class="modal-box">
@@ -582,13 +627,46 @@
       </div>
       <div class="modal-body" id="logModalBody">Yükleniyor...</div>
       <div style="display: flex; justify-content: flex-end; gap: 8px;">
-        <button class="btn-action" style="padding: 6px 14px;" onclick="closeLogHistoryModal()">Kapat</button>
-      </div>
     </div>
   </div>
 
   <script>
-    // 1. Init
+    function openDateRangeModal() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('rangeStartDate').value = today;
+      document.getElementById('rangeEndDate').value = today;
+      document.getElementById('dateRangeModal').style.display = 'flex';
+    }
+
+    function closeDateRangeModal() {
+      document.getElementById('dateRangeModal').style.display = 'none';
+    }
+
+    async function handleStartRangeScrape() {
+      const startDate = document.getElementById('rangeStartDate').value;
+      const endDate = document.getElementById('rangeEndDate').value;
+      const limit = document.getElementById('rangeLimitPerDay').value;
+
+      if (!startDate || !endDate) {
+        return alert('Lütfen başlangıç ve bitiş tarihlerini seçin.');
+      }
+
+      closeDateRangeModal();
+      switchTab('dashboard');
+      appendLog(new Date().toLocaleTimeString(), `[DATE_RANGE] Tarih aralığı kazıma başlatılıyor: ${startDate} ➔ ${endDate}`, 'info');
+
+      try {
+        const res = await fetch('/api/scrape-date-range', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startDate, endDate, limitPerDay: limit ? parseInt(limit, 10) : null })
+        });
+        const data = await res.json();
+        if (!data.success) alert(data.error);
+      } catch (e) {
+        alert('Hata: ' + e.message);
+      }
+    }
     document.addEventListener('DOMContentLoaded', () => {
       setInterval(updateClock, 1000);
       setInterval(fetchHealthMetrics, 4000);
@@ -627,12 +705,13 @@
           document.getElementById('cfgConcurrency').value = data.config.concurrency || 2;
           document.getElementById('dashConcurrency').innerText = (data.config.concurrency || 2) + ' Sekme';
           document.getElementById('cfgOutputPath').value = data.config.outputDir || '';
+          document.getElementById('cfgStartWithWindows').checked = Boolean(data.config.startWithWindows);
           document.getElementById('cfgAutoStart').checked = Boolean(data.config.autoStartOnLaunch);
 
-          // Eğer açılışta otomatik kazıma aktifse ve bot henüz çalışmıyorsa başlat
+          // Eğer program açılışında otomatik kazıma aktifse ve bot henüz çalışmıyorsa başlat
           if (data.config.autoStartOnLaunch && !data.activeJob?.isRunning && !window._autoStarted) {
             window._autoStarted = true;
-            appendLog(new Date().toLocaleTimeString(), '[AUTO_START] Açılışta otomatik kazıma ayarı aktif, bugünün bülteni başlatılıyor...', 'info');
+            appendLog(new Date().toLocaleTimeString(), '[AUTO_START] Program açılışında otomatik kazıma aktif, bugünün bülteni başlatılıyor...', 'info');
             setTimeout(() => handleScrapeBatch('today', null), 2000);
           }
         }
@@ -642,15 +721,16 @@
     async function saveGeneralSettings() {
       const conc = parseInt(document.getElementById('cfgConcurrency').value, 10) || 2;
       const outDir = document.getElementById('cfgOutputPath').value.trim();
+      const startWin = document.getElementById('cfgStartWithWindows').checked;
       const autoStart = document.getElementById('cfgAutoStart').checked;
 
       await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ concurrency: conc, outputDir: outDir, autoStartOnLaunch: autoStart })
+        body: JSON.stringify({ concurrency: conc, outputDir: outDir, startWithWindows: startWin, autoStartOnLaunch: autoStart })
       });
       loadSettings();
-      appendLog(new Date().toLocaleTimeString(), `[SETTINGS] Ayarlar güncellendi (Sekme: ${conc}, Oto-Başlat: ${autoStart ? 'AÇIK' : 'KAPALI'}).`, 'success');
+      appendLog(new Date().toLocaleTimeString(), `[SETTINGS] Ayarlar güncellendi (Windows Oto-Açılış: ${startWin ? 'AÇIK' : 'KAPALI'}).`, 'success');
       switchTab('dashboard');
     }
 

@@ -329,6 +329,127 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
   }
 }
 
+// Date Range Scraper (Belirtilen Tarih Aralığındaki Tüm Günleri Sırayla Kazır)
+async function runDateRangeBatchJob(startDateStr, endDateStr, limitPerDay = null) {
+  if (activeJob.isRunning) {
+    throw new Error('Hali hazırda çalışan bir kazıma işlemi mevcut.');
+  }
+
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+    throw new Error('Geçersiz tarih aralığı! Başlangıç tarihi bitiş tarihinden küçük veya eşit olmalıdır.');
+  }
+
+  const dateList = [];
+  const current = new Date(start);
+  while (current <= end) {
+    dateList.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  activeJob = {
+    isRunning: true,
+    isPaused: false,
+    jobType: 'date_range',
+    targetDate: `${startDateStr} ➔ ${endDateStr}`,
+    limit: limitPerDay,
+    totalMatches: 0,
+    completedMatches: 0,
+    failedMatches: 0,
+    progressPct: 0,
+    currentMatch: null,
+    cancelRequested: false,
+    startTime: Date.now()
+  };
+
+  broadcastEvent('job_started', activeJob);
+  broadcastLog(`[DATE_RANGE] [START] ${dateList.length} günlük kazıma maratonu başlatıldı (${startDateStr} ➔ ${endDateStr})`, 'info');
+
+  try {
+    const { discoverDailyMatches } = require('./core/daily_discovery');
+    const cfg = loadConfig();
+
+    for (let d = 0; d < dateList.length; d++) {
+      if (activeJob.cancelRequested) break;
+
+      const dateStr = dateList[d];
+      broadcastLog(`[DATE_RANGE] [GÜN ${d + 1}/${dateList.length}] Keşfediliyor: ${dateStr}...`, 'info');
+
+      const discRes = await discoverDailyMatches(dateStr, {
+        logger: (msg) => broadcastLog(msg, 'info')
+      });
+      let matches = discRes && Array.isArray(discRes.matches) ? discRes.matches : [];
+
+      if (!matches || matches.length === 0) {
+        broadcastLog(`[DATE_RANGE] [GÜN ${d + 1}/${dateList.length}] ${dateStr} için maç bulunamadı, bir sonraki güne geçiliyor.`, 'warning');
+        continue;
+      }
+
+      if (limitPerDay && limitPerDay > 0) {
+        matches = matches.slice(0, limitPerDay);
+      }
+
+      activeJob.totalMatches += matches.length;
+      broadcastLog(`[DATE_RANGE] ${dateStr} gününe ait ${matches.length} maç kazınıyor...`, 'info');
+
+      for (let i = 0; i < matches.length; i++) {
+        if (activeJob.cancelRequested) break;
+
+        while (activeJob.isPaused && !activeJob.cancelRequested) {
+          await new Promise(r => setTimeout(r, 400));
+        }
+        if (activeJob.cancelRequested) break;
+
+        const m = matches[i];
+        const matchUrl = m.url || m.link;
+        const home = m.home_team || m.homeTeam || m.home || '';
+        const away = m.away_team || m.awayTeam || m.away || '';
+        let title = home && away ? `${home} vs ${away}` : `Maç #${i + 1}`;
+
+        activeJob.currentMatch = `[${dateStr}] ${title}`;
+        broadcastLog(`[${d + 1}/${dateList.length} Gün] [${i + 1}/${matches.length}] Kazınıyor: ${title}...`, 'info');
+
+        try {
+          const res = await scrapeMatch(matchUrl, {
+            headless: cfg.headless || 'new',
+            syncApex: cfg.autoSyncApex !== undefined ? cfg.autoSyncApex : true,
+            apiUrl: cfg.apexImportUrl,
+            apiKey: cfg.apexSecret
+          });
+
+          if (res && res.success && res.data && res.data.hero?.homeTeam) {
+            const finalTitle = `${res.data.hero.homeTeam} vs ${res.data.hero.awayTeam}`;
+            const score = res.data.hero.finalScore || res.data.hero.score || '-';
+            activeJob.completedMatches++;
+            broadcastLog(`[SUCCESS] ${finalTitle} (${score})`, 'success');
+            broadcastEvent('match_scraped', { slug: res.data.meta?.slug, hero: res.data.hero });
+          } else {
+            activeJob.failedMatches++;
+            broadcastLog(`[FAILED] ${title}`, 'error');
+          }
+        } catch (err) {
+          activeJob.failedMatches++;
+          broadcastLog(`[ERROR] ${err.message}`, 'error');
+        }
+
+        activeJob.progressPct = Math.round(((activeJob.completedMatches + activeJob.failedMatches) / (activeJob.totalMatches || 1)) * 100);
+        broadcastEvent('job_progress', activeJob);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    const elapsed = ((Date.now() - activeJob.startTime) / 1000).toFixed(1);
+    broadcastLog(`[DATE_RANGE] [COMPLETED] Tüm tarih aralığı tamamlandı! (${activeJob.completedMatches} başarılı, ${activeJob.failedMatches} hatalı, Süre: ${elapsed}s)`, 'success');
+  } catch (err) {
+    broadcastLog(`[DATE_RANGE_ERROR] ${err.message}`, 'error');
+  } finally {
+    activeJob.isRunning = false;
+    activeJob.currentMatch = null;
+    broadcastEvent('job_finished', activeJob);
+  }
+}
+
 // HTTP Server
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
@@ -391,8 +512,24 @@ const server = http.createServer(async (req, res) => {
         if (payload.concurrency) cfg.concurrency = parseInt(payload.concurrency, 10) || 2;
         if (payload.outputDir) cfg.outputDir = payload.outputDir.trim();
 
+        if (payload.startWithWindows !== undefined) {
+          cfg.startWithWindows = Boolean(payload.startWithWindows);
+          const { exec } = require('child_process');
+          const exePath = path.join(__dirname, 'APEX-BOT.exe');
+          if (cfg.startWithWindows) {
+            exec(`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "ApexBot" /t REG_SZ /d "\"${exePath}\"" /f`, () => {});
+            broadcastLog(`[STARTUP] Windows başlangıcında otomatik başlatma AÇILDI.`, 'success');
+          } else {
+            exec(`reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "ApexBot" /f`, () => {});
+            broadcastLog(`[STARTUP] Windows başlangıcında otomatik başlatma KAPATILDI.`, 'info');
+          }
+        }
+        if (payload.autoStartOnLaunch !== undefined) {
+          cfg.autoStartOnLaunch = Boolean(payload.autoStartOnLaunch);
+        }
+
         fs.writeFileSync(p, JSON.stringify(cfg, null, 2), 'utf8');
-        broadcastLog(`[CONFIG] Ayarlar güncellendi.`, 'success');
+        broadcastLog(`[CONFIG] Ayarlar başarıyla güncellendi.`, 'success');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: true, config: cfg }));
       } catch (e) {
@@ -441,6 +578,39 @@ const server = http.createServer(async (req, res) => {
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: true, message: `Kazıma başlatıldı: ${dateKey}` }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // 4.1 Trigger Date Range Scrape (Tarih Aralığı Kazıma)
+  if (pathname === '/api/scrape-date-range' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const startDate = payload.startDate;
+        const endDate = payload.endDate;
+        const limitPerDay = payload.limitPerDay ? parseInt(payload.limitPerDay, 10) : null;
+
+        if (!startDate || !endDate) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: false, error: 'Başlangıç ve Bitiş tarihleri zorunludur.' }));
+        }
+
+        if (activeJob.isRunning) {
+          res.writeHead(409, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: false, error: 'Halihazırda bir kazıma devam ediyor.' }));
+        }
+
+        runDateRangeBatchJob(startDate, endDate, limitPerDay).catch(console.error);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, message: `Tarih aralığı kazıma başlatıldı: ${startDate} ➔ ${endDate}` }));
       } catch (e) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: false, error: e.message }));
