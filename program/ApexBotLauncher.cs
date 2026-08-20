@@ -75,9 +75,10 @@ namespace ApexBotDesktop
         public MainWindow(string rootDir)
         {
             this.Text = "APEX-BOT — Master Forebet & APEX Ingestion Station";
-            this.Size = new Size(1360, 840);
+            this.Size = new Size(1080, 720);
+            this.MinimumSize = new Size(850, 580);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = Color.FromArgb(9, 13, 22);
+            this.BackColor = Color.FromArgb(11, 15, 25);
             this.Icon = SystemIcons.Application;
 
             // WebBrowser Kontrolü
