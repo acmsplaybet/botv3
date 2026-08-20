@@ -12,19 +12,41 @@ namespace ApexBotDesktop
         [STAThread]
         static void Main()
         {
-            // 1. Kök dizini bul
+            // 1. Kök dizini bul (program/ klasörünün bir üstü = botv3 ana dizini)
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string rootDir = Path.GetFullPath(Path.Combine(appDir, ".."));
             if (!File.Exists(Path.Combine(rootDir, "server.js")))
             {
-                rootDir = appDir;
+                rootDir = appDir; // Eğer tüm dosyalar aynı klasördeyse
             }
 
-            // 2. Node.js Sunucusunu Arka Planda Başlat (Eğer açık değilse)
+            // 2. Node.js ve node_modules'un bulunduğu kök dizinde sunucuyu başlat
             EnsureNodeServerRunning(rootDir);
 
-            // 3. Modern Desktop App Penceresini Başlat (Edge / Chrome Chromium App Mode)
+            // 3. Modern Desktop App Penceresini Başlat (Chromium App Mode)
             LaunchModernDesktopWindow();
+        }
+
+        private static string FindNodeExecutable(string rootDir)
+        {
+            // 1. Öncelik: botv3 klasörünün kendi içindeki node.exe (eğer taşındıysa)
+            string localNode = Path.Combine(rootDir, "node.exe");
+            if (File.Exists(localNode)) return localNode;
+
+            // 2. Öncelik: Program Files / nodejs
+            string pfNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"nodejs\node.exe");
+            if (File.Exists(pfNode)) return pfNode;
+
+            // 3. Öncelik: Program Files (x86) / nodejs
+            string pfx86Node = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"nodejs\node.exe");
+            if (File.Exists(pfx86Node)) return pfx86Node;
+
+            // 4. Öncelik: AppData / Local / Programs / nodejs
+            string userNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\nodejs\node.exe");
+            if (File.Exists(userNode)) return userNode;
+
+            // 5. Fallback: Sistem PATH'indeki genel "node"
+            return "node.exe";
         }
 
         private static void EnsureNodeServerRunning(string rootDir)
@@ -35,28 +57,30 @@ namespace ApexBotDesktop
                 req.Timeout = 800;
                 using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
                 {
-                    if (res.StatusCode == HttpStatusCode.OK) return; // Sunucu zaten çalışıyor
+                    if (res.StatusCode == HttpStatusCode.OK) return; // Sunucu zaten ayakta
                 }
             }
             catch { }
 
             try
             {
+                string nodePath = FindNodeExecutable(rootDir);
+
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
-                    FileName = "node.exe",
+                    FileName = nodePath,
                     Arguments = "server.js",
-                    WorkingDirectory = rootDir,
+                    WorkingDirectory = rootDir, // <-- node_modules doğrudan bu klasörden okunur!
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
                 Process.Start(psi);
-                Thread.Sleep(1200); // Sunucunun ayağa kalkması için kısa bekleme
+                Thread.Sleep(1200);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Node.js başlatılamadı: " + ex.Message + "\nNode.js'in kurulu olduğundan emin olun.", "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Node.js başlatılamadı: " + ex.Message + "\nLütfen Node.js'in kurulu olduğundan emin olun.", "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
