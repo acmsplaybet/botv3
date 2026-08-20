@@ -82,32 +82,32 @@
 
     /* 1. Sol Sidebar (Tüm Kazıma & Yönetim Butonları Burada) */
     .sidebar {
-      width: 270px;
-      min-width: 250px;
+      width: 235px;
+      min-width: 220px;
       background: var(--bg-sidebar);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 12px 10px;
+      padding: 10px 8px;
       flex-shrink: 0;
       overflow-y: auto;
     }
-    .nav-label { font-size: 10.5px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin: 10px 6px 4px; }
+    .nav-label { font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin: 8px 6px 3px; }
     .nav-btn {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
+      gap: 8px;
+      padding: 7px 10px;
       border-radius: 6px;
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
-    .nav-btn i { width: 16px; font-size: 14px; text-align: center; }
+    .nav-btn i { width: 15px; font-size: 13px; text-align: center; }
     .nav-btn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
     .nav-btn.active { background: #1e293b; color: var(--accent-primary); font-weight: 700; border-left: 3px solid var(--accent-primary); }
 
@@ -122,12 +122,12 @@
     /* 2. Orta Alan (URL Kazıma + Sistem Sağlığı + Canlı Log) */
     .main-workspace {
       flex: 1;
-      min-width: 450px;
+      min-width: 380px;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
-      padding: 14px 18px;
-      gap: 12px;
+      padding: 10px 14px;
+      gap: 10px;
       background: var(--bg-root);
     }
 
@@ -244,8 +244,8 @@
 
     /* 3. Sağ Panel */
     .right-sidebar {
-      width: 350px;
-      min-width: 290px;
+      width: 300px;
+      min-width: 270px;
       background: var(--bg-sidebar);
       border-left: 1px solid var(--border-color);
       display: flex;
