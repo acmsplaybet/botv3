@@ -26,20 +26,27 @@ const PORT = process.env.PORT || 3050;
 let sseClients = [];
 
 function broadcastEvent(eventName, data) {
-  const payload = JSON.stringify({
-    event: eventName,
-    timestamp: new Date().toLocaleTimeString(),
-    ...data
-  });
-  sseClients.forEach(res => {
-    try {
-      res.write(`data: ${payload}\n\n`);
-    } catch (e) {}
-  });
+// Log directory and file setup
+const LOG_DIR = path.join(__dirname, 'logs');
+if (!fs.existsSync(LOG_DIR)) {
+  try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch (_) {}
+}
+const LOG_FILE = path.join(LOG_DIR, 'apex_bot.log');
+
+function appendLogToFile(entry) {
+  try {
+    fs.appendFileSync(LOG_FILE, entry + '\n', 'utf8');
+  } catch (_) {}
 }
 
 function broadcastLog(message, type = 'info') {
-  broadcastEvent('log', { message, type });
+  const now = new Date();
+  const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+  const tag = type.toUpperCase();
+  const formattedEntry = `[${timeStr}] [${tag}] ${message}`;
+  
+  appendLogToFile(formattedEntry);
+  broadcastEvent('log', { message, type, timeFormatted: timeStr });
 }
 
 const MIME_TYPES = {
@@ -503,16 +510,16 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 6.31 Quick Test Match Scraper (1 Canlı Test Maçı Çek)
+  // 6.31 Quick Test Match Scraper (Bugüne Ait Rastgele 1 Maç Kazıma + Detaylı Log)
   if (pathname === '/api/scrape-test-match' && req.method === 'POST') {
-    broadcastLog(`🎯 [CANLI TEST MAÇI] Otomatik 1 adet test maçı kazıma başlatılıyor...`, 'info');
+    broadcastLog(`[TEST_MATCH] [START] Bugüne ait bültenden rastgele test maçı kazıma başlatılıyor...`, 'info');
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ success: true, message: '1 Test maçı kazıma başlatıldı.' }));
+    res.end(JSON.stringify({ success: true, message: 'Test maçı kazıma başlatıldı.' }));
 
     (async () => {
       try {
         if (activeJob.isRunning) {
-          broadcastLog(`⚠️ Zaten aktif bir kazıma çalışıyor.`, 'warning');
+          broadcastLog(`[WARNING] Zaten aktif bir kazıma işlemi devam ediyor.`, 'warning');
           return;
         }
         activeJob.isRunning = true;
@@ -520,31 +527,35 @@ const server = http.createServer(async (req, res) => {
         activeJob.startTime = new Date();
         activeJob.cancelRequested = false;
 
-        // Örnek aktif bir maç kazı veya discovery'den ilk maçı çek
         const { discoverMatchesForDate } = require('./core/daily_discovery');
         const testDate = new Date().toISOString().split('T')[0];
-        broadcastLog(`🔍 Güncel bültenden test için 1 maç bulunuyor...`, 'info');
+        broadcastLog(`[DISCOVERY] [DATE: ${testDate}] Günün bülteni taranıyor...`, 'info');
         
         let matches = await discoverMatchesForDate(testDate);
         if (!matches || matches.length === 0) {
+          broadcastLog(`[DISCOVERY] [FALLBACK] Güncel liste boş, yedek test maçına geçiliyor.`, 'warning');
           matches = [{ url: 'https://www.forebet.com/en/football/matches/ldu-quito-mirassol-sp', home: 'LDU Quito', away: 'Mirassol SP' }];
         }
 
-        const target = matches[0];
+        // Rastgele 1 maç seç
+        const randomIndex = Math.floor(Math.random() * matches.length);
+        const target = matches[randomIndex];
         const targetUrl = target.url || target;
-        broadcastLog(`🚀 Test maçı kazınıyor: ${targetUrl}`, 'info');
-        activeJob.currentMatch = target.home ? `${target.home} vs ${target.away}` : 'Test Maçı';
+
+        broadcastLog(`[DISCOVERY] [SELECTED] ${matches.length} maç arasından rastgele seçildi (#${randomIndex + 1}): ${target.home || 'Ev'} vs ${target.away || 'Dep'}`, 'info');
+        broadcastLog(`[SCRAPER] [URL] ${targetUrl}`, 'info');
+        activeJob.currentMatch = target.home ? `${target.home} vs ${target.away}` : 'Rastgele Test Maçı';
 
         const { scrapeSingleMatch } = require('./scrape_match');
         const res = await scrapeSingleMatch(targetUrl, { log: (msg, type) => broadcastLog(msg, type) });
 
         if (res.success) {
-          broadcastLog(`✅ [TEST MAÇI BAŞARILI] 1 Test maçı kazındı ve kaydedildi!`, 'success');
+          broadcastLog(`[SUCCESS] [COMPLETED] Test maçı başarıyla kazındı: ${target.home || ''} vs ${target.away || ''}`, 'success');
         } else {
-          broadcastLog(`❌ [TEST MAÇI HATASI] ${res.error}`, 'error');
+          broadcastLog(`[ERROR] [FAILED] Test maçı kazıma hatası: ${res.error}`, 'error');
         }
       } catch (err) {
-        broadcastLog(`❌ Test maçı kazıma hatası: ${err.message}`, 'error');
+        broadcastLog(`[ERROR] [EXCEPTION] ${err.message}`, 'error');
       } finally {
         activeJob.isRunning = false;
         activeJob.currentMatch = null;
@@ -552,6 +563,24 @@ const server = http.createServer(async (req, res) => {
       }
     })();
     return;
+  }
+
+  // 6.32 Log History API (Geçmiş Logları Döndürür)
+  if (pathname === '/api/log-history') {
+    try {
+      if (fs.existsSync(LOG_FILE)) {
+        const fullLogs = fs.readFileSync(LOG_FILE, 'utf8');
+        const lines = fullLogs.split('\n').filter(l => l.trim().length > 0);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, count: lines.length, logs: lines.slice(-200) }));
+      } else {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, count: 0, logs: [] }));
+      }
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: e.message }));
+    }
   }
 
   // 6.4 Open Output Folder in Windows Explorer

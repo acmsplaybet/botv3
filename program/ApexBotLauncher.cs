@@ -9,6 +9,8 @@ namespace ApexBotDesktop
 {
     static class Program
     {
+        private static Process _nodeProcess = null;
+
         [STAThread]
         static void Main()
         {
@@ -32,14 +34,16 @@ namespace ApexBotDesktop
                 if (string.IsNullOrEmpty(rootDir)) return;
             }
 
-            // 4. Node.js Sunucusunu Kesin Olarak Başlat (Port 3050 hazır olana kadar bekle)
+            // 4. Açılışta Eski Askıda Kalan Bot/Node Süreçlerini Temizle (Clean Startup)
+            CleanupStaleProcesses();
+
+            // 5. Node.js Sunucusunu Başlat (Port 3050 hazır olana kadar bekle)
             bool serverReady = EnsureNodeServerRunning(rootDir);
             if (!serverReady)
             {
                 MessageBox.Show(
                     "APEX-BOT Sunucusu (server.js) başlatılamadı!\n\n" +
-                    "Lütfen karşı bilgisayarda Node.js'in kurulu olduğundan ve 'node_modules' klasörünün mevcut olduğundan emin olun.\n" +
-                    "Detaylar için 'server_boot.log' dosyasını inceleyebilirsiniz.",
+                    "Lütfen karşı bilgisayarda Node.js'in kurulu olduğundan emin olun.",
                     "APEX-BOT Başlatma Hatası",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
@@ -47,8 +51,24 @@ namespace ApexBotDesktop
                 return;
             }
 
-            // 5. Modern Masaüstü Chromium Penceresini Aç (Yatay Geniş, Ortalı Pencere Modu)
-            LaunchModernDesktopWindow();
+            // 6. Modern Masaüstü Chromium Penceresini Aç ve Pencere Kapanışını Dinle
+            LaunchAndMonitorDesktopWindow(rootDir);
+        }
+
+        private static void CleanupStaleProcesses()
+        {
+            try
+            {
+                // Sadece port 3050 dinleyen eski bir node varsa sıfırlama çağrısı yap
+                if (IsServerAlive())
+                {
+                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create("http://localhost:3050/api/reset-bot");
+                    req.Method = "POST";
+                    req.Timeout = 500;
+                    using (HttpWebResponse res = (HttpWebResponse)req.GetResponse()) { }
+                }
+            }
+            catch { }
         }
 
         private static string GetSavedRootPath(string appDir)
@@ -80,7 +100,7 @@ namespace ApexBotDesktop
         {
             MessageBox.Show(
                 "APEX-BOT: 'server.js' veya 'node_modules' dosyaları otomatik bulunamadı.\n\n" +
-                "Lütfen bot dosyalarınızın bulunduğu ana klasörü seçin.",
+                "Lütfen APEX-BOT ana klasörünü seçin.",
                 "APEX-BOT Konum Belirleme",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
@@ -121,7 +141,6 @@ namespace ApexBotDesktop
 
         private static bool EnsureNodeServerRunning(string rootDir)
         {
-            // Önce sunucu zaten ayakta mı diye bak
             if (IsServerAlive()) return true;
 
             try
@@ -135,26 +154,17 @@ namespace ApexBotDesktop
                     WorkingDirectory = rootDir,
                     CreateNoWindow = true,
                     UseShellExecute = false,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false
+                    WindowStyle = ProcessWindowStyle.Hidden
                 };
-                Process.Start(psi);
+                _nodeProcess = Process.Start(psi);
 
-                // Port 3050 dinlenmeye başlayana kadar 15 saniye boyunca her 400ms'de bir kontrol et
                 for (int i = 0; i < 35; i++)
                 {
                     Thread.Sleep(400);
-                    if (IsServerAlive())
-                    {
-                        return true;
-                    }
+                    if (IsServerAlive()) return true;
                 }
             }
-            catch (Exception ex)
-            {
-                File.WriteAllText(Path.Combine(rootDir, "server_boot.log"), "Boot Exception: " + ex.ToString());
-            }
+            catch { }
 
             return IsServerAlive();
         }
@@ -176,11 +186,10 @@ namespace ApexBotDesktop
             }
         }
 
-        private static void LaunchModernDesktopWindow()
+        private static void LaunchAndMonitorDesktopWindow(string rootDir)
         {
             string url = "http://localhost:3050/";
-            // Standart ortalanmış ferah yatay pencere modu (1240 x 780)
-            string args = string.Format("--app=\"{0}\" --window-size=1240,780 --app-id=APEX_BOT_PRO", url);
+            string args = string.Format("--app=\"{0}\" --window-size=1260,800 --app-id=APEX_BOT_PRO", url);
 
             string edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe");
             if (!File.Exists(edgePath))
@@ -198,6 +207,7 @@ namespace ApexBotDesktop
             if (File.Exists(edgePath)) browserPath = edgePath;
             else if (File.Exists(chromePath)) browserPath = chromePath;
 
+            Process appProc = null;
             if (browserPath != null)
             {
                 try
@@ -208,13 +218,41 @@ namespace ApexBotDesktop
                         Arguments = args,
                         UseShellExecute = false
                     };
-                    Process.Start(appPsi);
-                    return;
+                    appProc = Process.Start(appPsi);
                 }
                 catch { }
             }
+            else
+            {
+                appProc = Process.Start(url);
+            }
 
-            Process.Start(url);
+            // Pencere açık olduğu sürece bekle, kapandığında kullanıcıya temizleme sor
+            if (appProc != null)
+            {
+                appProc.WaitForExit();
+
+                // Çıkış Onayı
+                DialogResult dr = MessageBox.Show(
+                    "APEX-BOT masaüstü penceresi kapatıldı.\n\n" +
+                    "Arka planda çalışan Node.js ve bot süreçlerini de tamamen durdurmak istiyor musunuz?",
+                    "APEX-BOT Çıkış",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
+
+                if (dr == DialogResult.Yes)
+                {
+                    try
+                    {
+                        if (_nodeProcess != null && !_nodeProcess.HasExited)
+                        {
+                            _nodeProcess.Kill();
+                        }
+                    }
+                    catch { }
+                }
+            }
         }
     }
 }

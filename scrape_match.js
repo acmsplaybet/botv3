@@ -60,36 +60,32 @@ async function scrapeMatch(url, options = {}) {
 
     // 3. Navigate with network resilience and retry
     await navigateWithRetry(page, url, (m) => logger(m, COLORS.yellow), 4);
-    logger(`✅ Sayfaya başarıyla bağlanıldı ve DOM yüklendi.`, COLORS.green);
+    logger(`[NAVIGATION] [SUCCESS] Sayfaya bağlanıldı ve DOM yüklendi.`, COLORS.green);
 
     // 4. ADIM 1: Hero & Takım Bilgileri
-    logger(`⏳ [1/10] Hero, Takım Bilgileri, Logolar ve Formlar ayrıştırılıyor...`);
+    logger(`[SCRAPER] [1/10] Hero, Takım Bilgileri ve Formlar ayrıştırılıyor...`);
     const hero = await parseHero(page);
-    logger(`  ↳ ✅ Takımlar: ${hero.homeTeam} (${hero.homeCode}) vs ${hero.awayTeam} (${hero.awayCode})`, COLORS.green);
-    logger(`  ↳ ✅ Skor: ${hero.finalScore || hero.score} • Tarih: ${hero.matchDate} ${hero.matchTime}`, COLORS.green);
+    logger(`  [HERO] Takımlar: ${hero.homeTeam} (${hero.homeCode}) vs ${hero.awayTeam} (${hero.awayCode}) | Skor: ${hero.finalScore || hero.score || '-'}`, COLORS.green);
 
     // 5. ADIM 2: 9 Tahmin Pazarı & Açılan Oranlar (Extended Odds)
-    logger(`⏳ [2/10] 9 Tahmin Pazarı & Açılan Detaylı Oranlar (1X2, U/O, HT, HT/FT, BTTS, Handicap) ayrıştırılıyor...`);
+    logger(`[SCRAPER] [2/10] 9 Tahmin Pazarı & Açılan Detaylı Oranlar ayrıştırılıyor...`);
     const markets = await parseMarkets(page);
-    logger(`  ↳ ✅ 1X2: 1(${markets['1X2']?.prob1}) X(${markets['1X2']?.probX}) 2(${markets['1X2']?.prob2}) | Tahmin: ${markets['1X2']?.pick}`, COLORS.green);
-    if (markets['1X2']?.extendedOdds) {
-      logger(`  ↳ 📊 1X2 Açılan Oranlar: 1(${markets['1X2'].extendedOdds['1']}) X(${markets['1X2'].extendedOdds['X']}) 2(${markets['1X2'].extendedOdds['2']})`, COLORS.cyan);
-    }
+    logger(`  [MARKETS] 1X2 Pick: ${markets['1X2']?.pick || '-'} | U/O 2.5: ${markets['Under/Over 2.5']?.pick || '-'} | BTTS: ${markets['Both To Score']?.pick || '-'}`, COLORS.green);
 
     // 6. ADIM 3: H2H & Match Intro
-    logger(`⏳ [3/10] H2H Karşılaşmaları ayrıştırılıyor...`);
+    logger(`[SCRAPER] [3/10] H2H Karşılaşmaları ayrıştırılıyor...`);
     const h2hAndIntro = await parseH2HAndIntro(page, hero.homeTeam, hero.awayTeam);
-    logger(`  ↳ ✅ H2H: ${h2hAndIntro.h2h?.matches?.length || 0} geçmiş maç bulundu.`, COLORS.green);
+    logger(`  [H2H] ${h2hAndIntro.h2h?.matches?.length || 0} geçmiş maç bulundu.`, COLORS.green);
 
     // 7. ADIM 4: Straight Line Distance
-    logger(`⏳ [4/10] Straight Line Distance (Kuş Uçuşu Mesafe & Stadyum Coğrafyası) ayrıştırılıyor...`);
+    logger(`[SCRAPER] [4/10] Straight Line Distance (Mesafe) ayrıştırılıyor...`);
     const distance = await parseDistance(page, hero.homeTeam, hero.awayTeam);
-    logger(`  ↳ ✅ Kuş Uçuşu Mesafe: ${distance.km || '-'} (${distance.homeCity} ↔ ${distance.awayCity}) | Stadyum: ${distance.homeStadium || '-'}`, COLORS.green);
+    logger(`  [DISTANCE] Mesafe: ${distance.km || '-'} (${distance.homeCity} ↔ ${distance.awayCity}) | Stadyum: ${distance.homeStadium || '-'}`, COLORS.green);
 
     // 8. ADIM 5: Standings (Puan Durumu)
-    logger(`⏳ [5/10] Lig Puan Durumu Tablosu ayrıştırılıyor...`);
+    logger(`[SCRAPER] [5/10] Lig Puan Durumu Tablosu ayrıştırılıyor...`);
     const standings = await parseStandings(page, hero.homeTeam, hero.awayTeam);
-    logger(`  ↳ ✅ Puan Durumu: ${standings.length} takım tablosu çıkarıldı.`, COLORS.green);
+    logger(`  [STANDINGS] ${standings.length} takım tablosu çıkarıldı.`, COLORS.green);
 
     function formatRankPlace(rank) {
       if (!rank) return '';
@@ -112,12 +108,12 @@ async function scrapeMatch(url, options = {}) {
     }
 
     // 9. ADIM 6: Injured & Suspended Players
-    logger(`⏳ [6/10] Sakat ve Cezalı Oyuncular (Injured & Suspended) ayrıştırılıyor...`);
+    logger(`[SCRAPER] [6/10] Sakat ve Cezalı Oyuncular ayrıştırılıyor...`);
     const injuries = await parseInjuries(page, hero.homeTeam, hero.awayTeam);
     if (injuries.hasInjuries) {
-      logger(`  ↳ ✅ Sakat/Cezalı: Ev Sahibi(${injuries.homePlayers?.length || 0}) • Deplasman(${injuries.awayPlayers?.length || 0})`, COLORS.green);
+      logger(`  [INJURIES] Sakat/Cezalı: Ev Sahibi(${injuries.homePlayers?.length || 0}) • Deplasman(${injuries.awayPlayers?.length || 0})`, COLORS.green);
     } else {
-      logger(`  ↳ ℹ️ Bu maç için sakat veya cezalı oyuncu bilgisi bulunmuyor.`, COLORS.yellow);
+      logger(`  [INJURIES] Sakat veya cezalı oyuncu bilgisi bulunmuyor.`, COLORS.yellow);
     }
 
     // 10. ADIM 7: Last 6 Matches (2x2 Grid)
