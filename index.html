@@ -385,7 +385,7 @@
     <aside class="sidebar">
       <div>
         <div class="nav-label">Kazıma İşlemleri</div>
-        <div class="nav-btn nav-btn-highlight" onclick="handleScrapeRandomTestMatch()"><i class="fa-solid fa-crosshairs" style="color: #38bdf8;"></i> Test Maçı Çek (Rastgele)</div>
+        <div class="nav-btn nav-btn-highlight" onclick="handleScrapeRandomTestMatch()"><i class="fa-solid fa-dice" style="color: #38bdf8;"></i> Bugünden Rastgele Maç Çek</div>
         <div class="nav-btn" onclick="handleScrapeBatch('yesterday', null)"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Sonuçlananlar)</div>
         <div class="nav-btn" onclick="handleScrapeBatch('tomorrow', null)"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten & Oranlar)</div>
         <div class="nav-btn" onclick="handleScrapeBatch('today', 10)"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Maç Test)</div>
@@ -415,7 +415,7 @@
         <!-- Forebet URL Kazı Bar -->
         <div class="url-input-container">
           <i class="fa-solid fa-link" style="color: var(--text-dim); margin-left: 6px; font-size: 14px;"></i>
-          <input type="text" id="targetUrlInput" placeholder="Forebet Tek Maç URL'si yapıştırın (Örn: https://www.forebet.com/en/football/matches/...)">
+          <input type="text" id="targetUrlInput" value="https://www.forebet.com/en/football/matches/brann-hamkam-2438490" placeholder="Forebet Tek Maç URL'si yapıştırın (Örn: https://www.forebet.com/en/football/matches/...)">
           <button class="btn-action" id="btnScrapeSingle" onclick="handleScrapeSingle()">
             <i class="fa-solid fa-bolt"></i> Kazı
           </button>
