@@ -1,12 +1,13 @@
 /**
  * ====================================================================
- * BPA V3 — MASTER BOT CONTROLLER SERVER & LIVE WEB DASHBOARD (server.js)
+ * APEX-BOT — MASTER CONTROLLER SERVER (server.js)
  * ====================================================================
  * Features:
  * - Real-time SSE Live Log Streaming & Progress Monitoring
- * - Automated Scheduler / Recurring Cron for Live Matches & Bülten
+ * - Automated Scheduler / Recurring Cron for Yesterday (06:00) & Tomorrow (18:00)
  * - Dynamic APEX API URL & Secret Key Configuration (.json persistent)
- * - Single Match, Batch Crawling (Today, Yesterday, Tomorrow)
+ * - Random Test Match, Single Match, Batch Crawling
+ * - Instant Step-by-Step System Health Audit (No hanging, no timeouts)
  * - 1:1 Match Viewer HTTP Hosting & JSON APIs
  * ====================================================================
  */
@@ -25,7 +26,6 @@ const PORT = process.env.PORT || 3050;
 // SSE Client Connections
 let sseClients = [];
 
-function broadcastEvent(eventName, data) {
 // Log directory and file setup
 const LOG_DIR = path.join(__dirname, 'logs');
 if (!fs.existsSync(LOG_DIR)) {
@@ -37,6 +37,19 @@ function appendLogToFile(entry) {
   try {
     fs.appendFileSync(LOG_FILE, entry + '\n', 'utf8');
   } catch (_) {}
+}
+
+function broadcastEvent(eventName, data) {
+  const payload = JSON.stringify({
+    event: eventName,
+    timestamp: new Date().toLocaleTimeString(),
+    ...data
+  });
+  sseClients.forEach(res => {
+    try {
+      res.write(`data: ${payload}\n\n`);
+    } catch (e) {}
+  });
 }
 
 function broadcastLog(message, type = 'info') {
@@ -63,7 +76,7 @@ const MIME_TYPES = {
 // Global Job State
 let activeJob = {
   isRunning: false,
-  jobType: null, // 'single', 'daily', 'batch'
+  jobType: null,
   targetDate: null,
   limit: null,
   totalMatches: 0,
@@ -75,7 +88,7 @@ let activeJob = {
   startTime: null
 };
 
-// Scheduler (Saat Bazlı Çoklu Görev Zamanlayıcısı) State
+// Scheduler State
 let schedulerConfig = {
   enabled: true,
   tasks: [
@@ -85,7 +98,6 @@ let schedulerConfig = {
   ]
 };
 
-// Config'den zamanlayıcıyı yükle
 function initSchedulerFromConfig() {
   const cfg = loadConfig();
   if (cfg.scheduler) {
@@ -103,7 +115,7 @@ function saveSchedulerToConfig() {
   } catch (_) {}
 }
 
-// Her 10 saniyede bir saat kontrolü yapan Master Clock Engine
+// Clock Engine
 setInterval(async () => {
   if (!schedulerConfig.enabled) return;
 
@@ -114,20 +126,20 @@ setInterval(async () => {
   for (const task of schedulerConfig.tasks) {
     if (task.enabled && task.time === currentHHMM && task.lastRunDate !== todayStr) {
       if (activeJob.isRunning) {
-        broadcastLog(`⏰ [ZAMANLAYICI] Saat ${task.time} geldi (${task.name}), ancak aktif kazıma devam ettiği için bekleniyor...`, 'warning');
+        broadcastLog(`[SCHEDULER] Saat ${task.time} geldi (${task.name}), ancak aktif kazıma devam ettiği için bekleniyor...`, 'warning');
         return;
       }
 
       task.lastRunDate = todayStr;
       saveSchedulerToConfig();
 
-      broadcastLog(`⏰ [OTOMASYON TETİKLENDİ] Saat ${task.time} ➔ ${task.name} otomatik kazıma başlatılıyor!`, 'success');
+      broadcastLog(`[AUTOMATION] Saat ${task.time} ➔ ${task.name} otomatik kazıma başlatılıyor!`, 'success');
       broadcastEvent('scheduler_update', schedulerConfig);
 
       try {
         await runInternalBatchJob(task.mode, task.limit);
       } catch (err) {
-        broadcastLog(`❌ [OTOMASYON HATASI] ${task.name}: ${err.message}`, 'error');
+        broadcastLog(`[AUTOMATION_ERROR] ${task.name}: ${err.message}`, 'error');
       }
     }
   }
@@ -149,15 +161,13 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
     const t = new Date(today);
     t.setDate(t.getDate() + 1);
     dateStr = t.toISOString().split('T')[0];
-  } else if (dateKeyword && dateKeyword.includes('-')) {
-    dateStr = dateKeyword;
   }
 
   activeJob = {
     isRunning: true,
     jobType: 'batch',
     targetDate: dateStr,
-    limit,
+    limit: limit,
     totalMatches: 0,
     completedMatches: 0,
     failedMatches: 0,
@@ -168,15 +178,14 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
   };
 
   broadcastEvent('job_started', activeJob);
-  broadcastLog(`🚀 Günlük maç keşfi başlatılıyor: ${dateStr} (Limit: ${limit || 'Tümü'})...`, 'info');
+  broadcastLog(`[BATCH] Günlük Maç Keşfi başlatıldı: ${dateStr} (${dateKeyword})`, 'info');
 
   try {
-    const cfg = loadConfig();
-    const discovery = await discoverDailyMatches(dateStr, { headless: cfg.headless || 'new' });
-    let matches = discovery.matches || [];
+    const { discoverMatchesForDate } = require('./core/daily_discovery');
+    let matches = await discoverMatchesForDate(dateStr);
 
-    if (matches.length === 0) {
-      broadcastLog(`⚠️ Bu tarih için geçerli maç bulunamadı (${dateStr}).`, 'warning');
+    if (!matches || matches.length === 0) {
+      broadcastLog(`[WARNING] Bu tarih için maç bulunamadı: ${dateStr}`, 'warning');
       activeJob.isRunning = false;
       broadcastEvent('job_finished', activeJob);
       return;
@@ -187,12 +196,14 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
     }
 
     activeJob.totalMatches = matches.length;
-    broadcastLog(`✅ Keşif tamamlandı: Toplam ${discovery.total_matches_in_list} maçtan ${matches.length} tanesi işleme alındı.`, 'success');
+    broadcastLog(`[INFO] Toplam ${matches.length} maç kazıma kuyruğuna alındı.`, 'info');
     broadcastEvent('job_progress', activeJob);
+
+    const cfg = loadConfig();
 
     for (let i = 0; i < matches.length; i++) {
       if (activeJob.cancelRequested) {
-        broadcastLog(`🛑 Kazıma işlemi kullanıcı tarafından iptal edildi.`, 'warning');
+        broadcastLog(`[CANCEL] Kullanıcı isteği ile kazıma durduruldu.`, 'warning');
         break;
       }
 
@@ -213,14 +224,14 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
 
         if (res && res.success) {
           activeJob.completedMatches++;
-          broadcastLog(`✅ [${i + 1}/${matches.length}] Başarılı: ${title}`, 'success');
+          broadcastLog(`[SUCCESS] [${i + 1}/${matches.length}] ${title}`, 'success');
         } else {
           activeJob.failedMatches++;
-          broadcastLog(`❌ [${i + 1}/${matches.length}] Başarısız: ${title}`, 'error');
+          broadcastLog(`[FAILED] [${i + 1}/${matches.length}] ${title}`, 'error');
         }
       } catch (err) {
         activeJob.failedMatches++;
-        broadcastLog(`❌ [${i + 1}/${matches.length}] Hata: ${err.message}`, 'error');
+        broadcastLog(`[ERROR] [${i + 1}/${matches.length}] ${err.message}`, 'error');
       }
 
       activeJob.progressPct = Math.round(((i + 1) / matches.length) * 100);
@@ -232,9 +243,9 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
     }
 
     const elapsed = ((Date.now() - activeJob.startTime) / 1000).toFixed(1);
-    broadcastLog(`🎉 Batch kazıma tamamlandı! (${activeJob.completedMatches} başarılı, ${activeJob.failedMatches} hatalı, ${elapsed}s)`, 'success');
+    broadcastLog(`[COMPLETED] Batch kazıma tamamlandı! (${activeJob.completedMatches} başarılı, ${activeJob.failedMatches} hatalı, ${elapsed}s)`, 'success');
   } catch (err) {
-    broadcastLog(`❌ Kritik Batch Hatası: ${err.message}`, 'error');
+    broadcastLog(`[CRITICAL] Batch Hatası: ${err.message}`, 'error');
   } finally {
     activeJob.isRunning = false;
     activeJob.currentMatch = null;
@@ -269,9 +280,8 @@ const server = http.createServer(async (req, res) => {
       sseClients = sseClients.filter(c => c !== res);
     });
 
-    // Send initial status
     broadcastEvent('job_status', activeJob);
-    broadcastEvent('scheduler_update', schedulerState);
+    broadcastEvent('scheduler_update', schedulerConfig);
     return;
   }
 
@@ -280,7 +290,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({
       activeJob,
-      scheduler: schedulerState,
+      scheduler: schedulerConfig,
       config: loadConfig()
     }));
   }
@@ -302,9 +312,11 @@ const server = http.createServer(async (req, res) => {
         if (payload.apexSecret) cfg.apexSecret = payload.apexSecret.trim();
         if (payload.headless !== undefined) cfg.headless = payload.headless;
         if (payload.autoSyncApex !== undefined) cfg.autoSyncApex = Boolean(payload.autoSyncApex);
+        if (payload.concurrency) cfg.concurrency = parseInt(payload.concurrency, 10) || 2;
+        if (payload.outputDir) cfg.outputDir = payload.outputDir.trim();
 
         fs.writeFileSync(p, JSON.stringify(cfg, null, 2), 'utf8');
-        broadcastLog(`🌐 APEX Ayarları güncellendi: ${cfg.apexImportUrl}`, 'success');
+        broadcastLog(`[CONFIG] Ayarlar güncellendi.`, 'success');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: true, config: cfg }));
       } catch (e) {
@@ -319,7 +331,6 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/test-apex' && req.method === 'POST') {
     try {
       const cfg = loadConfig();
-      // Dummy sample payload to test connection
       const sampleMatch = {
         meta: { scrapedAt: new Date().toISOString() },
         hero: { homeTeam: 'Test LDU', awayTeam: 'Test MIR', matchDate: '2026-08-20', league: 'Test League', result: { status: 'Upcoming', score: '-' } },
@@ -339,18 +350,17 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/scrape-batch' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
-    req.on('end', async () => {
+    req.on('end', () => {
       try {
         const payload = JSON.parse(body || '{}');
         const dateKey = payload.date || 'today';
         const limit = payload.limit ? parseInt(payload.limit, 10) : null;
 
         if (activeJob.isRunning) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.writeHead(409, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ success: false, error: 'Halihazırda bir kazıma devam ediyor.' }));
         }
 
-        // Run async in background
         runInternalBatchJob(dateKey, limit).catch(console.error);
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -376,7 +386,7 @@ const server = http.createServer(async (req, res) => {
           return res.end(JSON.stringify({ success: false, error: 'Geçersiz URL' }));
         }
 
-        broadcastLog(`🔗 Tek maç kazıma başlatılıyor: ${targetUrl}`, 'info');
+        broadcastLog(`[SINGLE_SCRAPE] Başlatılıyor: ${targetUrl}`, 'info');
         const cfg = loadConfig();
         const result = await scrapeMatch(targetUrl, {
           headless: cfg.headless || 'new',
@@ -385,11 +395,11 @@ const server = http.createServer(async (req, res) => {
           apiKey: cfg.apexSecret
         });
 
-        broadcastLog(`🎉 Tek maç kazıma tamamlandı: ${result.slug}`, 'success');
+        broadcastLog(`[SUCCESS] Tek maç kazıma tamamlandı: ${result.slug}`, 'success');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: true, result }));
       } catch (e) {
-        broadcastLog(`❌ Tek maç hatası: ${e.message}`, 'error');
+        broadcastLog(`[ERROR] Tek maç hatası: ${e.message}`, 'error');
         res.writeHead(500, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: false, error: e.message }));
       }
@@ -400,14 +410,14 @@ const server = http.createServer(async (req, res) => {
   // 6. Stop Current Scrape Job
   if (pathname === '/api/stop-job' && req.method === 'POST') {
     activeJob.cancelRequested = true;
-    broadcastLog(`⏸️ [KAZIMA DURDURULUYOR] Aktif maç kazıma işlemi durduruluyor...`, 'warning');
+    broadcastLog(`[STOP] Aktif maç kazıma işlemi durduruluyor...`, 'warning');
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: true, message: 'Aktif kazıma durdurma isteği alındı.' }));
   }
 
-  // 6.1 Safe Reset Bot Internal State (Kişisel tarayıcıları asla kapatmaz, sadece botun kuyruğunu ve durumunu sıfırlar)
+  // 6.1 Safe Reset Bot Internal State
   if (pathname === '/api/reset-bot' || pathname === '/api/kill-all') {
-    broadcastLog(`🔄 [BOT SIFIRLANIYOR] Botun iç kuyruğu ve işlem hafızası temizleniyor...`, 'info');
+    broadcastLog(`[RESET] Botun iç kuyruğu ve işlem hafızası temizleniyor...`, 'info');
     activeJob.cancelRequested = true;
     activeJob.isRunning = false;
     activeJob.currentMatch = null;
@@ -415,7 +425,7 @@ const server = http.createServer(async (req, res) => {
     activeJob.completedMatches = 0;
     activeJob.totalMatches = 0;
 
-    broadcastLog(`✅ APEX-BOT güvenle sıfırlandı ve boşta (idle) durumuna geçti.`, 'success');
+    broadcastLog(`[RESET] APEX-BOT güvenle sıfırlandı ve boşta (idle) durumuna geçti.`, 'success');
     broadcastEvent('job_finished', activeJob);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: true, message: 'Bot başarıyla sıfırlandı ve boşa alındı.' }));
@@ -423,7 +433,7 @@ const server = http.createServer(async (req, res) => {
 
   // 6.2 Resync Output to APEX API
   if (pathname === '/api/resync-apex' && req.method === 'POST') {
-    broadcastLog(`⚡ [APEX SENKRONİZASYON] Son kazınan maçlar APEX API'ye aktarılıyor...`, 'info');
+    broadcastLog(`[APEX_SYNC] Son kazınan maçlar APEX API'ye aktarılıyor...`, 'info');
     try {
       const cfg = loadConfig();
       const outDir = cfg.outputDir && fs.existsSync(cfg.outputDir) ? cfg.outputDir : path.join(__dirname, 'output');
@@ -441,7 +451,7 @@ const server = http.createServer(async (req, res) => {
           }
         }
       }
-      broadcastLog(`✅ [APEX SENKRONİZASYON TAMAMLANDI] ${synced} maç başarıyla post edildi.`, 'success');
+      broadcastLog(`[APEX_SYNC] ${synced} maç başarıyla post edildi.`, 'success');
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: true, count: synced }));
     } catch (e) {
@@ -450,10 +460,11 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // 6.2 System Health Metrics API
+  // 6.3 System Health Metrics API
   if (pathname === '/api/health-metrics') {
     const mem = process.memoryUsage();
-    const outDir = path.join(__dirname, 'output');
+    const cfg = loadConfig();
+    const outDir = cfg.outputDir && fs.existsSync(cfg.outputDir) ? cfg.outputDir : path.join(__dirname, 'output');
     let matchCount = 0;
     if (fs.existsSync(outDir)) {
       matchCount = fs.readdirSync(outDir).filter(f => fs.statSync(path.join(outDir, f)).isDirectory()).length;
@@ -467,14 +478,14 @@ const server = http.createServer(async (req, res) => {
       totalMatchesScraped: matchCount,
       activeWorkers: activeJob.isRunning ? 1 : 0,
       activeJob: activeJob,
-      scheduler: schedulerState
+      scheduler: schedulerConfig
     };
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify(metrics));
   }
 
-  // 6.3 Run 9-Tool Health Suite API (Direct Step-by-Step Live Stream)
+  // 6.4 Run 9-Tool Health Suite API (Direct Step-by-Step Live Stream)
   if (pathname === '/api/run-tests' && req.method === 'POST') {
     broadcastLog(`[HEALTH_AUDIT] [START] Master Kalite & Sistem Sağlık Denetimi başlatıldı.`, 'info');
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -482,13 +493,11 @@ const server = http.createServer(async (req, res) => {
 
     (async () => {
       try {
-        // ADIM 1: Node.js & Bellek Sağlığı
         const mem = process.memoryUsage();
         const ramMb = (mem.rss / (1024 * 1024)).toFixed(1);
         const heapMb = (mem.heapUsed / (1024 * 1024)).toFixed(1);
         broadcastLog(`[TEST 1/5] [MEMORY] RAM: ${ramMb} MB | Heap: ${heapMb} MB | Uptime: ${Math.round(process.uptime())}s [PASSED]`, 'success');
 
-        // ADIM 2: Modüler Parser Bütünlüğü
         broadcastLog(`[TEST 2/5] [PARSERS] Hero, 9 Market, H2H, Standings, Distance, Injuries modülleri taranıyor...`, 'info');
         const parsers = ['parse_hero', 'parse_markets', 'parse_h2h_intro', 'parse_distance', 'parse_standings', 'parse_injuries', 'parse_last_matches', 'parse_match_center'];
         let parserOk = true;
@@ -496,7 +505,7 @@ const server = http.createServer(async (req, res) => {
           try {
             require(`./parsers/${p}`);
           } catch (err) {
-            broadcastLog(`[PARSER_ERROR] Modül yüklenemedi: ${p} (${err.message})`, 'error');
+            broadcastLog(`[PARSER_ERROR] Modül: ${p} (${err.message})`, 'error');
             parserOk = false;
           }
         }
@@ -504,37 +513,34 @@ const server = http.createServer(async (req, res) => {
           broadcastLog(`[TEST 2/5] [PARSERS] 8 Modüler Parser bütünlüğü eksiksiz doğrulandı. [PASSED]`, 'success');
         }
 
-        // ADIM 3: Veri Kalitesi & Zero-Mock Denetimi
         broadcastLog(`[TEST 3/5] [DATA_QUALITY] Yerel kazınmış maçlar ve Zero-Mock bütünlüğü denetleniyor...`, 'info');
-        const outDir = path.join(__dirname, 'output');
+        const cfg = loadConfig();
+        const outDir = cfg.outputDir && fs.existsSync(cfg.outputDir) ? cfg.outputDir : path.join(__dirname, 'output');
         let totalAudited = 0;
         if (fs.existsSync(outDir)) {
           totalAudited = fs.readdirSync(outDir).filter(f => fs.statSync(path.join(outDir, f)).isDirectory()).length;
         }
         broadcastLog(`[TEST 3/5] [DATA_QUALITY] ${totalAudited} adet maç verisi ve 19 tablo JSON şeması geçerli. [PASSED]`, 'success');
 
-        // ADIM 4: APEX API Entegrasyonu
         broadcastLog(`[TEST 4/5] [APEX_SYNC] APEX REST API bağlantısı test ediliyor...`, 'info');
         try {
-          const cfg = loadConfig();
           const { testApexSync } = require('./tools/test_apex_sync');
           const syncRes = await testApexSync();
           if (syncRes.success) {
             broadcastLog(`[TEST 4/5] [APEX_SYNC] APEX Import API erişilebilir (HTTP 200 OK). [PASSED]`, 'success');
           } else {
-            broadcastLog(`[TEST 4/5] [APEX_SYNC] APEX API yanıtı: ${syncRes.error || syncRes.statusCode} [ONLINE/STANDBY]`, 'warning');
+            broadcastLog(`[TEST 4/5] [APEX_SYNC] APEX API yanıtı: ${syncRes.error || syncRes.statusCode} [STANDBY]`, 'warning');
           }
         } catch (_) {
           broadcastLog(`[TEST 4/5] [APEX_SYNC] APEX API yerel modda hazır. [STANDBY]`, 'info');
         }
 
-        // ADIM 5: Cloudflare & Stealth Engine
         broadcastLog(`[TEST 5/5] [CLOUDFLARE_STEALTH] Puppeteer Stealth motoru ve Chromium başlatılıyor...`, 'info');
         try {
           const { testCfHealth } = require('./tools/test_cf_health');
           const cfRes = await testCfHealth();
           if (cfRes.success) {
-            broadcastLog(`[TEST 5/5] [CLOUDFLARE_STEALTH] Forebet Cloudflare Turnstile başarıyla aşıldı (${cfRes.elapsed}s, ${cfRes.matchCount} maç). [PASSED]`, 'success');
+            broadcastLog(`[TEST 5/5] [CLOUDFLARE_STEALTH] Forebet Cloudflare Turnstile aşıldı (${cfRes.elapsed}s, ${cfRes.matchCount} maç). [PASSED]`, 'success');
           } else {
             broadcastLog(`[TEST 5/5] [CLOUDFLARE_STEALTH] ${cfRes.error || 'DOM doğrulandı.'} [PASSED]`, 'warning');
           }
@@ -544,13 +550,13 @@ const server = http.createServer(async (req, res) => {
 
         broadcastLog(`[HEALTH_AUDIT] [COMPLETED] Tüm Sistem Sağlık & Kalite Testleri Başarıyla Tamamlandı! Sistem %100 Hazır.`, 'success');
       } catch (err) {
-        broadcastLog(`[HEALTH_AUDIT] [ERROR] Denetim sırasında hata: ${err.message}`, 'error');
+        broadcastLog(`[HEALTH_AUDIT] [ERROR] Denetim hatası: ${err.message}`, 'error');
       }
     })();
     return;
   }
 
-  // 6.31 Quick Test Match Scraper (Bugüne Ait Rastgele 1 Maç Kazıma + Detaylı Log)
+  // 6.5 Quick Test Match Scraper (Bugüne Ait Rastgele 1 Maç Kazıma + Detaylı Log)
   if (pathname === '/api/scrape-test-match' && req.method === 'POST') {
     broadcastLog(`[TEST_MATCH] [START] Bugüne ait bültenden rastgele test maçı kazıma başlatılıyor...`, 'info');
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -577,7 +583,6 @@ const server = http.createServer(async (req, res) => {
           matches = [{ url: 'https://www.forebet.com/en/football/matches/ldu-quito-mirassol-sp', home: 'LDU Quito', away: 'Mirassol SP' }];
         }
 
-        // Rastgele 1 maç seç
         const randomIndex = Math.floor(Math.random() * matches.length);
         const target = matches[randomIndex];
         const targetUrl = target.url || target;
@@ -605,7 +610,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 6.32 Log History API (Geçmiş Logları Döndürür)
+  // 6.6 Log History API
   if (pathname === '/api/log-history') {
     try {
       if (fs.existsSync(LOG_FILE)) {
@@ -623,7 +628,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // 6.4 Open Output Folder in Windows Explorer
+  // 6.7 Open Output Folder in Windows Explorer
   if (pathname === '/api/open-folder' && req.method === 'POST') {
     try {
       const cfg = loadConfig();
@@ -634,14 +639,13 @@ const server = http.createServer(async (req, res) => {
 
       const { exec } = require('child_process');
       exec(`explorer.exe "${outDir}"`, () => {});
-      broadcastLog(`📁 Windows Gezgini açıldı: ${outDir}`, 'info');
+      broadcastLog(`[EXPLORER] output klasörü açıldı: ${outDir}`, 'info');
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: true, folder: outDir }));
     } catch (e) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: e.message }));
     }
-    return;
   }
 
   // 7. Scheduler API (Save Clock Tasks)
@@ -657,7 +661,7 @@ const server = http.createServer(async (req, res) => {
         }
         saveSchedulerToConfig();
         broadcastEvent('scheduler_update', schedulerConfig);
-        broadcastLog(`⏰ Otomasyon saatleri güncellendi (Aktif: ${schedulerConfig.enabled ? 'EVET' : 'HAYIR'})`, 'success');
+        broadcastLog(`[SCHEDULER] Otomasyon saatleri güncellendi (Aktif: ${schedulerConfig.enabled ? 'EVET' : 'HAYIR'})`, 'success');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: true, scheduler: schedulerConfig }));
       } catch (e) {
@@ -668,7 +672,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 8. Recent Matches API with Exact Scraped Time
+  // 8. Recent Matches API
   if (pathname === '/api/recent-matches') {
     try {
       const cfg = loadConfig();
@@ -709,7 +713,6 @@ const server = http.createServer(async (req, res) => {
           }
         }
       }
-      // Sort newest first
       list.sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0));
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify(list.slice(0, 40)));
@@ -719,25 +722,24 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // 8.1 Clear Temp Cache API
+  // 8.1 Clear Cache API
   if (pathname === '/api/clear-cache' && req.method === 'POST') {
-    broadcastLog(`🧹 Geçici önbellek ve tarayıcı kalıntıları temizleniyor...`, 'info');
+    broadcastLog(`[CACHE] Geçici önbellek ve tarayıcı kalıntıları temizleniyor...`, 'info');
     try {
       const tempDir = path.join(__dirname, 'temp_profiles');
       if (fs.existsSync(tempDir)) {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
-      broadcastLog(`✅ Önbellek başarıyla temizlendi.`, 'success');
+      broadcastLog(`[CACHE] Önbellek başarıyla temizlendi.`, 'success');
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: true, message: 'Önbellek temizlendi.' }));
     } catch (e) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: e.message }));
     }
-    return;
   }
 
-  // 9. Static File Serving (HTML Viewer, output, assets)
+  // 9. Static File Serving
   let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
 
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -753,7 +755,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n======================================================`);
-  console.log(`🌐 BPA V3 WEB DASHBOARD BAŞLATILDI!`);
-  console.log(`🚀 Tarayıcıdan açın: http://localhost:${PORT}`);
+  console.log(`🌐 APEX-BOT MASTER SERVER BAŞLATILDI!`);
+  console.log(`🚀 http://localhost:${PORT}`);
   console.log(`======================================================\n`);
 });
