@@ -1,2 +1,3 @@
 @echo off
-call "%~dp0BPA_V3_KONTROL_PANELI.bat"
+cd /d "%~dp0"
+call "BPA_V3_KONTROL_PANELI.bat"
