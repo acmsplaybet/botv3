@@ -60,7 +60,21 @@ async function createBrowser(options = {}) {
       '--lang=en-US,en',
       '--disable-notifications',
       '--disable-dev-shm-usage',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--disable-background-networking',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-breakpad',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-extensions',
+      '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+      '--disable-ipc-flooding-protection',
+      '--disable-renderer-backgrounding',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--mute-audio',
+      '--no-first-run',
+      '--no-default-browser-check'
     ]
   });
 

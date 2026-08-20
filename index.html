@@ -802,6 +802,13 @@
 
     function appendLog(time, msg, type = 'info') {
       const logs = document.getElementById('terminalLogs');
+      if (!logs) return;
+
+      // DOM Hafıza Koruması (Kasılmayı önlemek için max 250 log satırı tutar)
+      if (logs.children.length > 250) {
+        logs.removeChild(logs.firstElementChild);
+      }
+
       const div = document.createElement('div');
       div.className = 'log-row';
       let cls = 'log-info';
@@ -811,7 +818,12 @@
 
       div.innerHTML = `<span class="log-t">[${time}]</span> <span class="${cls}">${msg}</span>`;
       logs.appendChild(div);
+
+      // Otomatik En Alta Kaydırma
       logs.scrollTop = logs.scrollHeight;
+      try {
+        div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (_) {}
     }
 
     function clearLogs() {

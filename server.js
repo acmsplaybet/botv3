@@ -32,10 +32,18 @@ if (!fs.existsSync(LOG_DIR)) {
   try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch (_) {}
 }
 const LOG_FILE = path.join(LOG_DIR, 'apex_bot.log');
+const ERROR_LOG_FILE = path.join(LOG_DIR, 'error.log');
 
 function appendLogToFile(entry) {
   try {
     fs.appendFileSync(LOG_FILE, entry + '\n', 'utf8');
+  } catch (_) {}
+}
+
+function appendErrorToFile(entry, stack = '') {
+  try {
+    const errorEntry = `${entry}${stack ? '\nSTACK: ' + stack : ''}\n----------------------------------------\n`;
+    fs.appendFileSync(ERROR_LOG_FILE, errorEntry, 'utf8');
   } catch (_) {}
 }
 
@@ -52,13 +60,16 @@ function broadcastEvent(eventName, data) {
   });
 }
 
-function broadcastLog(message, type = 'info') {
+function broadcastLog(message, type = 'info', stack = '') {
   const now = new Date();
   const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
   const tag = type.toUpperCase();
   const formattedEntry = `[${timeStr}] [${tag}] ${message}`;
   
   appendLogToFile(formattedEntry);
+  if (type === 'error' || type === 'warning' || tag.includes('FAIL') || tag.includes('ERROR')) {
+    appendErrorToFile(formattedEntry, stack);
+  }
   broadcastEvent('log', { message, type, timeFormatted: timeStr });
 }
 
@@ -249,26 +260,28 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
           apiKey: cfg.apexSecret
         }, 65000);
 
-        if (res && res.success && res.data && res.data.hero?.homeTeam) {
-          const finalTitle = `${res.data.hero.homeTeam} vs ${res.data.hero.awayTeam}`;
-          const score = res.data.hero.finalScore || res.data.hero.score || '-';
+        const matchData = res && (res.matchData || res.data) ? (res.matchData || res.data) : null;
+        if (res && res.success && matchData && matchData.hero) {
+          const finalTitle = matchData.hero.homeTeam ? `${matchData.hero.homeTeam} vs ${matchData.hero.awayTeam}` : title;
+          const score = matchData.hero.finalScore || matchData.hero.score || '-';
           activeJob.completedMatches++;
           broadcastLog(`[SUCCESS] [${i + 1}/${matches.length}] ${finalTitle} (${score})`, 'success');
-          broadcastEvent('match_scraped', { slug: res.data.meta?.slug, hero: res.data.hero });
+          broadcastEvent('match_scraped', { slug: res.slug || matchData.meta?.slug, hero: matchData.hero });
         } else {
           failedMatches.push(m);
-          broadcastLog(`[RETRY_QUEUED] Eksik/Başarısız veri, telafi kuyruğuna eklendi: ${title}`, 'warning');
+          const reason = res && res.error ? res.error : 'Eksik DOM verisi';
+          broadcastLog(`[RETRY_QUEUED] Başarısız (${reason}), telafi kuyruğuna eklendi: ${title}`, 'warning');
         }
       } catch (err) {
         failedMatches.push(m);
-        broadcastLog(`[RETRY_QUEUED] Hata (${err.message}), telafi kuyruğuna eklendi: ${title}`, 'warning');
+        broadcastLog(`[RETRY_QUEUED] Hata (${err.message}), telafi kuyruğuna eklendi: ${title}`, 'warning', err.stack);
       }
 
       activeJob.progressPct = Math.round(((i + 1) / matches.length) * 100);
       broadcastEvent('job_progress', activeJob);
 
       if (i < matches.length - 1 && !activeJob.cancelRequested) {
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 800));
       }
     }
 
@@ -276,17 +289,17 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
     let retryRound = 1;
     while (failedMatches.length > 0 && retryRound <= 2 && !activeJob.cancelRequested) {
       broadcastLog(`[SELF_HEALING] [TELAFİ TURU ${retryRound}] ${failedMatches.length} adet eksik/hatalı maç tekrar deneniyor...`, 'info');
-      await new Promise(r => setTimeout(r, 3000)); // 3 saniye dinlen
+      await new Promise(r => setTimeout(r, 2000));
 
       const currentRetryList = [...failedMatches];
-      failedMatches = []; // Kuyruğu sıfırla
+      failedMatches = [];
 
       for (let j = 0; j < currentRetryList.length; j++) {
         if (activeJob.cancelRequested) break;
 
         const rm = currentRetryList[j];
         const rUrl = rm.url || rm.link;
-        const rTitle = rm.homeTeam && rm.awayTeam ? `${rm.homeTeam} vs ${rm.awayTeam}` : `Telafi #${j + 1}`;
+        const rTitle = rm.home_team && rm.away_team ? `${rm.home_team} vs ${rm.away_team}` : (rm.homeTeam && rm.awayTeam ? `${rm.homeTeam} vs ${rm.awayTeam}` : `Telafi #${j + 1}`);
 
         activeJob.currentMatch = `[Telafi ${retryRound}] ${rTitle}`;
         broadcastLog(`[RETRY ${retryRound}] [${j + 1}/${currentRetryList.length}] Tekrar deneniyor: ${rTitle}...`, 'info');
@@ -299,16 +312,18 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
             apiKey: cfg.apexSecret
           }, 65000);
 
-          if (res && res.success && res.data && res.data.hero?.homeTeam) {
+          const rMatchData = res && (res.matchData || res.data) ? (res.matchData || res.data) : null;
+          if (res && res.success && rMatchData && rMatchData.hero) {
             activeJob.completedMatches++;
             broadcastLog(`[RETRY_SUCCESS] Telafi edildi: ${rTitle}`, 'success');
+            broadcastEvent('match_scraped', { slug: res.slug || rMatchData.meta?.slug, hero: rMatchData.hero });
           } else {
             failedMatches.push(rm);
-            broadcastLog(`[RETRY_STILL_FAIL] Telafi başarısız: ${rTitle}`, 'warning');
+            broadcastLog(`[RETRY_STILL_FAIL] Telafi başarısız (${res?.error || 'Eksik veri'}): ${rTitle}`, 'warning');
           }
         } catch (rErr) {
           failedMatches.push(rm);
-          broadcastLog(`[RETRY_STILL_FAIL] Telafi hatası (${rErr.message}): ${rTitle}`, 'warning');
+          broadcastLog(`[RETRY_STILL_FAIL] Telafi hatası (${rErr.message}): ${rTitle}`, 'warning', rErr.stack);
         }
 
         await new Promise(r => setTimeout(r, 1200));
@@ -418,19 +433,20 @@ async function runDateRangeBatchJob(startDateStr, endDateStr, limitPerDay = null
             apiKey: cfg.apexSecret
           });
 
-          if (res && res.success && res.data && res.data.hero?.homeTeam) {
-            const finalTitle = `${res.data.hero.homeTeam} vs ${res.data.hero.awayTeam}`;
-            const score = res.data.hero.finalScore || res.data.hero.score || '-';
+          const matchData = res && (res.matchData || res.data) ? (res.matchData || res.data) : null;
+          if (res && res.success && matchData && matchData.hero) {
+            const finalTitle = matchData.hero.homeTeam ? `${matchData.hero.homeTeam} vs ${matchData.hero.awayTeam}` : title;
+            const score = matchData.hero.finalScore || matchData.hero.score || '-';
             activeJob.completedMatches++;
             broadcastLog(`[SUCCESS] ${finalTitle} (${score})`, 'success');
-            broadcastEvent('match_scraped', { slug: res.data.meta?.slug, hero: res.data.hero });
+            broadcastEvent('match_scraped', { slug: res.slug || matchData.meta?.slug, hero: matchData.hero });
           } else {
             activeJob.failedMatches++;
-            broadcastLog(`[FAILED] ${title}`, 'error');
+            broadcastLog(`[FAILED] ${title} (${res?.error || 'Eksik veri'})`, 'error');
           }
         } catch (err) {
           activeJob.failedMatches++;
-          broadcastLog(`[ERROR] ${err.message}`, 'error');
+          broadcastLog(`[ERROR] ${title} (${err.message})`, 'error', err.stack);
         }
 
         activeJob.progressPct = Math.round(((activeJob.completedMatches + activeJob.failedMatches) / (activeJob.totalMatches || 1)) * 100);

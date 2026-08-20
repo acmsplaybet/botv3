@@ -1,11 +1,11 @@
 [
   {
     "name": "PHPSESSID",
-    "value": "osio7o2800k8dan24s7bgrn1oq",
+    "value": "f2a90fd319c757d9355489a973b9a071",
     "domain": "www.forebet.com",
     "path": "/",
     "expires": -1,
-    "size": 35,
+    "size": 41,
     "httpOnly": false,
     "secure": false,
     "session": true,
