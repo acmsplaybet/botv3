@@ -1,8 +1,11 @@
 {
   "apexImportUrl": "http://localhost/apex-api/api/import.php",
   "apexSecret": "apex_secret_key_2026",
-  "concurrency": 2,
+  "concurrency": 4,
   "headless": "new",
   "autoSyncApex": true,
-  "timeoutMs": 30000
+  "timeoutMs": 30000,
+  "startWithWindows": false,
+  "autoStartOnLaunch": false,
+  "outputDir": "C:\\xampp\\htdocs\\botv3\\temiz_klasor\\output"
 }

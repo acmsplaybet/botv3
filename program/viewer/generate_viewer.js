@@ -13,7 +13,7 @@ function generateMatchViewer(matchData, outputPath = null) {
 
   // Stringify match data safely
   const jsonStr = JSON.stringify(matchData, null, 2);
-  
+
   // Replace placeholder
   const finalHtml = template.replace('__MATCH_DATA_PLACEHOLDER__', jsonStr);
 

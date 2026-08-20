@@ -34,7 +34,7 @@ async function discoverDailyMatches(dateStr, options = {}) {
   await setupPageInterception(page);
 
   try {
-    await navigateWithRetry(page, targetUrl, logger);
+    await navigateWithRetry(page, targetUrl, logger, 5, 35000);
 
     // 1. Click 'More' button repeatedly until all matches are loaded
     logger(`[Keşif] 🔄 'More' butonu taranıyor ve tüm günün maçları açılıyor...`);

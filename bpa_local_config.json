@@ -1,0 +1,8 @@
+{
+  "automation_active": true,
+  "cron_yesterday": "05:00",
+  "cron_today": "10:00",
+  "cron_tomorrow": "18:00",
+  "scrape_detailed_stats": true,
+  "auto_reload_broken_logos": true
+}

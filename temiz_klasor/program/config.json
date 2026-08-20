@@ -1,0 +1,45 @@
+{
+  "apexImportUrl": "http://localhost/apex-api/api/import.php",
+  "apexSecret": "apex_secret_key_2026",
+  "concurrency": 4,
+  "headless": "new",
+  "autoSyncApex": true,
+  "timeoutMs": 30000,
+  "scheduler": {
+    "enabled": true,
+    "tasks": [
+      {
+        "id": "yesterday",
+        "name": "Dünün Sonuçlanan Maçları",
+        "time": "06:49",
+        "mode": "yesterday",
+        "enabled": true,
+        "limit": null,
+        "lastRunDate": "2026-08-20",
+        "lastRunKey": "2026-08-20_06:49"
+      },
+      {
+        "id": "tomorrow",
+        "name": "Yarının Bülteni & Oranları",
+        "time": "18:00",
+        "mode": "tomorrow",
+        "enabled": true,
+        "limit": null,
+        "lastRunDate": null,
+        "lastRunKey": null
+      },
+      {
+        "id": "today",
+        "name": "Bugünün Canlı Bülteni",
+        "time": "12:00",
+        "mode": "today",
+        "enabled": false,
+        "limit": 20,
+        "lastRunDate": null
+      }
+    ]
+  },
+  "outputDir": "C:\\xampp\\htdocs\\botv3\\program\\output",
+  "startWithWindows": false,
+  "autoStartOnLaunch": false
+}
