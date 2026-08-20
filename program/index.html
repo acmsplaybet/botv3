@@ -82,8 +82,8 @@
 
     /* 1. Sol Sidebar */
     .sidebar {
-      width: 210px;
-      min-width: 190px;
+      width: 215px;
+      min-width: 195px;
       background: var(--bg-sidebar);
       border-right: 1px solid var(--border-color);
       display: flex;
@@ -117,11 +117,18 @@
       padding: 8px 10px;
       font-size: 11px;
     }
-    .health-title { font-weight: 800; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .health-title { font-weight: 800; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .health-row { display: flex; justify-content: space-between; margin-bottom: 2px; color: var(--text-muted); font-size: 10.5px; }
     .health-row b { color: #fff; font-weight: 700; }
 
-    /* 2. Orta Alan */
+    /* Worker Slots */
+    .workers-box { margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 6px; }
+    .worker-slot { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+    .worker-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    .worker-dot.busy { background: var(--accent-success); box-shadow: 0 0 6px var(--accent-success); }
+    .worker-dot.idle { background: #475569; }
+
+    /* 2. Orta Alan & Tab Views */
     .main-workspace {
       flex: 1;
       min-width: 320px;
@@ -132,6 +139,9 @@
       gap: 12px;
       background: var(--bg-root);
     }
+
+    .tab-content { display: none; flex-direction: column; gap: 12px; }
+    .tab-content.active { display: flex; }
 
     /* URL Bar */
     .url-input-container {
@@ -247,7 +257,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 5px 0;
+      padding: 6px 0;
       font-size: 11px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
@@ -260,8 +270,8 @@
       background: var(--bg-subpanel);
       border: 1px solid var(--border-color);
       border-radius: 5px;
-      padding: 5px 8px;
-      font-size: 11px;
+      padding: 6px 8px;
+      font-size: 11.5px;
       color: #fff;
       outline: none;
       width: 100%;
@@ -350,7 +360,7 @@
     }
     .match-item-card:hover { border-color: var(--accent-primary); }
     .mc-meta { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-weight: 700; margin-bottom: 3px; }
-    .mc-time-pill { background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); padding: 1px 4px; border-radius: 3px; font-weight: 700; }
+    .mc-time-pill { background: rgba(56, 189, 248, 0.12); color: var(--accent-primary); padding: 1px 5px; border-radius: 3px; font-weight: 700; }
     .mc-main { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: #fff; margin-bottom: 6px; }
     .mc-score { background: #1e293b; color: var(--accent-primary); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; font-weight: 800; }
     
@@ -377,32 +387,11 @@
     .btn-sm.viewer:hover { background: var(--accent-primary); color: #000; }
     .btn-sm.compare { color: var(--accent-success); border-color: rgba(34, 197, 94, 0.3); }
     .btn-sm.compare:hover { background: var(--accent-success); color: #000; }
-
-    /* Modal for Directory Settings */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-box {
-      background: #111726;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      width: 440px;
-      max-width: 90vw;
-      padding: 16px 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    }
   </style>
 </head>
 <body>
 
-  <!-- Top Window Bar -->
+  <!-- Top Window Bar with Action Buttons -->
   <div class="titlebar">
     <div class="titlebar-brand">
       <i class="fa-solid fa-server" style="color: var(--accent-primary);"></i>
@@ -410,13 +399,16 @@
       <span class="titlebar-badge">v3.3.0</span>
     </div>
 
-    <!-- Acil Durdurma Butonları -->
+    <!-- Güvenli Kontrol ve Aksiyon Butonları -->
     <div class="emergency-controls">
-      <button class="btn-emergency" onclick="stopActiveJob()" title="Sadece o an çalışan aktif kazımayı durdurur">
-        <i class="fa-solid fa-hand"></i> Durdur
+      <button class="btn-emergency" onclick="stopActiveJob()" title="Kazımayı Durdur: Yalnızca o an devam eden maç kazıma işlemini güvenle durdurur. Veri kaybı olmaz.">
+        <i class="fa-solid fa-pause"></i> Kazımayı Durdur
       </button>
-      <button class="btn-emergency" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fde68a;" onclick="killAllProcesses()" title="Tüm arka plan node/tarayıcı süreçlerini sonlandırır ve sistemi sıfırlar">
-        <i class="fa-solid fa-power-off"></i> Sıfırla
+      <button class="btn-emergency" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fde68a;" onclick="resetBotState()" title="Botu Sıfırla: Botun iç kuyruğunu sıfırlar ve sistemi boşta durumuna getirir. Kişisel tarayıcılarınıza asla dokunmaz!">
+        <i class="fa-solid fa-rotate-left"></i> Botu Sıfırla
+      </button>
+      <button class="btn-emergency" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: var(--accent-primary);" onclick="resyncToApex()" title="APEX'e Aktar: Son kazınan maçları anında APEX API veritabanına tekrar gönderir.">
+        <i class="fa-solid fa-cloud-arrow-up"></i> APEX'e Aktar
       </button>
     </div>
 
@@ -434,91 +426,146 @@
     <aside class="sidebar">
       <div>
         <div class="nav-label">Ana Modüller</div>
-        <div class="nav-btn active" onclick="switchTab('dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
-        <div class="nav-btn" onclick="switchTab('scheduler')"><i class="fa-solid fa-clock"></i> Zamanlayıcı</div>
-        <div class="nav-btn" onclick="switchTab('apex')"><i class="fa-solid fa-database"></i> APEX API</div>
+        <div class="nav-btn active" id="tabBtn_dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
+        <div class="nav-btn" id="tabBtn_scheduler" onclick="switchTab('scheduler')"><i class="fa-solid fa-clock"></i> Zamanlayıcı</div>
+        <div class="nav-btn" id="tabBtn_apex" onclick="switchTab('apex')"><i class="fa-solid fa-database"></i> APEX API</div>
+        <div class="nav-btn" id="tabBtn_settings" onclick="switchTab('settings')"><i class="fa-solid fa-sliders"></i> Sekme & Dizin Ayarları</div>
 
         <div class="nav-label">Teşhis & Araçlar</div>
         <div class="nav-btn" onclick="runMasterHealthSuite()"><i class="fa-solid fa-microscope" style="color: var(--accent-success);"></i> 9-Test Sağlık</div>
-        <div class="nav-btn" onclick="openOutputFolder()"><i class="fa-solid fa-folder-open" style="color: var(--accent-warning);"></i> output Klasörü</div>
-        <div class="nav-btn" onclick="openDirModal()"><i class="fa-solid fa-folder-tree" style="color: var(--accent-primary);"></i> Dizin Konumları</div>
+        <div class="nav-btn" onclick="openOutputFolder()"><i class="fa-solid fa-folder-open" style="color: var(--accent-warning);"></i> output Klasörü Aç</div>
         <div class="nav-btn" onclick="clearCache()"><i class="fa-solid fa-broom" style="color: #cbd5e1;"></i> Önbellek Temizle</div>
       </div>
 
-      <!-- Canlı Sistem Sağlık Durumu Widget'ı -->
+      <!-- Canlı Sistem Sağlık Durumu & Sekme (Worker) Monitörü -->
       <div class="health-widget">
         <div class="health-title">
           <span>Sistem Sağlığı</span>
           <span style="color: var(--accent-success);">● AKTİF</span>
         </div>
         <div class="health-row">
-          <span>RAM:</span>
-          <b id="hwRam">- MB</b>
+          <span>RAM / Heap:</span>
+          <b id="hwRam">- / - MB</b>
         </div>
         <div class="health-row">
           <span>Uptime:</span>
           <b id="hwUptime">-</b>
         </div>
         <div class="health-row">
-          <span>Maç Sayısı:</span>
+          <span>Kazınan Maç:</span>
           <b id="hwMatches">-</b>
+        </div>
+
+        <!-- 4 Sekme / Worker Durumları -->
+        <div class="workers-box">
+          <div class="health-title" style="margin-bottom: 3px;">Sekme Durumları</div>
+          <div class="worker-slot" id="wSlot1"><span><span class="worker-dot idle"></span>Sekme #1:</span> <span id="wState1">Boşta</span></div>
+          <div class="worker-slot" id="wSlot2"><span><span class="worker-dot idle"></span>Sekme #2:</span> <span id="wState2">Boşta</span></div>
+          <div class="worker-slot" id="wSlot3"><span><span class="worker-dot idle"></span>Sekme #3:</span> <span id="wState3">Boşta</span></div>
+          <div class="worker-slot" id="wSlot4"><span><span class="worker-dot idle"></span>Sekme #4:</span> <span id="wState4">Boşta</span></div>
         </div>
       </div>
     </aside>
 
-    <!-- 2. ORTA ÇALIŞMA ALANI -->
+    <!-- 2. ORTA ÇALIŞMA ALANI (SEKMELİ YAPI) -->
     <main class="main-workspace">
 
-      <!-- URL Scrape Bar -->
-      <div class="url-input-container">
-        <i class="fa-solid fa-link" style="color: var(--text-dim); margin-left: 4px;"></i>
-        <input type="text" id="targetUrlInput" placeholder="Forebet Maç URL'si yapıştırın...">
-        <button class="btn-action" id="btnScrapeSingle" onclick="handleScrapeSingle()">
-          <i class="fa-solid fa-bolt"></i> Kazı
-        </button>
+      <!-- ================= SEKME 1: DASHBOARD ================= -->
+      <div class="tab-content active" id="tabView_dashboard">
+
+        <!-- URL Scrape Bar -->
+        <div class="url-input-container">
+          <i class="fa-solid fa-link" style="color: var(--text-dim); margin-left: 4px;"></i>
+          <input type="text" id="targetUrlInput" placeholder="Forebet Maç URL'si yapıştırın...">
+          <button class="btn-action" id="btnScrapeSingle" onclick="handleScrapeSingle()">
+            <i class="fa-solid fa-bolt"></i> Kazı
+          </button>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div class="quick-grid">
+          <div class="btn-tile" onclick="handleScrapeBatch('yesterday', null)">
+            <div class="btn-tile-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Sonuçlar)</div>
+            <div class="btn-tile-desc">Bitmiş tüm maçları çek</div>
+          </div>
+
+          <div class="btn-tile" onclick="handleScrapeBatch('tomorrow', null)">
+            <div class="btn-tile-title"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten)</div>
+            <div class="btn-tile-desc">Açılış oranları & tahmin</div>
+          </div>
+
+          <div class="btn-tile" onclick="handleScrapeBatch('today', 10)">
+            <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Test)</div>
+            <div class="btn-tile-desc">Hızlı canlı test</div>
+          </div>
+
+          <div class="btn-tile" onclick="handleScrapeBatch('today', null)">
+            <div class="btn-tile-title"><i class="fa-solid fa-forward-fast" style="color: var(--accent-primary);"></i> Bugün (Tümü)</div>
+            <div class="btn-tile-desc">Tam bülteni kazı</div>
+          </div>
+        </div>
+
+        <!-- Dashboard Compact Summary Row -->
+        <div class="panels-row">
+          <div class="card">
+            <div class="card-head">
+              <span><i class="fa-solid fa-clock"></i> Zamanlayıcı Özeti</span>
+              <span id="dashSchedBadge" style="font-size: 10.5px; color: var(--accent-success); font-weight: 700;">AKTİF</span>
+            </div>
+            <div class="setting-item">
+              <span>06:00 Dünün Bitmiş Maçları:</span>
+              <b style="color: var(--accent-warning);" id="dashTimeYest">06:00 (Açık)</b>
+            </div>
+            <div class="setting-item">
+              <span>18:00 Yarının Bülteni:</span>
+              <b style="color: var(--accent-purple);" id="dashTimeTom">18:00 (Açık)</b>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <span><i class="fa-solid fa-server"></i> APEX API Durumu</span>
+              <button class="btn-sm" style="flex: none; padding: 2px 6px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Test</button>
+            </div>
+            <div class="setting-item">
+              <span>Hedef URL:</span>
+              <b style="color: var(--accent-primary); font-size: 10.5px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="dashApexUrl">http://...</b>
+            </div>
+            <div class="setting-item">
+              <span>Eşzamanlı Sekme:</span>
+              <b style="color: #fff;" id="dashConcurrency">2 Sekme</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scraper Log Terminal -->
+        <div class="terminal-box">
+          <div class="terminal-header">
+            <span><i class="fa-solid fa-terminal"></i> CANLI LOG STREAM</span>
+            <button style="background: none; border: none; color: var(--text-dim); cursor: pointer;" onclick="clearLogs()"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="terminal-logs" id="terminalLogs">
+            <div class="log-row"><span class="log-t">[00:00:00]</span> <span class="log-info">APEX-BOT Master Engine hazır.</span></div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Quick Actions Grid -->
-      <div class="quick-grid">
-        <div class="btn-tile" onclick="handleScrapeBatch('yesterday', null)">
-          <div class="btn-tile-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Sonuçlar)</div>
-          <div class="btn-tile-desc">Bitmiş tüm maçları çek</div>
-        </div>
-
-        <div class="btn-tile" onclick="handleScrapeBatch('tomorrow', null)">
-          <div class="btn-tile-title"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten)</div>
-          <div class="btn-tile-desc">Açılış oranları & tahmin</div>
-        </div>
-
-        <div class="btn-tile" onclick="handleScrapeBatch('today', 10)">
-          <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Test)</div>
-          <div class="btn-tile-desc">Hızlı canlı test</div>
-        </div>
-
-        <div class="btn-tile" onclick="handleScrapeBatch('today', null)">
-          <div class="btn-tile-title"><i class="fa-solid fa-forward-fast" style="color: var(--accent-primary);"></i> Bugün (Tümü)</div>
-          <div class="btn-tile-desc">Tam bülteni kazı</div>
-        </div>
-      </div>
-
-      <!-- Settings & Controls Dual Panels -->
-      <div class="panels-row">
-
-        <!-- Panel 1: Saat Bazlı Görev Zamanlayıcısı (Clock Scheduler) -->
+      <!-- ================= SEKME 2: ZAMANLAYICI ================= -->
+      <div class="tab-content" id="tabView_scheduler">
         <div class="card">
           <div class="card-head">
-            <span><i class="fa-solid fa-clock"></i> Otomasyon Görev Saatleri</span>
+            <span><i class="fa-solid fa-clock"></i> Saat Bazlı Otomasyon Görevleri</span>
             <label class="toggle-switch" title="Tüm otomatik zamanlayıcıyı aç/kapat">
               <input type="checkbox" id="masterSchedToggle" checked onchange="saveSchedulerTasks()">
               <span class="toggle-slider"></span>
             </label>
           </div>
 
-          <!-- Görev 1: Dün (06:00) -->
           <div class="sched-task-box">
             <div class="sched-task-info">
               <div class="sched-task-name"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dünün Bitmiş Maçları</div>
-              <div class="sched-task-sub">Skorlar, Penaltılar, AET & Olaylar</div>
+              <div class="sched-task-sub">Skorlar, Penaltılar, AET & Olayları çeker</div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <input type="time" class="sched-time-input" id="timeYesterday" value="06:00" onchange="saveSchedulerTasks()">
@@ -529,11 +576,10 @@
             </div>
           </div>
 
-          <!-- Görev 2: Yarın (18:00) -->
           <div class="sched-task-box">
             <div class="sched-task-info">
               <div class="sched-task-name"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarının Bülteni & Oranlar</div>
-              <div class="sched-task-sub">Gelecek tahminler & Kupon üretimi</div>
+              <div class="sched-task-sub">Gelecek maçların açılış oranları & tahminlerini çeker</div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <input type="time" class="sched-time-input" id="timeTomorrow" value="18:00" onchange="saveSchedulerTasks()">
@@ -544,8 +590,7 @@
             </div>
           </div>
 
-          <!-- Görev 3: Bugün (Opsiyonel) -->
-          <div class="sched-task-box" style="margin-bottom: 4px;">
+          <div class="sched-task-box">
             <div class="sched-task-info">
               <div class="sched-task-name"><i class="fa-solid fa-play" style="color: var(--accent-primary);"></i> Bugünün Canlı Bülteni</div>
               <div class="sched-task-sub">Günün maçlarını güncelle (Opsiyonel)</div>
@@ -559,52 +604,96 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Panel 2: APEX API Ayarları -->
+      <!-- ================= SEKME 3: APEX API ================= -->
+      <div class="tab-content" id="tabView_apex">
         <div class="card">
           <div class="card-head">
-            <span><i class="fa-solid fa-server"></i> APEX API & Tercihler</span>
-            <button class="btn-sm" style="flex: none; padding: 2px 6px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Test</button>
+            <span><i class="fa-solid fa-server"></i> APEX REST API Yapılandırması</span>
+            <button class="btn-sm" style="flex: none; padding: 3px 8px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
           </div>
 
-          <div style="margin-bottom: 6px;">
-            <div style="font-size: 10px; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">Import API URL</div>
+          <div style="margin-bottom: 10px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">APEX Import API URL</div>
             <input type="text" class="form-input" id="apexUrlInput" placeholder="http://localhost/apex-api/api/import.php">
           </div>
 
-          <div style="margin-bottom: 6px;">
-            <div style="font-size: 10px; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">Secret Key</div>
+          <div style="margin-bottom: 10px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">X-Apex-Secret Gizli Anahtarı</div>
             <input type="password" class="form-input" id="apexSecretInput" placeholder="apex_secret_key_2026">
           </div>
 
           <div class="setting-item">
             <div>
-              <div class="setting-name">Yerel JSON/HTML Yedeği</div>
-              <div class="setting-sub">output klasörüne kaydet</div>
+              <div class="setting-name">Otomatik APEX REST Aktarımı</div>
+              <div class="setting-sub">Kazınan veriyi anında MySQL API'ye gönder</div>
             </div>
             <label class="toggle-switch">
-              <input type="checkbox" id="saveLocalToggle" checked>
+              <input type="checkbox" id="autoSyncApexToggle" checked>
               <span class="toggle-slider"></span>
             </label>
           </div>
 
-          <div style="margin-top: 6px;">
-            <button class="btn-action" style="width: 100%; justify-content: center; padding: 5px 8px; font-size: 11px;" onclick="saveApexConfig()">
-              <i class="fa-solid fa-floppy-disk"></i> Ayarları Kaydet
+          <div style="margin-top: 10px;">
+            <button class="btn-action" style="width: 100%; justify-content: center; padding: 7px 12px;" onclick="saveApexConfig()">
+              <i class="fa-solid fa-floppy-disk"></i> APEX Ayarlarını Kaydet
             </button>
           </div>
         </div>
-
       </div>
 
-      <!-- Scraper Log Terminal -->
-      <div class="terminal-box">
-        <div class="terminal-header">
-          <span><i class="fa-solid fa-terminal"></i> CANLI LOG STREAM</span>
-          <button style="background: none; border: none; color: var(--text-dim); cursor: pointer;" onclick="clearLogs()"><i class="fa-solid fa-trash"></i></button>
-        </div>
-        <div class="terminal-logs" id="terminalLogs">
-          <div class="log-row"><span class="log-t">[00:00:00]</span> <span class="log-info">APEX-BOT Master Engine hazır.</span></div>
+      <!-- ================= SEKME 4: AYARLAR & DİZİNLER ================= -->
+      <div class="tab-content" id="tabView_settings">
+        <div class="card">
+          <div class="card-head">
+            <span><i class="fa-solid fa-sliders"></i> Sekme & Dizin Yapılandırması</span>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Eşzamanlı Sekme Sayısı (Worker Concurrency)</div>
+              <div class="setting-sub">Aynı anda kaç sekme ile kazıma yapılsın?</div>
+            </div>
+            <select class="form-input" id="cfgConcurrency" style="width: 130px;" onchange="saveGeneralSettings()">
+              <option value="1">1 Sekme (Düşük RAM)</option>
+              <option value="2" selected>2 Sekme (Önerilen)</option>
+              <option value="4">4 Sekme (Yüksek Hız)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Arka Plan Headless Modu</div>
+              <div class="setting-sub">Tarayıcı pencereleri gizli çalışsın</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="cfgHeadless" checked onchange="saveGeneralSettings()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Yerel JSON & HTML Yedeği</div>
+              <div class="setting-sub">output klasörüne dosyaları kaydet</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="saveLocalToggle" checked onchange="saveGeneralSettings()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="margin-top: 10px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Özel output/ Klasörü Konumu</div>
+            <input type="text" class="form-input" id="cfgOutputPath" placeholder="Varsayılan: ./output" onchange="saveGeneralSettings()">
+          </div>
+
+          <div style="margin-top: 10px;">
+            <button class="btn-action" style="width: 100%; justify-content: center; padding: 7px 12px;" onclick="saveGeneralSettings()">
+              <i class="fa-solid fa-floppy-disk"></i> Ayarları Kaydet
+            </button>
+          </div>
         </div>
       </div>
 
@@ -624,36 +713,11 @@
 
   </div>
 
-  <!-- Dizin ve Konum Ayarları Modalı -->
-  <div class="modal-backdrop" id="dirModal">
-    <div class="modal-box">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <b style="color: #fff; font-size: 13px;"><i class="fa-solid fa-folder-tree" style="color: var(--accent-primary);"></i> Konum & Dizin Ayarları</b>
-        <button style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px;" onclick="closeDirModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div style="margin-bottom: 10px;">
-        <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Ana Proje & node_modules Konumu</label>
-        <input type="text" class="form-input" id="cfgNodePath" placeholder="Örn: C:\xampp\htdocs\botv3 veya C:\APEX-BOT">
-      </div>
-
-      <div style="margin-bottom: 14px;">
-        <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Yerel Çıktı (output/) Klasörü Konumu</label>
-        <input type="text" class="form-input" id="cfgOutputPath" placeholder="Örn: C:\xampp\htdocs\botv3\output">
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 8px;">
-        <button class="btn-sm" style="padding: 6px 12px;" onclick="closeDirModal()">İptal</button>
-        <button class="btn-action" style="padding: 6px 14px;" onclick="saveDirSettings()"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // 1. Init
     document.addEventListener('DOMContentLoaded', () => {
       setInterval(updateClock, 1000);
-      setInterval(fetchHealthMetrics, 5000);
+      setInterval(fetchHealthMetrics, 4000);
       updateClock();
       loadSettings();
       fetchHealthMetrics();
@@ -666,7 +730,19 @@
       document.getElementById('topClock').innerText = d.toTimeString().split(' ')[0];
     }
 
-    // 2. Load Settings & Scheduler
+    // 2. Tab Switcher Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(view => view.classList.remove('active'));
+
+      const activeBtn = document.getElementById('tabBtn_' + tabId);
+      const activeView = document.getElementById('tabView_' + tabId);
+
+      if (activeBtn) activeBtn.classList.add('active');
+      if (activeView) activeView.classList.add('active');
+    }
+
+    // 3. Load Settings & Config
     async function loadSettings() {
       try {
         const res = await fetch('/api/status');
@@ -674,6 +750,9 @@
         if (data.config) {
           document.getElementById('apexUrlInput').value = data.config.apexImportUrl || '';
           document.getElementById('apexSecretInput').value = data.config.apexSecret || '';
+          document.getElementById('dashApexUrl').innerText = data.config.apexImportUrl || '-';
+          document.getElementById('cfgConcurrency').value = data.config.concurrency || 2;
+          document.getElementById('dashConcurrency').innerText = (data.config.concurrency || 2) + ' Sekme';
           document.getElementById('cfgOutputPath').value = data.config.outputDir || '';
         }
         if (data.scheduler) {
@@ -683,9 +762,11 @@
               if (t.id === 'yesterday') {
                 document.getElementById('timeYesterday').value = t.time || '06:00';
                 document.getElementById('enableYesterday').checked = t.enabled;
+                document.getElementById('dashTimeYest').innerText = `${t.time || '06:00'} (${t.enabled ? 'Açık' : 'Kapalı'})`;
               } else if (t.id === 'tomorrow') {
                 document.getElementById('timeTomorrow').value = t.time || '18:00';
                 document.getElementById('enableTomorrow').checked = t.enabled;
+                document.getElementById('dashTimeTom').innerText = `${t.time || '18:00'} (${t.enabled ? 'Açık' : 'Kapalı'})`;
               } else if (t.id === 'today') {
                 document.getElementById('timeToday').value = t.time || '12:00';
                 document.getElementById('enableToday').checked = t.enabled;
@@ -696,7 +777,7 @@
       } catch (e) {}
     }
 
-    // 2.1 Save Scheduler Tasks
+    // 3.1 Save Scheduler Tasks
     async function saveSchedulerTasks() {
       const isMasterEnabled = document.getElementById('masterSchedToggle').checked;
       const tasks = [
@@ -710,23 +791,59 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: isMasterEnabled, tasks })
       });
+      loadSettings();
       appendLog(new Date().toLocaleTimeString(), '⏰ Otomasyon saatleri kaydedildi.', 'success');
     }
 
-    // 2.2 Fetch Health Metrics
+    // 3.2 Save General Settings
+    async function saveGeneralSettings() {
+      const conc = parseInt(document.getElementById('cfgConcurrency').value, 10) || 2;
+      const outDir = document.getElementById('cfgOutputPath').value.trim();
+      const headless = document.getElementById('cfgHeadless').checked ? 'new' : false;
+
+      await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concurrency: conc, outputDir: outDir, headless })
+      });
+      loadSettings();
+      appendLog(new Date().toLocaleTimeString(), `⚙️ Sekme ve dizin ayarları kaydedildi (Sekme: ${conc}).`, 'success');
+    }
+
+    // 4. Fetch Health Metrics & Update Worker Slots
     async function fetchHealthMetrics() {
       try {
         const res = await fetch('/api/health-metrics');
         const d = await res.json();
-        document.getElementById('hwRam').innerText = `${d.ramMb} MB`;
+        document.getElementById('hwRam').innerText = `${d.ramMb} / ${d.heapMb} MB`;
         const mins = Math.floor(d.uptimeSec / 60);
         const secs = d.uptimeSec % 60;
         document.getElementById('hwUptime').innerText = `${mins}m ${secs}s`;
         document.getElementById('hwMatches').innerText = `${d.totalMatchesScraped} Maç`;
+
+        // Worker Slots UI
+        const isBusy = d.activeJob && d.activeJob.isRunning;
+        const curMatch = d.activeJob ? d.activeJob.currentMatch : null;
+
+        for (let i = 1; i <= 4; i++) {
+          const slot = document.getElementById(`wSlot${i}`);
+          const stateSpan = document.getElementById(`wState${i}`);
+          const dot = slot.querySelector('.worker-dot');
+
+          if (isBusy && (i === 1 || i === 2)) {
+            dot.className = 'worker-dot busy';
+            stateSpan.innerText = curMatch ? curMatch.substring(0, 14) + '...' : 'Kazınıyor...';
+            stateSpan.style.color = 'var(--accent-success)';
+          } else {
+            dot.className = 'worker-dot idle';
+            stateSpan.innerText = 'Boşta';
+            stateSpan.style.color = 'var(--text-dim)';
+          }
+        }
       } catch (_) {}
     }
 
-    // 3. SSE Stream
+    // 5. SSE Stream
     function connectSSE() {
       const evt = new EventSource('/api/stream');
       evt.onmessage = (e) => {
@@ -761,8 +878,9 @@
       document.getElementById('terminalLogs').innerHTML = '';
     }
 
-    // 4. Batch & Single Actions
+    // 6. Batch & Single Scrape Actions
     async function handleScrapeBatch(date, limit) {
+      switchTab('dashboard');
       appendLog(new Date().toLocaleTimeString(), `▶️ Batch başlatılıyor: ${date} (${limit || 'Tümü'})...`, 'info');
       try {
         const res = await fetch('/api/scrape-batch', {
@@ -800,9 +918,9 @@
       }
     }
 
-    // 4.1 Stop Active Job
+    // 7. Actions & Safe Controls
     async function stopActiveJob() {
-      appendLog(new Date().toLocaleTimeString(), `🛑 Aktif kazımayı durdurma isteği iletildi...`, 'warning');
+      appendLog(new Date().toLocaleTimeString(), `⏸️ [KAZIMA DURDURMA] Aktif maç kazıma işlemi durduruluyor...`, 'warning');
       try {
         await fetch('/api/stop-job', { method: 'POST' });
       } catch (e) {
@@ -810,20 +928,34 @@
       }
     }
 
-    // 4.2 Kill All
-    async function killAllProcesses() {
-      if (!confirm('Tüm arka plan kazıma ve tarayıcı süreçlerini kapatıp sistemi sıfırlamak istiyor musunuz?')) return;
-      appendLog(new Date().toLocaleTimeString(), `⚠️ TÜM SÜREÇLERİ SIFIRLA komutu verildi...`, 'error');
+    async function resetBotState() {
+      appendLog(new Date().toLocaleTimeString(), `🔄 [BOT SIFIRLANIYOR] Botun iç kuyruğu sıfırlanıyor (Tarayıcılarınıza dokunulmaz)...`, 'info');
       try {
-        const res = await fetch('/api/kill-all', { method: 'POST' });
+        const res = await fetch('/api/reset-bot', { method: 'POST' });
         const d = await res.json();
-        alert(d.message);
+        fetchHealthMetrics();
+        appendLog(new Date().toLocaleTimeString(), `✅ ${d.message}`, 'success');
       } catch (e) {
-        alert('Hata: ' + e.message);
+        alert('Sıfırlama hatası: ' + e.message);
       }
     }
 
-    // 6. APEX Config Save & Test
+    async function resyncToApex() {
+      appendLog(new Date().toLocaleTimeString(), `⚡ [APEX SENKRONİZASYON] Son maçlar APEX veritabanına aktarılıyor...`, 'info');
+      try {
+        const res = await fetch('/api/resync-apex', { method: 'POST' });
+        const d = await res.json();
+        if (d.success) {
+          appendLog(new Date().toLocaleTimeString(), `✅ ${d.count} maç APEX API'ye aktarıldı.`, 'success');
+        } else {
+          appendLog(new Date().toLocaleTimeString(), `❌ APEX Aktarım hatası: ${d.error}`, 'error');
+        }
+      } catch (e) {
+        alert('Aktarım hatası: ' + e.message);
+      }
+    }
+
+    // 8. APEX Config Save & Test
     async function saveApexConfig() {
       const url = document.getElementById('apexUrlInput').value.trim();
       const secret = document.getElementById('apexSecretInput').value.trim();
@@ -834,6 +966,7 @@
       });
       const data = await res.json();
       if (data.success) {
+        loadSettings();
         appendLog(new Date().toLocaleTimeString(), '✅ APEX Ayarları kaydedildi.', 'success');
         alert('APEX Ayarları kaydedildi!');
       }
@@ -854,7 +987,7 @@
       }
     }
 
-    // 7. Recent Matches with Scraped Time
+    // 9. Recent Matches List
     async function fetchRecentMatches() {
       try {
         const res = await fetch('/api/recent-matches');
@@ -900,18 +1033,24 @@
       window.open(forebetUrl, '_blank', 'width=800,height=900,left=800,top=0');
     }
 
+    // 10. Tools Handlers
     async function runMasterHealthSuite() {
-      appendLog(new Date().toLocaleTimeString(), `🔬 9-Araç Sağlık Testi çalıştırılıyor...`, 'info');
+      switchTab('dashboard');
+      appendLog(new Date().toLocaleTimeString(), `🔬 [SAĞLIK DENETİMİ] 9 Master Kalite Testi başlatılıyor...`, 'info');
       try {
-        const res = await fetch('/api/run-tests', { method: 'POST' });
-        const d = await res.json();
-        if (d.success) {
-          appendLog(new Date().toLocaleTimeString(), `✅ 9 Master Test TAMAMLANDI! Sistem Kusursuz.`, 'success');
-        } else {
-          appendLog(new Date().toLocaleTimeString(), `⚠️ Test tamamlandı.`, 'warning');
-        }
+        await fetch('/api/run-tests', { method: 'POST' });
       } catch (e) {
         appendLog(new Date().toLocaleTimeString(), `❌ Test hatası: ${e.message}`, 'error');
+      }
+    }
+
+    async function openOutputFolder() {
+      try {
+        const res = await fetch('/api/open-folder', { method: 'POST' });
+        const d = await res.json();
+        appendLog(new Date().toLocaleTimeString(), `📁 output klasörü Windows Gezgini'nde açıldı: ${d.folder}`, 'success');
+      } catch (e) {
+        alert('Klasör açma hatası: ' + e.message);
       }
     }
 
@@ -919,35 +1058,11 @@
       try {
         const res = await fetch('/api/clear-cache', { method: 'POST' });
         const d = await res.json();
+        appendLog(new Date().toLocaleTimeString(), `🧹 Önbellek temizlendi.`, 'success');
         alert(d.message);
       } catch (e) {
         alert('Cache temizleme hatası: ' + e.message);
       }
-    }
-
-    function openOutputFolder() {
-      window.open('/output', '_blank');
-    }
-
-    function openDirModal() {
-      document.getElementById('dirModal').style.display = 'flex';
-    }
-
-    function closeDirModal() {
-      document.getElementById('dirModal').style.display = 'none';
-    }
-
-    async function saveDirSettings() {
-      const nodePath = document.getElementById('cfgNodePath').value.trim();
-      const outputPath = document.getElementById('cfgOutputPath').value.trim();
-      const res = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ outputDir: outputPath })
-      });
-      closeDirModal();
-      appendLog(new Date().toLocaleTimeString(), '📁 Dizin konumları kaydedildi.', 'success');
-      alert('Dizin ayarları başarıyla kaydedildi!');
     }
   </script>
 </body>

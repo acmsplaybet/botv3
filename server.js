@@ -390,31 +390,57 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 6. Stop/Cancel Job
+  // 6. Stop Current Scrape Job
   if (pathname === '/api/stop-job' && req.method === 'POST') {
     activeJob.cancelRequested = true;
-    broadcastLog(`🛑 Kazıma durdurma isteği iletildi...`, 'warning');
+    broadcastLog(`⏸️ [KAZIMA DURDURULUYOR] Aktif maç kazıma işlemi durduruluyor...`, 'warning');
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ success: true, message: 'İptal isteği alındı' }));
+    return res.end(JSON.stringify({ success: true, message: 'Aktif kazıma durdurma isteği alındı.' }));
   }
 
-  // 6.1 Kill All Running Processes & Reset State
-  if (pathname === '/api/kill-all' && req.method === 'POST') {
-    broadcastLog(`⚠️ [ACİL DURDURMA] Tüm aktif işlemler ve arka plan tarayıcıları kapatılıyor...`, 'error');
+  // 6.1 Safe Reset Bot Internal State (Kişisel tarayıcıları asla kapatmaz, sadece botun kuyruğunu ve durumunu sıfırlar)
+  if (pathname === '/api/reset-bot' || pathname === '/api/kill-all') {
+    broadcastLog(`🔄 [BOT SIFIRLANIYOR] Botun iç kuyruğu ve işlem hafızası temizleniyor...`, 'info');
     activeJob.cancelRequested = true;
     activeJob.isRunning = false;
     activeJob.currentMatch = null;
-    
-    // Windows taskkill for orphan chromes
-    try {
-      const { exec } = require('child_process');
-      exec('taskkill /F /IM chrome.exe /FI "WINDOWTITLE eq about:blank*" /T', () => {});
-    } catch (_) {}
+    activeJob.progressPct = 0;
+    activeJob.completedMatches = 0;
+    activeJob.totalMatches = 0;
 
-    broadcastLog(`✅ Sistem temizlendi ve boşa alındı.`, 'success');
+    broadcastLog(`✅ APEX-BOT güvenle sıfırlandı ve boşta (idle) durumuna geçti.`, 'success');
     broadcastEvent('job_finished', activeJob);
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ success: true, message: 'Tüm işlemler durduruldu ve sistem sıfırlandı.' }));
+    return res.end(JSON.stringify({ success: true, message: 'Bot başarıyla sıfırlandı ve boşa alındı.' }));
+  }
+
+  // 6.2 Resync Output to APEX API
+  if (pathname === '/api/resync-apex' && req.method === 'POST') {
+    broadcastLog(`⚡ [APEX SENKRONİZASYON] Son kazınan maçlar APEX API'ye aktarılıyor...`, 'info');
+    try {
+      const cfg = loadConfig();
+      const outDir = cfg.outputDir && fs.existsSync(cfg.outputDir) ? cfg.outputDir : path.join(__dirname, 'output');
+      let synced = 0;
+      if (fs.existsSync(outDir)) {
+        const dirs = fs.readdirSync(outDir).filter(f => fs.statSync(path.join(outDir, f)).isDirectory());
+        for (const dir of dirs.slice(0, 10)) {
+          const jPath = path.join(outDir, dir, 'match_data.json');
+          if (fs.existsSync(jPath)) {
+            try {
+              const data = JSON.parse(fs.readFileSync(jPath, 'utf8'));
+              await syncMatchToApex(data, cfg.apexImportUrl, cfg.apexSecret);
+              synced++;
+            } catch (_) {}
+          }
+        }
+      }
+      broadcastLog(`✅ [APEX SENKRONİZASYON TAMAMLANDI] ${synced} maç başarıyla post edildi.`, 'success');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, count: synced }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: e.message }));
+    }
   }
 
   // 6.2 System Health Metrics API
@@ -441,17 +467,57 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify(metrics));
   }
 
-  // 6.3 Run 9-Tool Health Suite API
+  // 6.3 Run 9-Tool Health Suite API (Live Stream to Terminal)
   if (pathname === '/api/run-tests' && req.method === 'POST') {
-    broadcastLog(`🔬 [TEST BAŞLATILDI] 9 Master Kalite & Sağlık Aracı çalıştırılıyor...`, 'info');
+    broadcastLog(`🔬 [SAĞLIK DENETİMİ BAŞLADI] 9 Master Kalite Aracı çalıştırılıyor...`, 'info');
     try {
-      const { exec } = require('child_process');
-      exec('node tools/run_all_tests.js', (err, stdout, stderr) => {
-        const out = stdout || stderr || '';
-        broadcastLog(`🔬 [TEST TAMAMLANDI] Sağlık test sonuçları alındı.`, 'success');
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ success: !err, output: out }));
+      const { spawn } = require('child_process');
+      const child = spawn('node', ['tools/run_all_tests.js'], { cwd: __dirname });
+
+      let fullOutput = '';
+      child.stdout.on('data', (data) => {
+        const text = data.toString();
+        fullOutput += text;
+        const lines = text.split('\n').filter(l => l.trim().length > 0);
+        lines.forEach(line => {
+          let type = 'info';
+          if (line.includes('✅') || line.includes('BAŞARILI') || line.includes('PASSED')) type = 'success';
+          else if (line.includes('❌') || line.includes('FAIL') || line.includes('HATA')) type = 'error';
+          else if (line.includes('⚠️')) type = 'warning';
+          broadcastLog(line.trim(), type);
+        });
       });
+
+      child.stderr.on('data', (data) => {
+        broadcastLog(data.toString().trim(), 'warning');
+      });
+
+      child.on('close', (code) => {
+        broadcastLog(`🔬 [SAĞLIK DENETİMİ TAMAMLANDI] Kod: ${code}`, code === 0 ? 'success' : 'warning');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: code === 0, output: fullOutput }));
+      });
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
+  }
+
+  // 6.4 Open Output Folder in Windows Explorer
+  if (pathname === '/api/open-folder' && req.method === 'POST') {
+    try {
+      const cfg = loadConfig();
+      const outDir = cfg.outputDir && fs.existsSync(cfg.outputDir) ? cfg.outputDir : path.join(__dirname, 'output');
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+      }
+
+      const { exec } = require('child_process');
+      exec(`explorer.exe "${outDir}"`, () => {});
+      broadcastLog(`📁 Windows Gezgini açıldı: ${outDir}`, 'info');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, folder: outDir }));
     } catch (e) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: e.message }));
