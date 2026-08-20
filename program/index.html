@@ -486,6 +486,11 @@
 
         <!-- Quick Actions Grid -->
         <div class="quick-grid">
+          <div class="btn-tile" onclick="handleScrapeTestMatch()" style="border-color: rgba(56, 189, 248, 0.4); background: #132238;">
+            <div class="btn-tile-title"><i class="fa-solid fa-crosshairs" style="color: var(--accent-primary);"></i> 1 Test Maçı Çek</div>
+            <div class="btn-tile-desc">Hızlı tek maç testi</div>
+          </div>
+
           <div class="btn-tile" onclick="handleScrapeBatch('yesterday', null)">
             <div class="btn-tile-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Sonuçlar)</div>
             <div class="btn-tile-desc">Bitmiş tüm maçları çek</div>
@@ -497,8 +502,8 @@
           </div>
 
           <div class="btn-tile" onclick="handleScrapeBatch('today', 10)">
-            <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Test)</div>
-            <div class="btn-tile-desc">Hızlı canlı test</div>
+            <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Maç)</div>
+            <div class="btn-tile-desc">Hızlı canlı parti</div>
           </div>
 
           <div class="btn-tile" onclick="handleScrapeBatch('today', null)">
@@ -884,7 +889,19 @@
       document.getElementById('terminalLogs').innerHTML = '';
     }
 
-    // 6. Batch & Single Scrape Actions
+    // 6. Quick Actions
+    async function handleScrapeTestMatch() {
+      switchTab('dashboard');
+      appendLog(new Date().toLocaleTimeString(), `🎯 [CANLI TEST] 1 Maçlık Hızlı Test Kazıması Başlatıldı...`, 'info');
+      try {
+        const res = await fetch('/api/scrape-test-match', { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) alert(data.error);
+      } catch (e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
     async function handleScrapeBatch(date, limit) {
       switchTab('dashboard');
       appendLog(new Date().toLocaleTimeString(), `▶️ Batch başlatılıyor: ${date} (${limit || 'Tümü'})...`, 'info');

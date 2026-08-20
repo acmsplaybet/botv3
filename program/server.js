@@ -467,40 +467,90 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify(metrics));
   }
 
-  // 6.3 Run 9-Tool Health Suite API (Live Stream to Terminal)
+  // 6.3 Run 9-Tool Health Suite API (Immediate Response + Continuous SSE Stream)
   if (pathname === '/api/run-tests' && req.method === 'POST') {
-    broadcastLog(`🔬 [SAĞLIK DENETİMİ BAŞLADI] 9 Master Kalite Aracı çalıştırılıyor...`, 'info');
+    broadcastLog(`🔬 [SAĞLIK DENETİMİ BAŞLATILDI] 9 Master Teşhis Aracı sırayla çalıştırılıyor...`, 'info');
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, message: '9 Test denetimi başlatıldı. Çıktılar canlı akıyor.' }));
+
     try {
       const { spawn } = require('child_process');
       const child = spawn('node', ['tools/run_all_tests.js'], { cwd: __dirname });
 
-      let fullOutput = '';
       child.stdout.on('data', (data) => {
         const text = data.toString();
-        fullOutput += text;
         const lines = text.split('\n').filter(l => l.trim().length > 0);
         lines.forEach(line => {
           let type = 'info';
-          if (line.includes('✅') || line.includes('BAŞARILI') || line.includes('PASSED')) type = 'success';
-          else if (line.includes('❌') || line.includes('FAIL') || line.includes('HATA')) type = 'error';
-          else if (line.includes('⚠️')) type = 'warning';
-          broadcastLog(line.trim(), type);
+          const trimmed = line.trim();
+          if (trimmed.includes('✅') || trimmed.includes('BAŞARILI') || trimmed.includes('PASSED')) type = 'success';
+          else if (trimmed.includes('❌') || trimmed.includes('FAIL') || trimmed.includes('HATA')) type = 'error';
+          else if (trimmed.includes('⚠️')) type = 'warning';
+          broadcastLog(trimmed, type);
         });
       });
 
       child.stderr.on('data', (data) => {
-        broadcastLog(data.toString().trim(), 'warning');
+        broadcastLog(`⚠️ ${data.toString().trim()}`, 'warning');
       });
 
       child.on('close', (code) => {
-        broadcastLog(`🔬 [SAĞLIK DENETİMİ TAMAMLANDI] Kod: ${code}`, code === 0 ? 'success' : 'warning');
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ success: code === 0, output: fullOutput }));
+        broadcastLog(`🔬 [SAĞLIK DENETİMİ BİTTİ] 9 Test tamamlandı. Kod: ${code}`, code === 0 ? 'success' : 'warning');
       });
     } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: false, error: e.message }));
+      broadcastLog(`❌ Test çalıştırma hatası: ${e.message}`, 'error');
     }
+    return;
+  }
+
+  // 6.31 Quick Test Match Scraper (1 Canlı Test Maçı Çek)
+  if (pathname === '/api/scrape-test-match' && req.method === 'POST') {
+    broadcastLog(`🎯 [CANLI TEST MAÇI] Otomatik 1 adet test maçı kazıma başlatılıyor...`, 'info');
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, message: '1 Test maçı kazıma başlatıldı.' }));
+
+    (async () => {
+      try {
+        if (activeJob.isRunning) {
+          broadcastLog(`⚠️ Zaten aktif bir kazıma çalışıyor.`, 'warning');
+          return;
+        }
+        activeJob.isRunning = true;
+        activeJob.type = 'single_test';
+        activeJob.startTime = new Date();
+        activeJob.cancelRequested = false;
+
+        // Örnek aktif bir maç kazı veya discovery'den ilk maçı çek
+        const { discoverMatchesForDate } = require('./core/daily_discovery');
+        const testDate = new Date().toISOString().split('T')[0];
+        broadcastLog(`🔍 Güncel bültenden test için 1 maç bulunuyor...`, 'info');
+        
+        let matches = await discoverMatchesForDate(testDate);
+        if (!matches || matches.length === 0) {
+          matches = [{ url: 'https://www.forebet.com/en/football/matches/ldu-quito-mirassol-sp', home: 'LDU Quito', away: 'Mirassol SP' }];
+        }
+
+        const target = matches[0];
+        const targetUrl = target.url || target;
+        broadcastLog(`🚀 Test maçı kazınıyor: ${targetUrl}`, 'info');
+        activeJob.currentMatch = target.home ? `${target.home} vs ${target.away}` : 'Test Maçı';
+
+        const { scrapeSingleMatch } = require('./scrape_match');
+        const res = await scrapeSingleMatch(targetUrl, { log: (msg, type) => broadcastLog(msg, type) });
+
+        if (res.success) {
+          broadcastLog(`✅ [TEST MAÇI BAŞARILI] 1 Test maçı kazındı ve kaydedildi!`, 'success');
+        } else {
+          broadcastLog(`❌ [TEST MAÇI HATASI] ${res.error}`, 'error');
+        }
+      } catch (err) {
+        broadcastLog(`❌ Test maçı kazıma hatası: ${err.message}`, 'error');
+      } finally {
+        activeJob.isRunning = false;
+        activeJob.currentMatch = null;
+        broadcastEvent('job_finished', activeJob);
+      }
+    })();
     return;
   }
 
