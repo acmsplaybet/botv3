@@ -397,6 +397,67 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ success: true, message: 'İptal isteği alındı' }));
   }
 
+  // 6.1 Kill All Running Processes & Reset State
+  if (pathname === '/api/kill-all' && req.method === 'POST') {
+    broadcastLog(`⚠️ [ACİL DURDURMA] Tüm aktif işlemler ve arka plan tarayıcıları kapatılıyor...`, 'error');
+    activeJob.cancelRequested = true;
+    activeJob.isRunning = false;
+    activeJob.currentMatch = null;
+    
+    // Windows taskkill for orphan chromes
+    try {
+      const { exec } = require('child_process');
+      exec('taskkill /F /IM chrome.exe /FI "WINDOWTITLE eq about:blank*" /T', () => {});
+    } catch (_) {}
+
+    broadcastLog(`✅ Sistem temizlendi ve boşa alındı.`, 'success');
+    broadcastEvent('job_finished', activeJob);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, message: 'Tüm işlemler durduruldu ve sistem sıfırlandı.' }));
+  }
+
+  // 6.2 System Health Metrics API
+  if (pathname === '/api/health-metrics') {
+    const mem = process.memoryUsage();
+    const outDir = path.join(__dirname, 'output');
+    let matchCount = 0;
+    if (fs.existsSync(outDir)) {
+      matchCount = fs.readdirSync(outDir).filter(f => fs.statSync(path.join(outDir, f)).isDirectory()).length;
+    }
+
+    const metrics = {
+      status: 'healthy',
+      uptimeSec: Math.round(process.uptime()),
+      ramMb: (mem.rss / (1024 * 1024)).toFixed(1),
+      heapMb: (mem.heapUsed / (1024 * 1024)).toFixed(1),
+      totalMatchesScraped: matchCount,
+      activeWorkers: activeJob.isRunning ? 1 : 0,
+      activeJob: activeJob,
+      scheduler: schedulerState
+    };
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(metrics));
+  }
+
+  // 6.3 Run 9-Tool Health Suite API
+  if (pathname === '/api/run-tests' && req.method === 'POST') {
+    broadcastLog(`🔬 [TEST BAŞLATILDI] 9 Master Kalite & Sağlık Aracı çalıştırılıyor...`, 'info');
+    try {
+      const { exec } = require('child_process');
+      exec('node tools/run_all_tests.js', (err, stdout, stderr) => {
+        const out = stdout || stderr || '';
+        broadcastLog(`🔬 [TEST TAMAMLANDI] Sağlık test sonuçları alındı.`, 'success');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: !err, output: out }));
+      });
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
+  }
+
   // 7. Scheduler API
   if (pathname === '/api/scheduler' && req.method === 'POST') {
     let body = '';

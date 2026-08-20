@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA V3 Pro — Masaüstü Uygulama Tasarım Önizlemesi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-main: #050811;
+      --sidebar-bg: #090e1a;
+      --card-bg: #0e1526;
+      --card-border: #1e293b;
+      --accent-green: #10b981;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-yellow: #f59e0b;
+      --accent-red: #ef4444;
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; }
+    body { background: var(--bg-main); color: var(--text-primary); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Custom Desktop Window Titlebar (Frameless look) */
+    .titlebar {
+      height: 38px;
+      background: #04060d;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      -webkit-app-region: drag;
+    }
+    .titlebar-left { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; }
+    .titlebar-left span { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .titlebar-controls { display: flex; gap: 14px; -webkit-app-region: no-drag; }
+    .tb-btn { color: #64748b; font-size: 12px; cursor: pointer; transition: color 0.2s; }
+    .tb-btn:hover { color: #fff; }
+    .tb-btn.close:hover { color: var(--accent-red); }
+
+    /* Main Desktop App Grid */
+    .app-container {
+      display: grid;
+      grid-template-columns: 240px 1fr 380px;
+      height: calc(100vh - 38px);
+      overflow: hidden;
+    }
+
+    /* 1. Left Sidebar */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 14px;
+    }
+    .nav-group-title { font-size: 10.5px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; margin: 16px 10px 8px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(16, 185, 129, 0.15)); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3); }
+
+    .sidebar-footer {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .bot-status-pill { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 800; }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); display: inline-block; }
+
+    /* 2. Middle Main Workspace */
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 22px 26px;
+      gap: 20px;
+      background: radial-gradient(circle at top right, #111a33 0%, var(--bg-main) 100%);
+    }
+
+    .top-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .search-input-wrap {
+      flex: 1;
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 4px 6px;
+      align-items: center;
+    }
+    .search-input-wrap input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #fff;
+    }
+    .btn-scrape-url {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-scrape-url:hover { transform: scale(1.02); }
+
+    .quick-batch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .quick-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .quick-card:hover { border-color: var(--accent-cyan); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+    .quick-card-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; margin-bottom: 4px; }
+    .quick-card-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .quick-card-icon.cyan { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+    .quick-card-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+    .quick-card-icon.yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+    .quick-card-title { font-size: 13px; font-weight: 800; color: #fff; }
+    .quick-card-desc { font-size: 11px; color: var(--text-muted); }
+
+    /* Settings & Options Row */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .settings-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .settings-box-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .form-switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 12px;
+    }
+    .form-switch-row:last-child { border-bottom: none; }
+    .switch-lbl { font-weight: 700; color: #cbd5e1; }
+    .switch-sub { font-size: 10.5px; color: #64748b; }
+
+    /* Toggle Switch */
+    .mini-switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+    .mini-switch input { opacity: 0; width: 0; height: 0; }
+    .mini-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .2s; border-radius: 20px; }
+    .mini-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+    input:checked + .mini-slider { background-color: var(--accent-green); }
+    input:checked + .mini-slider:before { transform: translateX(18px); }
+
+    /* Live Terminal in Main */
+    .mini-terminal {
+      background: #03050a;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 14px;
+      height: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal-title-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; font-weight: 800; color: #64748b; }
+    .terminal-logs-scroll { flex: 1; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #94a3b8; }
+    .log-s { color: #10b981; }
+    .log-i { color: #06b6d4; }
+    .log-w { color: #f59e0b; }
+
+    /* 3. Right Comparison & Match Center Preview Panel */
+    .compare-panel {
+      background: var(--sidebar-bg);
+      border-left: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .compare-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .compare-header-title { font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+
+    .match-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .match-card-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      transition: all 0.2s;
+    }
+    .match-card-item:hover { border-color: rgba(6, 182, 212, 0.4); background: #131c33; }
+
+    .mc-top-line { display: flex; justify-content: space-between; font-size: 10.5px; color: #64748b; margin-bottom: 6px; font-weight: 700; }
+    .mc-teams { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 12.5px; font-weight: 800; color: #fff; }
+    .mc-team-side { display: flex; align-items: center; gap: 6px; }
+    .mc-team-side img { width: 18px; height: 18px; object-fit: contain; }
+    .mc-score-badge { background: #1e293b; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 900; color: var(--accent-cyan); }
+
+    .mc-actions-bar {
+      display: flex;
+      gap: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 8px;
+    }
+    .btn-mc-act {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      background: rgba(0, 0, 0, 0.3);
+      color: #cbd5e1;
+      font-size: 10.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-mc-act:hover { background: #1e293b; color: #fff; }
+    .btn-mc-act.viewer { color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3); background: rgba(6, 182, 212, 0.08); }
+    .btn-mc-act.viewer:hover { background: var(--accent-cyan); color: #000; }
+    .btn-mc-act.split { color: var(--accent-green); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08); }
+    .btn-mc-act.split:hover { background: var(--accent-green); color: #000; }
+
+    /* Modal / Split View Modal Simulation */
+    .split-view-badge { font-size: 10px; background: rgba(16, 185, 129, 0.2); color: var(--accent-green); padding: 2px 6px; border-radius: 4px; font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <!-- Frameless Titlebar -->
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <i class="fa-solid fa-robot" style="color: var(--accent-cyan);"></i>
+      <span>BPA V3 PRO</span> • Forebet Scraping & APEX Master Desktop Engine
+    </div>
+    <div class="titlebar-controls">
+      <i class="fa-solid fa-minus tb-btn"></i>
+      <i class="fa-regular fa-square tb-btn"></i>
+      <i class="fa-solid fa-xmark tb-btn close"></i>
+    </div>
+  </div>
+
+  <!-- App Layout -->
+  <div class="app-container">
+
+    <!-- 1. SOL NAVİGASYON PANELİ -->
+    <aside class="sidebar">
+      <div>
+        <div style="padding: 0 10px 14px; border-bottom: 1px solid var(--card-border); margin-bottom: 12px;">
+          <div style="font-size: 16px; font-weight: 900; color: #fff;">BPA CONTROLLER</div>
+          <div style="font-size: 11px; color: var(--accent-green); font-weight: 700;">● Desktop Active v3.3.0</div>
+        </div>
+
+        <div class="nav-group-title">Ana Menü</div>
+        <div class="nav-item active"><i class="fa-solid fa-gauge-high"></i> Dashboard & Kazıma</div>
+        <div class="nav-item"><i class="fa-solid fa-clock"></i> Zamanlayıcı (Cron)</div>
+        <div class="nav-item"><i class="fa-solid fa-database"></i> APEX Entegrasyonu</div>
+        <div class="nav-item"><i class="fa-solid fa-sliders"></i> Kazıma Tercihleri</div>
+        
+        <div class="nav-group-title">Araçlar & Kalite</div>
+        <div class="nav-item"><i class="fa-solid fa-microscope"></i> Master Health Tests</div>
+        <div class="nav-item"><i class="fa-solid fa-file-code"></i> JSON Veri Denetimi</div>
+        <div class="nav-item"><i class="fa-solid fa-cloud-arrow-up"></i> Canlı Sunucu Yükleyici</div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="bot-status-pill">
+          <span><span class="pulse-dot"></span> Sistem Hazır</span>
+          <span style="color: var(--accent-cyan);">Port: 3050</span>
+        </div>
+        <div style="font-size: 10.5px; color: #64748b; margin-top: 4px;">Node.js v18+ • Stealth Engine</div>
+      </div>
+    </aside>
+
+    <!-- 2. ORTA ÇALIŞMA ALANI -->
+    <main class="workspace">
+
+      <!-- Top URL Bar -->
+      <div class="top-action-bar">
+        <div class="search-input-wrap">
+          <i class="fa-solid fa-link" style="color: #64748b; margin-left: 10px;"></i>
+          <input type="text" placeholder="Forebet Maç URL'si yapıştırın (Örn: https://www.forebet.com/en/football/matches/...)" value="https://www.forebet.com/en/football/matches/ldu-mirassol-sp-2511211">
+          <button class="btn-scrape-url"><i class="fa-solid fa-bolt"></i> Tek Maç Kazı</button>
+        </div>
+      </div>
+
+      <!-- Hızlı Kazıma Kartları (Bugün / Dün / Yarın / Tam) -->
+      <div class="quick-batch-grid">
+        <div class="quick-card">
+          <div class="quick-card-icon green"><i class="fa-solid fa-play"></i></div>
+          <div class="quick-card-title">Bugün (10 Maç)</div>
+          <div class="quick-card-desc">Günün ilk 10 maçını hızlı kazı</div>
+        </div>
+
+        <div class="quick-card">
+          <div class="quick-card-icon cyan"><i class="fa-solid fa-forward-fast"></i></div>
+          <div class="quick-card-title">Bugün (Tümü)</div>
+          <div class="quick-card-desc">Günün 150+ maçını tam bülten kazı</div>
+        </div>
+
+        <div class="quick-card">
+          <div class="quick-card-icon blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div class="quick-card-title">Dün (Sonuçlar)</div>
+          <div class="quick-card-desc">Bitmiş maç skor ve olaylarını güncelle</div>
+        </div>
+
+        <div class="quick-card">
+          <div class="quick-card-icon yellow"><i class="fa-solid fa-calendar-days"></i></div>
+          <div class="quick-card-title">Yarın (Bülten)</div>
+          <div class="quick-card-desc">Gelecek maçların açılış oranlarını al</div>
+        </div>
+      </div>
+
+      <!-- Ayarlar & Kazıma Tercihleri -->
+      <div class="options-grid">
+        <!-- Sol: Otomatik Zamanlayıcı & Saat Belirleme -->
+        <div class="settings-box">
+          <div class="settings-box-title">
+            <i class="fa-solid fa-clock" style="color: var(--accent-green);"></i> Otomatik Zamanlayıcı & Saatler
+          </div>
+          
+          <div class="form-switch-row">
+            <div>
+              <div class="switch-lbl">Periyodik Otomatik Kazıma</div>
+              <div class="switch-sub">Arka planda belirlediğiniz saatte çalışır</div>
+            </div>
+            <label class="mini-switch"><input type="checkbox" checked><span class="mini-slider"></span></label>
+          </div>
+
+          <div class="form-switch-row">
+            <div>
+              <div class="switch-lbl">Çalışma Sıklığı</div>
+              <div class="switch-sub">Örn: Her 30 dakikada bir veya belirli saatlerde</div>
+            </div>
+            <span style="font-size: 11.5px; font-weight: 800; color: var(--accent-cyan);">Her 30 Dk</span>
+          </div>
+
+          <div class="form-switch-row">
+            <div>
+              <div class="switch-lbl">Otomatik APEX REST Gönderimi</div>
+              <div class="switch-sub">Kazınan veriyi anında MySQL API'ye post et</div>
+            </div>
+            <label class="mini-switch"><input type="checkbox" checked><span class="mini-slider"></span></label>
+          </div>
+        </div>
+
+        <!-- Sağ: Veri & İndirme Tercihleri -->
+        <div class="settings-box">
+          <div class="settings-box-title">
+            <i class="fa-solid fa-sliders" style="color: var(--accent-cyan);"></i> Veri & İndirme Tercihleri
+          </div>
+
+          <div class="form-switch-row">
+            <div>
+              <div class="switch-lbl">Yerel JSON & HTML Yedeği Kaydet</div>
+              <div class="switch-sub">output/{slug}/ klasöründe sakla</div>
+            </div>
+            <label class="mini-switch"><input type="checkbox" checked><span class="mini-slider"></span></label>
+          </div>
+
+          <div class="form-switch-row">
+            <div>
+              <div class="switch-lbl">Takım Logoları Çekim Modu</div>
+              <div class="switch-sub">Orijinal CDN URL veya İndirilen Yerel Dosya</div>
+            </div>
+            <span style="font-size: 11.5px; font-weight: 800; color: var(--accent-green);">CDN URL</span>
+          </div>
+
+          <div class="form-switch-row">
+            <div>
+              <div class="switch-lbl">Extended Odds Popup Kazıma</div>
+              <div class="switch-sub">Detaylı büro oranları ve handikap hareketleri</div>
+            </div>
+            <label class="mini-switch"><input type="checkbox" checked><span class="mini-slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canlı Terminal Konsolu -->
+      <div class="mini-terminal">
+        <div class="terminal-title-bar">
+          <span><i class="fa-solid fa-terminal"></i> CANLI SCRAPER KONSOLU</span>
+          <span style="color: var(--accent-green);">● BAĞLANDI (SSE STREAM)</span>
+        </div>
+        <div class="terminal-logs-scroll">
+          <div><span style="color: #64748b;">[05:15:02]</span> <span class="log-i">🚀 BPA V3 Scraper Engine hazırlandı.</span></div>
+          <div><span style="color: #64748b;">[05:15:05]</span> <span class="log-s">✅ LDU vs Mirassol SP kazındı (Mesafe: 3900km, FDR: 1-5 OK, Extended Odds: OK)</span></div>
+          <div><span style="color: #64748b;">[05:15:06]</span> <span class="log-i">📡 [APEX REST] HTTP 200 OK -> http://localhost/apex-api/api/import.php</span></div>
+          <div><span style="color: #64748b;">[05:15:10]</span> <span class="log-w">⏳ Zamanlayıcı aktif: Sonraki otomatik tur 05:45:00</span></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 3. SAĞ MAÇ KARŞILAŞTIRMA & GÖRÜNTÜLEME PANELİ -->
+    <aside class="compare-panel">
+      <div class="compare-header">
+        <div class="compare-header-title">
+          <i class="fa-solid fa-list-check" style="color: var(--accent-cyan);"></i>
+          <span>Son Kazınan Maçlar</span>
+        </div>
+        <span class="split-view-badge">1:1 Canlı Karşılaştır</span>
+      </div>
+
+      <div class="match-list-scroll">
+
+        <!-- Maç 1: LDU vs Mirassol SP -->
+        <div class="match-card-item">
+          <div class="mc-top-line">
+            <span>Copa Libertadores • 1/8</span>
+            <span style="color: var(--accent-yellow);">Upcoming</span>
+          </div>
+          <div class="mc-teams">
+            <div class="mc-team-side">
+              <img src="https://www.forebet.com/images/icons/4149.png" alt="LDU">
+              <span>LDU</span>
+            </div>
+            <span class="mc-score-badge">VS</span>
+            <div class="mc-team-side">
+              <span>Mirassol SP</span>
+              <img src="https://www.forebet.com/images/icons/15176.png" alt="MIR">
+            </div>
+          </div>
+          <div class="mc-actions-bar">
+            <a href="http://localhost:3050/output/ldu-mirassol-sp-2511211/viewer.html" target="_blank" class="btn-mc-act viewer" title="Bizim 1:1 HTML Viewer'ı Aç">
+              <i class="fa-solid fa-eye"></i> 1:1 Viewer
+            </a>
+            <a href="https://www.forebet.com/en/football/matches/ldu-mirassol-sp-2511211" target="_blank" class="btn-mc-act" title="Forebet Orijinal Sayfasını Aç">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Forebet
+            </a>
+            <button class="btn-mc-act split" onclick="alert('Yan Yana Karşılaştırma Modu: Sol pencerede Forebet, Sağ pencerede Bizim HTML Viewer 1:1 açılacak!')" title="İkisini Yan Yana Aç ve Karşılaştır">
+              <i class="fa-solid fa-columns"></i> Kıyasla
+            </button>
+          </div>
+        </div>
+
+        <!-- Maç 2: Atlético Mineiro vs RB Bragantino -->
+        <div class="match-card-item">
+          <div class="mc-top-line">
+            <span>Brazil Serie A • 20/08</span>
+            <span style="color: var(--accent-green);">FT (Bitmiş)</span>
+          </div>
+          <div class="mc-teams">
+            <div class="mc-team-side">
+              <img src="https://www.forebet.com/images/icons/15176.png" alt="ATL">
+              <span>Atlético Mineiro</span>
+            </div>
+            <span class="mc-score-badge" style="color: #fff; background: #0284c7;">2 - 2</span>
+            <div class="mc-team-side">
+              <span>RB Bragantino</span>
+              <img src="https://www.forebet.com/images/icons/4149.png" alt="RBB">
+            </div>
+          </div>
+          <div class="mc-actions-bar">
+            <a href="http://localhost:3050/output/atl-tico-mineiro-rb-bragantino-2511223/viewer.html" target="_blank" class="btn-mc-act viewer">
+              <i class="fa-solid fa-eye"></i> 1:1 Viewer
+            </a>
+            <a href="https://www.forebet.com/en/football/matches/atl%C3%A9tico-mineiro-rb-bragantino-2511223" target="_blank" class="btn-mc-act">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Forebet
+            </a>
+            <button class="btn-mc-act split" onclick="alert('Yan Yana Karşılaştırma Modu: Sol pencerede Forebet, Sağ pencerede Bizim HTML Viewer 1:1 açılacak!')">
+              <i class="fa-solid fa-columns"></i> Kıyasla
+            </button>
+          </div>
+        </div>
+
+        <!-- Maç 3: Aimoré RS vs Gaúcho RS -->
+        <div class="match-card-item">
+          <div class="mc-top-line">
+            <span>Copa FGF • 20/08</span>
+            <span style="color: var(--accent-green);">FT (Bitmiş)</span>
+          </div>
+          <div class="mc-teams">
+            <div class="mc-team-side">
+              <span>Aimoré RS</span>
+            </div>
+            <span class="mc-score-badge" style="color: #fff; background: #0284c7;">1 - 0</span>
+            <div class="mc-team-side">
+              <span>Gaúcho RS</span>
+            </div>
+          </div>
+          <div class="mc-actions-bar">
+            <a href="http://localhost:3050/output/aimor--rs-ga-cho-rs-2487028/viewer.html" target="_blank" class="btn-mc-act viewer">
+              <i class="fa-solid fa-eye"></i> 1:1 Viewer
+            </a>
+            <a href="https://www.forebet.com/en/football/matches/aimor%C3%A9-rs-ga%C3%BAcho-rs-2487028" target="_blank" class="btn-mc-act">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Forebet
+            </a>
+            <button class="btn-mc-act split">
+              <i class="fa-solid fa-columns"></i> Kıyasla
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+
+</body>
+</html>

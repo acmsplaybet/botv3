@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX-BOT — Forebet Canlı Kazıma & Master Veri İstasyonu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-root: #090d16;
+      --bg-sidebar: #0f1523;
+      --bg-panel: #131b2e;
+      --bg-subpanel: #0b101c;
+      --border-color: #1e293b;
+      --border-focus: #38bdf8;
+      
+      --accent-primary: #38bdf8;
+      --accent-success: #22c55e;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --accent-purple: #a855f7;
+      
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; user-select: none; }
+    body { background: var(--bg-root); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+
+    /* Custom Desktop Titlebar */
+    .titlebar {
+      height: 38px;
+      background: #060911;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .titlebar-brand { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 800; }
+    .titlebar-brand span { color: var(--accent-primary); }
+    .titlebar-badge { font-size: 10px; background: #1e293b; color: #94a3b8; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+    
+    .emergency-controls { display: flex; align-items: center; gap: 8px; }
+    .btn-emergency {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--accent-danger);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .btn-emergency:hover { background: var(--accent-danger); color: #fff; }
+
+    /* Layout Container */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr 380px;
+      height: calc(100vh - 38px);
+      overflow: hidden;
+    }
+
+    /* 1. Sol Sidebar */
+    .sidebar {
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 12px;
+    }
+    .nav-label { font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 8px 6px; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 3px;
+    }
+    .nav-btn i { width: 16px; font-size: 13px; text-align: center; }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.03); color: #fff; }
+    .nav-btn.active { background: #1e293b; color: var(--accent-primary); font-weight: 700; border-left: 3px solid var(--accent-primary); }
+
+    .health-widget {
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+    }
+    .health-title { font-weight: 800; font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .health-row { display: flex; justify-content: space-between; margin-bottom: 3px; color: var(--text-muted); font-size: 11px; }
+    .health-row b { color: #fff; }
+
+    /* 2. Orta Alan */
+    .main-workspace {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px 20px;
+      gap: 14px;
+      background: var(--bg-root);
+    }
+
+    /* URL Bar */
+    .url-input-container {
+      display: flex;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 4px 6px;
+      align-items: center;
+      gap: 8px;
+    }
+    .url-input-container input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      color: #fff;
+    }
+    .btn-action {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-action:hover { background: #0369a1; }
+    .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Quick Grid */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .btn-tile {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .btn-tile:hover { border-color: var(--accent-primary); background: #18223a; }
+    .btn-tile-title { font-size: 12px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .btn-tile-desc { font-size: 10.5px; color: var(--text-muted); }
+
+    /* Dual Panels */
+    .panels-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .card-head {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .card-head i { color: var(--accent-primary); margin-right: 6px; }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 11.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-name { font-weight: 600; color: var(--text-main); }
+    .setting-sub { font-size: 10px; color: var(--text-dim); }
+
+    /* Custom Form Elements */
+    .form-input {
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      color: #fff;
+      outline: none;
+      width: 100%;
+    }
+    .form-input:focus { border-color: var(--accent-primary); }
+
+    .toggle-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .2s; border-radius: 18px; }
+    .toggle-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+    input:checked + .toggle-slider { background-color: var(--accent-success); }
+    input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+    /* Terminal Console */
+    .terminal-box {
+      background: #050810;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      height: 200px;
+      overflow: hidden;
+    }
+    .terminal-header {
+      background: #0a0f1d;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .terminal-logs {
+      flex: 1;
+      padding: 8px 12px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    .log-row { margin-bottom: 2px; word-break: break-all; }
+    .log-t { color: #64748b; margin-right: 6px; }
+    .log-ok { color: #4ade80; }
+    .log-info { color: #38bdf8; }
+    .log-warn { color: #fbbf24; }
+    .log-err { color: #f87171; }
+
+    /* 3. Sağ Panel */
+    .right-sidebar {
+      background: var(--bg-sidebar);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .right-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .matches-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .match-item-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: border-color 0.15s;
+    }
+    .match-item-card:hover { border-color: var(--accent-primary); }
+    .mc-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); font-weight: 700; margin-bottom: 4px; }
+    .mc-main { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .mc-score { background: #1e293b; color: var(--accent-primary); padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 800; }
+    
+    .mc-btn-group { display: flex; gap: 6px; }
+    .btn-sm {
+      flex: 1;
+      padding: 5px 6px;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-subpanel);
+      color: var(--text-muted);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sm:hover { background: #1e293b; color: #fff; }
+    .btn-sm.viewer { color: var(--accent-primary); border-color: rgba(56, 189, 248, 0.3); }
+    .btn-sm.viewer:hover { background: var(--accent-primary); color: #000; }
+    .btn-sm.compare { color: var(--accent-success); border-color: rgba(34, 197, 94, 0.3); }
+    .btn-sm.compare:hover { background: var(--accent-success); color: #000; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Window Bar with Emergency Stops -->
+  <div class="titlebar">
+    <div class="titlebar-brand">
+      <i class="fa-solid fa-server" style="color: var(--accent-primary);"></i>
+      <span>APEX-BOT</span>
+      <span class="titlebar-badge">v3.3.0 Desktop</span>
+    </div>
+
+    <!-- Acil Durdurma Butonları -->
+    <div class="emergency-controls">
+      <button class="btn-emergency" onclick="stopActiveJob()" title="Sadece o an çalışan aktif kazımayı durdurur">
+        <i class="fa-solid fa-hand"></i> Çalışan İşlemi Durdur
+      </button>
+      <button class="btn-emergency" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--accent-warning);" onclick="killAllProcesses()" title="Tüm arka plan node/tarayıcı süreçlerini sonlandırır ve sistemi sıfırlar">
+        <i class="fa-solid fa-power-off"></i> Tümünü Kapat / Sıfırla
+      </button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span id="topClock" style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">00:00:00</span>
+      <span id="connStatus" style="color: var(--accent-success);"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Live</span>
+    </div>
+  </div>
+
+  <div class="app-layout">
+
+    <!-- 1. SOL MENÜ -->
+    <aside class="sidebar">
+      <div>
+        <div class="nav-label">Ana Modüller</div>
+        <div class="nav-btn active" onclick="switchTab('dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
+        <div class="nav-btn" onclick="switchTab('scheduler')"><i class="fa-solid fa-clock"></i> Zamanlayıcı</div>
+        <div class="nav-btn" onclick="switchTab('apex')"><i class="fa-solid fa-database"></i> APEX API</div>
+
+        <div class="nav-label">Teşhis & Araçlar</div>
+        <div class="nav-btn" onclick="runMasterHealthSuite()"><i class="fa-solid fa-microscope" style="color: var(--accent-success);"></i> 9-Araç Sağlık Testi</div>
+        <div class="nav-btn" onclick="openOutputFolder()"><i class="fa-solid fa-folder-open"></i> output Klasörü</div>
+      </div>
+
+      <!-- Canlı Sistem Sağlık Durumu Widget'ı -->
+      <div class="health-widget">
+        <div class="health-title">
+          <span>Sistem Sağlığı</span>
+          <span style="color: var(--accent-success);">● AKTİF</span>
+        </div>
+        <div class="health-row">
+          <span>RAM / Heap:</span>
+          <b id="hwRam">- / - MB</b>
+        </div>
+        <div class="health-row">
+          <span>Uptime:</span>
+          <b id="hwUptime">-</b>
+        </div>
+        <div class="health-row">
+          <span>Kazınan Maç:</span>
+          <b id="hwMatches">-</b>
+        </div>
+        <div class="health-row">
+          <span>APEX Hedef:</span>
+          <b style="color: var(--accent-primary);" id="hwApexStatus">OK</b>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. ORTA ÇALIŞMA ALANI -->
+    <main class="main-workspace">
+
+      <!-- URL Scrape Bar -->
+      <div class="url-input-container">
+        <i class="fa-solid fa-link" style="color: var(--text-dim); margin-left: 6px;"></i>
+        <input type="text" id="targetUrlInput" placeholder="Forebet Maç URL'si girin (örn: https://www.forebet.com/en/football/matches/...)" value="">
+        <button class="btn-action" id="btnScrapeSingle" onclick="handleScrapeSingle()">
+          <i class="fa-solid fa-bolt"></i> Kazı
+        </button>
+      </div>
+
+      <!-- Quick Actions Grid -->
+      <div class="quick-grid">
+        <div class="btn-tile" onclick="handleScrapeBatch('today', 10)">
+          <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Maç)</div>
+          <div class="btn-tile-desc">Günün ilk 10 maçını hızlı test et</div>
+        </div>
+
+        <div class="btn-tile" onclick="handleScrapeBatch('today', null)">
+          <div class="btn-tile-title"><i class="fa-solid fa-forward-fast" style="color: var(--accent-primary);"></i> Bugün (Tümü)</div>
+          <div class="btn-tile-desc">Günün tüm bültenini kazı</div>
+        </div>
+
+        <div class="btn-tile" onclick="handleScrapeBatch('yesterday', 10)">
+          <div class="btn-tile-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Sonuçlar)</div>
+          <div class="btn-tile-desc">Bitmiş maç skorlarını güncelle</div>
+        </div>
+
+        <div class="btn-tile" onclick="handleScrapeBatch('tomorrow', 10)">
+          <div class="btn-tile-title"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten)</div>
+          <div class="btn-tile-desc">Gelecek maçların oranlarını al</div>
+        </div>
+      </div>
+
+      <!-- Settings & Controls Dual Panels -->
+      <div class="panels-row">
+
+        <!-- Panel 1: Otomasyon & Zamanlayıcı -->
+        <div class="card">
+          <div class="card-head">
+            <span><i class="fa-solid fa-clock"></i> Otomasyon & Zamanlayıcı</span>
+            <span id="schedStatusBadge" style="font-size: 10px; color: var(--text-dim); font-weight: 700;">PASİF</span>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Otomatik Periyodik Kazıma</div>
+              <div class="setting-sub">Arka planda bülteni düzenli tara</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="schedToggle" onchange="toggleScheduler(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Çalışma Aralığı</div>
+              <div class="setting-sub">Dakika cinsinden periyot</div>
+            </div>
+            <select class="form-input" id="schedIntervalSelect" style="width: 120px;" onchange="saveSchedulerSettings()">
+              <option value="15">15 Dakikada bir</option>
+              <option value="30" selected>30 Dakikada bir</option>
+              <option value="60">60 Dakikada bir</option>
+              <option value="180">3 Saatte bir</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Windows Başlangıcında Çalıştır</div>
+              <div class="setting-sub">Bilgisayar açılınca otomatik başlasın</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="startOnBootToggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Sistem Tepsisine Küçült (Tray)</div>
+              <div class="setting-sub">Kapatılınca arka planda çalışmaya devam etsin</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="minimizeToTrayToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Panel 2: APEX API & İndirme Tercihleri -->
+        <div class="card">
+          <div class="card-head">
+            <span><i class="fa-solid fa-server"></i> APEX API & Tercihler</span>
+            <button class="btn-sm" style="padding: 2px 8px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Test</button>
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 10.5px; font-weight: 700; color: var(--text-dim); margin-bottom: 3px;">APEX Import API URL</div>
+            <input type="text" class="form-input" id="apexUrlInput" placeholder="http://localhost/apex-api/api/import.php">
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 10.5px; font-weight: 700; color: var(--text-dim); margin-bottom: 3px;">X-Apex-Secret Anahtarı</div>
+            <input type="password" class="form-input" id="apexSecretInput" placeholder="apex_secret_key_2026">
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Yerel Yedek (JSON & HTML)</div>
+              <div class="setting-sub">output klasöründe saklansın</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="saveLocalToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="margin-top: 6px;">
+            <button class="btn-action" style="width: 100%; justify-content: center; padding: 6px 12px;" onclick="saveApexConfig()">
+              <i class="fa-solid fa-floppy-disk"></i> Ayarları Kaydet
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Scraper Log Terminal -->
+      <div class="terminal-box">
+        <div class="terminal-header">
+          <span><i class="fa-solid fa-terminal"></i> CANLI İŞLEM GÜNLÜĞÜ (SSE STREAM)</span>
+          <button style="background: none; border: none; color: var(--text-dim); cursor: pointer;" onclick="clearLogs()"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div class="terminal-logs" id="terminalLogs">
+          <div class="log-row"><span class="log-t">[00:00:00]</span> <span class="log-info">APEX-BOT Master Engine bağlandı.</span></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 3. SAĞ PANEL (MAÇ LİSTESİ & FOREBET KIYASLAMA) -->
+    <aside class="right-sidebar">
+      <div class="right-header">
+        <span><i class="fa-solid fa-list-check" style="color: var(--accent-primary);"></i> Son Kazınan Maçlar</span>
+        <button class="btn-sm" style="flex: none; padding: 3px 8px;" onclick="fetchRecentMatches()"><i class="fa-solid fa-rotate-right"></i></button>
+      </div>
+
+      <div class="matches-scroll" id="recentMatchesList">
+        <div style="text-align: center; color: var(--text-dim); padding: 20px;">Yükleniyor...</div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    // 1. Init
+    document.addEventListener('DOMContentLoaded', () => {
+      setInterval(updateClock, 1000);
+      setInterval(fetchHealthMetrics, 5000);
+      updateClock();
+      loadSettings();
+      fetchHealthMetrics();
+      fetchRecentMatches();
+      connectSSE();
+    });
+
+    function updateClock() {
+      const d = new Date();
+      document.getElementById('topClock').innerText = d.toTimeString().split(' ')[0];
+    }
+
+    // 2. Load API & Settings
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.config) {
+          document.getElementById('apexUrlInput').value = data.config.apexImportUrl || '';
+          document.getElementById('apexSecretInput').value = data.config.apexSecret || '';
+        }
+        if (data.scheduler) {
+          document.getElementById('schedToggle').checked = data.scheduler.enabled;
+          document.getElementById('schedIntervalSelect').value = data.scheduler.intervalMinutes || 30;
+          document.getElementById('schedStatusBadge').innerText = data.scheduler.enabled ? 'AKTİF' : 'PASİF';
+          document.getElementById('schedStatusBadge').style.color = data.scheduler.enabled ? 'var(--accent-success)' : 'var(--text-dim)';
+        }
+      } catch (e) {
+        console.error('Settings load err:', e);
+      }
+    }
+
+    // 2.1 Fetch Health Metrics
+    async function fetchHealthMetrics() {
+      try {
+        const res = await fetch('/api/health-metrics');
+        const d = await res.json();
+        document.getElementById('hwRam').innerText = `${d.ramMb} / ${d.heapMb} MB`;
+        const mins = Math.floor(d.uptimeSec / 60);
+        const secs = d.uptimeSec % 60;
+        document.getElementById('hwUptime').innerText = `${mins}m ${secs}s`;
+        document.getElementById('hwMatches').innerText = `${d.totalMatchesScraped} Maç`;
+      } catch (_) {}
+    }
+
+    // 3. SSE Stream Connection
+    function connectSSE() {
+      const evt = new EventSource('/api/stream');
+      evt.onmessage = (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          if (payload.event === 'log') {
+            appendLog(payload.timestamp, payload.message, payload.type);
+          } else if (payload.event === 'job_started' || payload.event === 'job_progress' || payload.event === 'job_finished') {
+            if (payload.event === 'job_finished') {
+              fetchRecentMatches();
+              fetchHealthMetrics();
+            }
+          }
+        } catch (err) {}
+      };
+      evt.onerror = () => setTimeout(connectSSE, 4000);
+    }
+
+    function appendLog(time, msg, type = 'info') {
+      const logs = document.getElementById('terminalLogs');
+      const div = document.createElement('div');
+      div.className = 'log-row';
+      let cls = 'log-info';
+      if (type === 'success') cls = 'log-ok';
+      if (type === 'warning') cls = 'log-warn';
+      if (type === 'error') cls = 'log-err';
+
+      div.innerHTML = `<span class="log-t">[${time}]</span> <span class="${cls}">${msg}</span>`;
+      logs.appendChild(div);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('terminalLogs').innerHTML = '';
+    }
+
+    // 4. Batch & Single Actions
+    async function handleScrapeBatch(date, limit) {
+      appendLog(new Date().toLocaleTimeString(), `▶️ Batch başlatılıyor: ${date} (Limit: ${limit || 'Tümü'})...`, 'info');
+      try {
+        const res = await fetch('/api/scrape-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, limit })
+        });
+        const data = await res.json();
+        if (!data.success) alert(data.error);
+      } catch (e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    async function handleScrapeSingle() {
+      const url = document.getElementById('targetUrlInput').value.trim();
+      if (!url) return alert('Lütfen geçerli bir Forebet URL girin.');
+
+      appendLog(new Date().toLocaleTimeString(), `▶️ Tek maç kazıma başlatıldı: ${url}`, 'info');
+      try {
+        const res = await fetch('/api/scrape-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('targetUrlInput').value = '';
+          fetchRecentMatches();
+        } else {
+          alert('Hata: ' + data.error);
+        }
+      } catch (e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    // 4.1 Stop Active Job
+    async function stopActiveJob() {
+      appendLog(new Date().toLocaleTimeString(), `🛑 Aktif kazımayı durdurma komutu verildi...`, 'warning');
+      try {
+        await fetch('/api/stop-job', { method: 'POST' });
+      } catch (e) {
+        alert('Durdurma hatası: ' + e.message);
+      }
+    }
+
+    // 4.2 Kill All Processes
+    async function killAllProcesses() {
+      if (!confirm('Tüm arka plan kazıma ve tarayıcı işlemlerini kapatıp sistemi sıfırlamak istediğinize emin misiniz?')) return;
+      appendLog(new Date().toLocaleTimeString(), `⚠️ TÜM SÜREÇLERİ KAPAT komutu verildi...`, 'error');
+      try {
+        const res = await fetch('/api/kill-all', { method: 'POST' });
+        const d = await res.json();
+        alert(d.message);
+      } catch (e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    // 5. Scheduler Toggle & Save
+    async function toggleScheduler(enabled) {
+      const interval = parseInt(document.getElementById('schedIntervalSelect').value, 10) || 30;
+      await fetch('/api/scheduler', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: enabled ? 'start' : 'stop', intervalMinutes: interval, targetMode: 'today' })
+      });
+      loadSettings();
+    }
+
+    // 6. APEX Config Save & Test
+    async function saveApexConfig() {
+      const url = document.getElementById('apexUrlInput').value.trim();
+      const secret = document.getElementById('apexSecretInput').value.trim();
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apexImportUrl: url, apexSecret: secret })
+      });
+      const data = await res.json();
+      if (data.success) {
+        appendLog(new Date().toLocaleTimeString(), '✅ APEX Ayarları kaydedildi.', 'success');
+        alert('APEX Ayarları kaydedildi!');
+      }
+    }
+
+    async function testApexApi() {
+      appendLog(new Date().toLocaleTimeString(), '⏳ APEX API bağlantısı test ediliyor...', 'info');
+      try {
+        const res = await fetch('/api/test-apex', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          appendLog(new Date().toLocaleTimeString(), `✅ APEX Bağlantısı Başarılı! (HTTP ${data.statusCode})`, 'success');
+        } else {
+          appendLog(new Date().toLocaleTimeString(), `❌ APEX Bağlantı Hatası: ${data.error || data.statusCode}`, 'error');
+        }
+      } catch (e) {
+        appendLog(new Date().toLocaleTimeString(), `❌ APEX Hatası: ${e.message}`, 'error');
+      }
+    }
+
+    // 7. Recent Matches & Compare
+    async function fetchRecentMatches() {
+      try {
+        const res = await fetch('/api/recent-matches');
+        const list = await res.json();
+        const container = document.getElementById('recentMatchesList');
+
+        if (!list || list.length === 0) {
+          container.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 20px;">Henüz maç bulunmuyor.</div>`;
+          return;
+        }
+
+        container.innerHTML = list.map(m => `
+          <div class="match-item-card">
+            <div class="mc-meta">
+              <span>${m.league || 'Lig'}</span>
+              <span style="color: ${m.status === 'Upcoming' ? 'var(--accent-warning)' : 'var(--accent-success)'}">${m.status}</span>
+            </div>
+            <div class="mc-main">
+              <span>${m.homeTeam} - ${m.awayTeam}</span>
+              <span class="mc-score">${m.score}</span>
+            </div>
+            <div class="mc-btn-group">
+              <a href="${m.viewerUrl}" target="_blank" class="btn-sm viewer" title="Yerel 1:1 HTML Viewer">
+                <i class="fa-solid fa-eye"></i> 1:1 Viewer
+              </a>
+              <a href="https://www.forebet.com/en/football/matches/${m.slug}" target="_blank" class="btn-sm" title="Orijinal Forebet Sayfası">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Forebet
+              </a>
+              <button class="btn-sm compare" onclick="openSplitCompare('${m.viewerUrl}', 'https://www.forebet.com/en/football/matches/${m.slug}')" title="İkisini Yan Yana Aç ve Doğrula">
+                <i class="fa-solid fa-columns"></i> Kıyasla
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    function openSplitCompare(viewerUrl, forebetUrl) {
+      window.open(viewerUrl, '_blank', 'width=800,height=900,left=0,top=0');
+      window.open(forebetUrl, '_blank', 'width=800,height=900,left=800,top=0');
+    }
+
+    async function runMasterHealthSuite() {
+      appendLog(new Date().toLocaleTimeString(), `🔬 9-Araç Master Sağlık Testi çalıştırılıyor (Lütfen bekleyin)...`, 'info');
+      try {
+        const res = await fetch('/api/run-tests', { method: 'POST' });
+        const d = await res.json();
+        if (d.success) {
+          appendLog(new Date().toLocaleTimeString(), `✅ 9 Master Test TAMAMLANDI! Sistem Kusursuz.`, 'success');
+        } else {
+          appendLog(new Date().toLocaleTimeString(), `⚠️ Test tamamlandı (çıktıyı inceleyin).`, 'warning');
+        }
+      } catch (e) {
+        appendLog(new Date().toLocaleTimeString(), `❌ Test çalıştırma hatası: ${e.message}`, 'error');
+      }
+    }
+
+    function openOutputFolder() {
+      window.open('/output', '_blank');
+    }
+  </script>
+</body>
+</html>
