@@ -1,7 +1,7 @@
 {
   "name": "botv3",
-  "version": "3.0.0",
-  "description": "BPA V3 Forebet Match Scraper & AI Analytics Engine",
+  "version": "3.3.0",
+  "description": "BPA V3 Forebet Match Scraper & AI Analytics Engine (Golden Master Release)",
   "main": "scrape_match.js",
   "scripts": {
     "start": "node server.js",

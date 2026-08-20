@@ -12,11 +12,29 @@ async function parseMarkets(page) {
 
     // Check if match is finished (FT) or live/upcoming
     const scoreBox = document.querySelector('.match_res, .lscr_td, .schema .score');
-    const isLive = document.querySelector('.lscrlv, .blink_me, .live_min, .match_res_status.lmin_td') !== null || (scoreBox && scoreBox.getAttribute('data-minute'));
-    const isFt = !isLive && (document.body.innerText.includes('Full time') || (scoreBox && scoreBox.innerText.includes('FT')));
-
-    const heroScoreEl = document.getElementById('evhdbte') || document.querySelector('.lscrsp') || document.querySelector('.match_res');
+    const dataMin = clean(scoreBox?.getAttribute('data-minute'));
+    const statusEl = document.querySelector('.match_res_status, .lsc_stat, .lmin_mp, .lmin_td');
+    const statusText = clean(statusEl?.innerText);
+    const heroScoreEl = document.getElementById('evhdbte') || document.querySelector('.lscrsp .l_scr, .lscrsp, .match_res .l_scr, .match_res');
     const heroScoreText = clean(heroScoreEl?.innerText);
+
+    let isFt = false;
+    let isLive = false;
+
+    if (dataMin === 'FT' || statusText.includes('FT') || statusText.includes('Full time') || (scoreBox && clean(scoreBox.innerText).includes('FT')) || document.body.innerText.includes('Full time')) {
+      isFt = true;
+      isLive = false;
+    } else if (dataMin && dataMin !== '-' && dataMin !== 'FT' && !isNaN(parseInt(dataMin, 10))) {
+      isLive = true;
+      isFt = false;
+    } else if (document.querySelector('.lscrlv, .live_score') !== null || (statusText && (statusText.includes("'") || statusText.includes('Live')))) {
+      isLive = true;
+      isFt = false;
+    } else if (heroScoreText && heroScoreText.includes('-') && !heroScoreText.includes('VS')) {
+      isFt = true;
+      isLive = false;
+    }
+
     let matchFtHome = null;
     let matchFtAway = null;
     if (isFt && heroScoreText && heroScoreText.includes('-')) {
@@ -28,7 +46,7 @@ async function parseMarkets(page) {
     }
 
     // Helper to evaluate win/loss status from DOM classes or score calculation
-    const evaluateStatus = (predWrap, pick, marketType) => {
+    const evaluateStatus = (predWrap, pick, marketType, extraParam = null) => {
       // If match is LIVE or UPCOMING, all predictions remain pending
       if (isLive || !isFt) {
         return 'pending';
@@ -36,8 +54,8 @@ async function parseMarkets(page) {
 
       // 1. Direct prediction container class check
       if (predWrap) {
-        if (predWrap.classList.contains('predict_y')) return 'win';
-        if (predWrap.classList.contains('predict_no')) return 'loss';
+        if (predWrap.classList.contains('predict_y') || predWrap.classList.contains('exact_yes')) return 'win';
+        if (predWrap.classList.contains('predict_no') || predWrap.classList.contains('exact_no')) return 'loss';
       }
 
       // 2. Calculation fallback if match is completed (FT)
@@ -48,7 +66,7 @@ async function parseMarkets(page) {
         if (marketType === '1X2') {
           const actualResult = ftH > ftA ? '1' : (ftH < ftA ? '2' : 'X');
           if (pick === actualResult) return 'win';
-          if (pick === '1' || pick === 'X' || pick === '2') return 'loss';
+          if (['1', 'X', '2'].includes(pick)) return 'loss';
         } else if (marketType === 'UnderOver') {
           const totalGoals = ftH + ftA;
           const isUnder = totalGoals < 2.5;
@@ -72,6 +90,13 @@ async function parseMarkets(page) {
           const actualResult = ftH > ftA ? '1' : (ftH < ftA ? '2' : 'X');
           if (pick.includes(actualResult)) return 'win';
           return 'loss';
+        } else if (marketType === 'HT' && extraParam) {
+          const htParts = extraParam.split('-').map(p => parseInt(clean(p), 10));
+          if (htParts.length === 2 && !isNaN(htParts[0]) && !isNaN(htParts[1])) {
+            const htActual = htParts[0] > htParts[1] ? '1' : (htParts[0] < htParts[1] ? '2' : 'X');
+            if (pick === htActual) return 'win';
+            if (['1', 'X', '2'].includes(pick)) return 'loss';
+          }
         }
       }
 
@@ -103,7 +128,7 @@ async function parseMarkets(page) {
         if (textVal && textVal !== '-') odds = textVal;
       }
 
-      // Extended Odds from .haodd
+      // Extended Odds from .haodd (only extracted if needed)
       const haoddEl = row.querySelector('.haodd');
       const haoddSpans = haoddEl ? Array.from(haoddEl.querySelectorAll('span')).map(s => clean(s.innerText)).filter(Boolean) : [];
       const haoddNumbers = haoddSpans.filter(s => /^\d+(\.\d+)?$/.test(s));
@@ -124,8 +149,8 @@ async function parseMarkets(page) {
       const ftScoreVal = clean(ftScoreEl?.innerText);
       const htScoreVal = clean(htScoreEl?.innerText);
 
-      const predWrap = row.querySelector('.predict_y, .predict_no, .predict, .predict_e');
-      const status = evaluateStatus(predWrap, pickText, marketType);
+      const predWrap = row.querySelector('.predict_y, .predict_no, .predict, .predict_e, .forepr');
+      const status = evaluateStatus(predWrap, pickText, marketType, htScoreVal ? htScoreVal.replace(/[()]/g, '') : null);
 
       return {
         exists: true,
@@ -142,7 +167,7 @@ async function parseMarkets(page) {
       };
     };
 
-    // 1. 1X2
+    // 1. 1X2 (Has Extended Odds: 1, X, 2)
     const d1x2 = parseRow('m1x2_table', '1X2');
     let ext1x2 = null;
     if (d1x2?.haoddNumbers && d1x2.haoddNumbers.length >= 3) {
@@ -166,7 +191,7 @@ async function parseMarkets(page) {
       liveCost: d1x2?.liveCost || '-'
     };
 
-    // 2. Under / Over 2.5
+    // 2. Under / Over 2.5 (Has Extended Odds: Under, Over)
     const dUo = parseRow('uo_table', 'UnderOver');
     let extUo = null;
     if (dUo?.haoddNumbers && dUo.haoddNumbers.length >= 2) {
@@ -188,16 +213,8 @@ async function parseMarkets(page) {
       liveCost: dUo?.liveCost || '-'
     };
 
-    // 3. Half Time (HT)
+    // 3. Half Time (HT) - ONLY Single Main Odds
     const dHt = parseRow('ht_table', 'HT');
-    let extHt = null;
-    if (dHt?.haoddNumbers && dHt.haoddNumbers.length >= 3) {
-      extHt = {
-        "1": dHt.haoddNumbers[0],
-        "X": dHt.haoddNumbers[1],
-        "2": dHt.haoddNumbers[2]
-      };
-    }
 
     markets['HT'] = {
       prob1: (dHt?.probs[0] || '0').replace('%', '') + '%',
@@ -208,11 +225,11 @@ async function parseMarkets(page) {
       htScore: dHt?.htScore ? dHt.htScore.replace(/[()]/g, '') : '-',
       avgGoals: dHt?.avgGoals || '-',
       mainOdds: dHt?.odds || '-',
-      extendedOdds: extHt,
+      extendedOdds: null,
       liveCost: dHt?.liveCost || '-'
     };
 
-    // 4. HT / FT
+    // 4. HT / FT - ONLY Single Main Odds
     const dHtft = parseRow('htft_table', 'HT_FT');
     const htftEl = document.getElementById('htft_table');
     let htftProb = '-';
@@ -254,11 +271,11 @@ async function parseMarkets(page) {
       ftStatus: ftStatus,
       correctScore: dHtft?.correctScore || '-',
       mainOdds: dHtft?.odds || '-',
-      extendedOdds: dHtft?.haoddNumbers?.length ? { oddsList: dHtft.haoddNumbers } : null,
+      extendedOdds: null,
       liveCost: dHtft?.liveCost || '-'
     };
 
-    // 5. Both Teams to Score (BTTS)
+    // 5. Both Teams to Score (BTTS) (Has Extended Odds: Yes, No)
     const dBtts = parseRow('bts_table', 'BTTS');
     const btsEl = document.getElementById('bts_table');
     let btsProb = '-';
@@ -297,15 +314,22 @@ async function parseMarkets(page) {
     let dbcProb = '-';
     if (dbcEl) {
       const row = dbcEl.querySelector('.rcnt') || dbcEl;
-      const dbcFprcSpan = row.querySelector('.fprc span.fpr, .fprc span');
+      const dbcFprcSpan = row.querySelector('.fprc span.fpr, .fprc span, .fprc');
       if (dbcFprcSpan) {
-        const rawProb = clean(dbcFprcSpan.innerText).replace('%', '');
-        if (rawProb) dbcProb = rawProb + '%';
+        const rawProb = clean(dbcFprcSpan.innerText).replace('%', '').trim();
+        if (rawProb && !isNaN(parseInt(rawProb, 10))) dbcProb = parseInt(rawProb, 10) + '%';
       }
     }
+    const finalDbcProb = dbcProb !== '-' ? dbcProb : ((dDbc?.probs && dDbc.probs[0] ? dDbc.probs[0].replace('%', '') : '0') + '%');
+    const dbcPick = dDbc?.pick || '-';
+
     markets['Double'] = {
-      prob: dbcProb !== '-' ? dbcProb : ((dDbc?.probs[0] || '0').replace('%', '') + '%'),
-      pick: dDbc?.pick || '-',
+      prob: finalDbcProb,
+      probDouble: finalDbcProb,
+      prob1X: dbcPick === '1X' ? finalDbcProb : '-',
+      prob12: dbcPick === '12' ? finalDbcProb : '-',
+      probX2: dbcPick === 'X2' ? finalDbcProb : '-',
+      pick: dbcPick,
       status: dDbc?.status || 'pending',
       correctScore: dDbc?.correctScore || '-',
       avgGoals: dDbc?.avgGoals || '-',

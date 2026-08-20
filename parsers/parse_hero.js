@@ -8,9 +8,71 @@ async function parseHero(page) {
   return await page.evaluate(() => {
     const clean = s => s ? s.replace(/\s+/g, ' ').trim() : '';
 
-    // Extract League / Tournament
-    const leagueEl = document.querySelector('.schema .short_tag, .schema a[href*="football-predictions"], .schema h1, .stat-bread a:last-child');
-    const leagueText = clean(leagueEl?.innerText);
+    // Helper to safely parse getstag(this, id, country, league, leagueUrl, flagCode)
+    const parseGetStag = (onclickStr) => {
+      if (!onclickStr) return null;
+      const m = onclickStr.match(/getstag\s*\((.*)\)/i);
+      if (!m) return null;
+      const matches = m[1].match(/(?:'([^']*)'|"([^"]*)"|([^,]+))/g);
+      if (!matches) return null;
+      const args = matches.map(s => s.trim().replace(/^['"]|['"]$/g, ''));
+      return {
+        id: args[1] || '',
+        country: args[2] || '',
+        league: args[3] || '',
+        leagueUrl: args[4] || '',
+        flagCode: args[5] || ''
+      };
+    };
+
+    // Extract League, Country, Flag
+    let leagueName = '';
+    let country = '';
+    let leagueFlag = '';
+    let roundText = '';
+
+    const allStagEls = Array.from(document.querySelectorAll('[onclick*="getstag"], .shortagDiv img, .short_tag img, img.flsc, .flsc'));
+    for (const el of allStagEls) {
+      const oc = el.getAttribute('onclick') || '';
+      const parsed = parseGetStag(oc);
+      if (parsed) {
+        if (!country && parsed.country) country = clean(parsed.country);
+        if (!leagueName && parsed.league) leagueName = clean(parsed.league);
+        if (!leagueFlag && el.src && el.src.includes('/fc/')) leagueFlag = el.src;
+        if (!leagueFlag && parsed.flagCode) leagueFlag = `https://www.forebet.com/images/fc/${parsed.flagCode}.png`;
+        if (!country && parsed.leagueUrl) {
+          const segs = parsed.leagueUrl.split('/');
+          if (segs.length > 0) country = segs[0].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+        if (country && leagueName) break;
+      }
+    }
+
+    const breadLinks = Array.from(document.querySelectorAll('.stat-bread a, .breadcrumbs a, .bread a'));
+    if (!leagueName && breadLinks.length >= 2) {
+      country = country || clean(breadLinks[0].innerText);
+      leagueName = clean(breadLinks[breadLinks.length - 1].innerText);
+    } else if (!leagueName && breadLinks.length === 1) {
+      leagueName = clean(breadLinks[0].innerText);
+    }
+
+    const shortTagSpan = document.querySelector('.shortagDiv .shortTag, .short_tag .shortTag, .shortTag');
+    const shortTagCode = clean(shortTagSpan?.innerText);
+
+    if (!leagueName) {
+      const leagueEl = document.querySelector('.schema .short_tag, .schema a[href*="football-predictions"], .schema h1, .stat-bread a:last-child');
+      leagueName = clean(leagueEl?.innerText) || 'Football League';
+    }
+
+    // Extract Round (e.g. "Round 30, Clausura", "1/8-finals", "Quarter-finals")
+    const roundCandidates = Array.from(document.querySelectorAll('.heading, .stag_h1, .st_round, .stat_head_round, .rcnt_h, .schema_title, div[class*="heading"], span[class*="round"]'));
+    for (const el of roundCandidates) {
+      const t = clean(el.innerText);
+      if (t && (t.includes('Round') || t.includes('1/8') || t.includes('1/4') || t.includes('1/2') || t.includes('Final') || t.includes('Clausura') || t.includes('Apertura') || t.includes('Group') || t.includes('Play-off'))) {
+        roundText = t;
+        break;
+      }
+    }
 
     // Extract Date & Time
     const dateEl = document.querySelector('.schema .date_br, .schema .date, .schema time');
@@ -34,24 +96,78 @@ async function parseHero(page) {
     const homeShort = clean(homeShortEl?.innerText) || (homeTeam ? homeTeam.substring(0, 3).toUpperCase() : 'HOM');
     const awayShort = clean(awayShortEl?.innerText) || (awayTeam ? awayTeam.substring(0, 3).toUpperCase() : 'AWY');
 
-    // Extract Logos
-    const logoImgs = Array.from(document.querySelectorAll('.schema img, .st_logo_box_img_container img'));
+    // Extract Team Logos (Strictly targeting team logo containers and filtering out weather/flags)
     let homeLogo = 'https://www.forebet.com/images/icons/blank-logo.png';
     let awayLogo = 'https://www.forebet.com/images/icons/blank-logo.png';
 
-    if (logoImgs.length >= 2) {
-      homeLogo = logoImgs[0].src;
-      awayLogo = logoImgs[1].src;
+    const isValidTeamLogo = (url) => {
+      if (!url || typeof url !== 'string') return false;
+      if (url.includes('w-') || url.includes('weather') || url.includes('/fc/') || url.includes('blank-logo')) return false;
+      return true;
+    };
+
+    const teamLogoContainers = Array.from(document.querySelectorAll('.st_logo_box_img_container img, .st_hteam_img img, .st_ateam_img img, .os_home_team_img img, .os_away_team_img img, .schema_h2h .st_hteam img, .schema_h2h .st_ateam img, .schema .homeTeam img, .schema .awayTeam img'));
+    const validLogos = teamLogoContainers.map(img => img.src).filter(isValidTeamLogo);
+
+    if (validLogos.length >= 2) {
+      homeLogo = validLogos[0];
+      awayLogo = validLogos[1];
+    } else {
+      const allImgs = Array.from(document.querySelectorAll('img')).map(img => img.src).filter(isValidTeamLogo);
+      if (allImgs.length >= 2) {
+        homeLogo = allImgs[0];
+        awayLogo = allImgs[1];
+      }
     }
 
-    // Extract Score & Status (Live / FT / Upcoming)
+    // Extract Score & Status (Live / FT / Upcoming / Pen / AET / Cancelled)
+    // ONLY target legitimate score elements with valid numeric score regex!
     const scoreBox = document.querySelector('.match_res, .lscr_td, .schema .score');
-    const scoreEl = document.getElementById('evhdbte') || document.querySelector('.lscrsp .l_scr, .lscrsp, .match_res .l_scr');
-    const rawScore = clean(scoreEl?.innerText);
+    const scoreEl = document.querySelector('.match_res .l_scr, .lscrsp .l_scr, .lscrsp, .ft-events__score');
+    let rawScoreText = clean(scoreEl?.innerText);
+    let validScore = null;
+
+    if (rawScoreText) {
+      const scoreMatch = rawScoreText.match(/^(\d+)\s*[-–:]\s*(\d+)$/);
+      if (scoreMatch) {
+        validScore = `${scoreMatch[1]} - ${scoreMatch[2]}`;
+      }
+    }
+
+    // Extract HT Score, AET and Penalties
+    const htEl = document.querySelector('.lscr_td .ht_scr, .ht_scr, .match_res .ht_scr, .ft-events__score-half');
+    let htScore = clean(htEl?.innerText).replace(/[()]/g, '');
+
+    const aetEl = document.querySelector('.aet_scr, .match_res .aet_scr');
+    let aetScore = clean(aetEl?.innerText).replace(/[()]/g, '');
+
+    const penEl = document.querySelector('.pen_scr, .match_res .pen_scr');
+    let penScore = clean(penEl?.innerText).replace(/[()]/g, '');
+
+    // Check Special Indicators (Pen., AET, Cancl., Postp.)
+    const ladtmEl = document.querySelector('.ladtm, .lmin_td .ladtm, .match_res_status');
+    const ladtmText = clean(ladtmEl?.innerText);
+    const lminTextEl = document.querySelector('.l_min, .lmin_mp, .lsc_stat');
+    const lminSpecial = clean(lminTextEl?.innerText);
+
+    let isPen = ladtmText.includes('Pen') || lminSpecial.includes('Pen') || (scoreBox && clean(scoreBox.innerText).includes('Pen'));
+    let isAet = ladtmText.includes('AET') || lminSpecial.includes('AET') || (scoreBox && clean(scoreBox.innerText).includes('AET'));
+    let isCancelled = lminSpecial.includes('Cancl') || lminSpecial.includes('Postp') || lminSpecial.includes('Aband');
+
+    // Extract exact numbers for Pen (e.g. "Pen. 1-4") or AET (e.g. "AET 1 - 0")
+    const combinedStatusText = `${ladtmText} ${clean(scoreBox?.innerText)}`;
+    const penMatch = combinedStatusText.match(/Pen\.?\s*(\d+\s*[-–:]\s*\d+)/i);
+    if (penMatch) {
+      penScore = penMatch[1].replace(/\s+/g, '');
+    }
+
+    const aetMatch = combinedStatusText.match(/AET\s*(\d+\s*[-–:]\s*\d+)/i);
+    if (aetMatch) {
+      aetScore = aetMatch[1].replace(/\s+/g, '');
+    }
 
     // Check Live Indicators
     const liveMinEl = document.querySelector('.match_res_status.lmin_td, .lmin_mp, .live_min, .lsc_stat');
-    const isLiveElement = document.querySelector('.lscrlv, .blink_me, .live_score') !== null;
     const dataMinAttr = scoreBox?.getAttribute('data-minute');
     const liveMinText = clean(liveMinEl?.innerText) || dataMinAttr;
 
@@ -59,25 +175,40 @@ async function parseHero(page) {
     let matchStatus = 'Upcoming';
     let finalScore = '-';
 
-    if (isLiveElement || liveMinText || (rawScore && (rawScore.includes('-') || rawScore.includes(':')) && !rawScore.includes('FT'))) {
-      if (liveMinText) {
-        isLive = true;
-        matchStatus = `${liveMinText}' (Live)`;
-        finalScore = rawScore || '-';
+    if (isCancelled) {
+      isLive = false;
+      matchStatus = lminSpecial || 'Cancelled';
+      finalScore = '-';
+    } else if (dataMinAttr && dataMinAttr !== '-' && dataMinAttr !== 'FT' && !isNaN(parseInt(dataMinAttr, 10))) {
+      isLive = true;
+      const cleanMin = dataMinAttr.replace(/'+$/, '').trim();
+      matchStatus = `${cleanMin}' (Live)`;
+      finalScore = validScore || '-';
+    } else if (document.querySelector('.lscrlv, .live_score') !== null || (liveMinText && (liveMinText.includes("'") || liveMinText.includes('Live')))) {
+      isLive = true;
+      const cleanMin = liveMinText ? liveMinText.replace(/'+$/, '').trim() : 'Live';
+      matchStatus = `${cleanMin} (Live)`;
+      finalScore = validScore || '-';
+    } else if (validScore) {
+      // Valid finished match with score
+      isLive = false;
+      if (isPen) {
+        matchStatus = penScore ? `Pen. ${penScore}` : 'Pen. FT';
+      } else if (isAet) {
+        matchStatus = aetScore ? `AET ${aetScore}` : 'AET FT';
+      } else {
+        matchStatus = 'FT';
       }
+      finalScore = validScore;
+    } else {
+      // Upcoming match
+      isLive = false;
+      matchStatus = 'Upcoming';
+      finalScore = '-';
     }
 
-    // Check FT
-    const ftStatusEl = document.querySelector('.lscr_td .l_scr, .ft-events__match-res, .lsc_stat');
-    const ftText = clean(ftStatusEl?.innerText);
-    if (ftText.includes('Full time') || ftText.includes('FT') || (scoreBox && scoreBox.innerText.includes('FT'))) {
-      isLive = false;
-      matchStatus = 'FT';
-      finalScore = rawScore || '-';
-    } else if (!isLive && rawScore && rawScore.includes('-') && !rawScore.includes('VS')) {
-      matchStatus = 'FT';
-      finalScore = rawScore;
-    }
+    if (isPen && !penScore) penScore = 'Yes';
+    if (isAet && !aetScore) aetScore = 'Yes';
 
     // Extract Ranks
     const homeRankEl = document.querySelector('.schema .home_rank, .schema .rank_home');
@@ -85,19 +216,71 @@ async function parseHero(page) {
     const homeRank = clean(homeRankEl?.innerText) || '-';
     const awayRank = clean(awayRankEl?.innerText) || '-';
 
-    // Extract Form Badges
-    const homeFormSpans = Array.from(document.querySelectorAll('.schema .form_home span, .schema .st_form_home span'));
-    const awayFormSpans = Array.from(document.querySelectorAll('.schema .form_away span, .schema .st_form_away span'));
+    // Extract Form Badges (6 Matches from .prformcont or .form_w/.form_d/.form_l)
+    let homeForm = [];
+    let awayForm = [];
 
-    const homeForm = homeFormSpans.map(s => clean(s.innerText)).filter(Boolean);
-    const awayForm = awayFormSpans.map(s => clean(s.innerText)).filter(Boolean);
+    const prFormContainers = Array.from(document.querySelectorAll('.prformcont'));
+    if (prFormContainers.length >= 1) {
+      const formNodes = Array.from(prFormContainers[0].children);
+      homeForm = formNodes.map(el => clean(el.innerText)).filter(t => ['W', 'D', 'L'].includes(t));
+      if (homeForm.length === 0) {
+        homeForm = Array.from(prFormContainers[0].querySelectorAll('.form_w, .form_d, .form_l'))
+          .map(el => clean(el.innerText))
+          .filter(t => ['W', 'D', 'L'].includes(t));
+      }
+    }
+    if (prFormContainers.length >= 2) {
+      const formNodes = Array.from(prFormContainers[1].children);
+      awayForm = formNodes.map(el => clean(el.innerText)).filter(t => ['W', 'D', 'L'].includes(t));
+      if (awayForm.length === 0) {
+        awayForm = Array.from(prFormContainers[1].querySelectorAll('.form_w, .form_d, .form_l'))
+          .map(el => clean(el.innerText))
+          .filter(t => ['W', 'D', 'L'].includes(t));
+      }
+    }
+
+    if (homeForm.length === 0) {
+      const homeFormSpans = Array.from(document.querySelectorAll('.schema .form_home span, .schema .st_form_home span'));
+      homeForm = homeFormSpans.map(s => clean(s.innerText)).filter(t => ['W', 'D', 'L'].includes(t));
+    }
+    if (awayForm.length === 0) {
+      const awayFormSpans = Array.from(document.querySelectorAll('.schema .form_away span, .schema .st_form_away span'));
+      awayForm = awayFormSpans.map(s => clean(s.innerText)).filter(t => ['W', 'D', 'L'].includes(t));
+    }
 
     // Weather
-    const weatherEl = document.querySelector('.schema .weather, .weather_pred, .st_weather');
-    const weatherText = clean(weatherEl?.innerText);
+    const wNumsEl = document.querySelector('.prwth .wnums, .wnums, .schema .weather, .weather_pred, .st_weather');
+    let weatherText = clean(wNumsEl?.innerText);
+    if (!weatherText) {
+      const wthDiv = document.querySelector('.prwth');
+      weatherText = clean(wthDiv?.innerText);
+    }
+
+    // Venue / Stadium
+    const venueEl = document.querySelector('.schema .st_venue, .st_stadium, .venue_name, .st_venue, .schema_h2h .st_stadium');
+    let venueText = clean(venueEl?.innerText);
+    if (!venueText) {
+      const allP = Array.from(document.querySelectorAll('.match_intro, .st_intro, .preview_text, p, div'));
+      for (const p of allP) {
+        const t = clean(p.innerText);
+        const m = t.match(/^([^.]+?)\s+will be the setting as/i);
+        if (m) {
+          venueText = clean(m[1]);
+          break;
+        }
+      }
+    }
 
     return {
-      league: leagueText || 'Football League',
+      country: country || 'Football',
+      league: leagueName || 'Football League',
+      leagueName: leagueName || 'Football League',
+      leagueCode: shortTagCode || '',
+      leagueFlag: leagueFlag || '',
+      round: roundText || '',
+      venue: venueText || '',
+      stadium: venueText || '',
       matchDate: matchDate || '',
       matchTime: matchTime || '',
       homeTeam: homeTeam || 'Home Team',
@@ -112,14 +295,19 @@ async function parseHero(page) {
       weather: weatherText || '-',
       homeRank: homeRank,
       awayRank: awayRank,
-      homeForm: homeForm.length > 0 ? homeForm : ['W', 'D', 'L'],
-      awayForm: awayForm.length > 0 ? awayForm : ['W', 'D', 'L'],
-      finalScore: finalScore,
-      score: finalScore !== '-' ? finalScore : (rawScore || '-'),
+      homeForm: homeForm.length > 0 ? homeForm : [],
+      finalScore: isCancelled ? '-' : finalScore,
+      score: isCancelled ? '-' : finalScore,
+      htScore: htScore || '',
+      aetScore: aetScore || '',
+      penScore: penScore || '',
       result: {
         status: matchStatus,
         isLive: isLive,
-        score: finalScore !== '-' ? finalScore : (rawScore || '-')
+        score: isCancelled ? '-' : finalScore,
+        htScore: htScore || '',
+        aetScore: aetScore || '',
+        penScore: penScore || ''
       }
     };
   });

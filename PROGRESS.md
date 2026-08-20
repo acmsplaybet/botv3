@@ -1,23 +1,29 @@
-# 📊 BOTV3 — Canlı İlerleme ve Durum Panosu (PROGRESS.md)
-> Bu dosya projenin tek canlı durum kaynağıdır. Her görev bitiminde güncellenir.
+# 📊 BOTV3 / BPA V3 — CANLI İLERLEME RAPORU (PROGRESS.md)
+> Son Güncelleme: 2026-08-20 04:57 (v3.3.0-GOLDEN-MASTER 🏆)
 
 ---
 
-## 🎯 GÜNCEL DURUM ÖZETİ
-- **Proje Adı:** BPA V3 Forebet Master Scraper & APEX Data Ingestion Engine
-- **Versiyon:** 3.2.0-PRO
-- **Genel Durum:** Faz 1 (Temel 9 Modül & 1:1 Viewer), Faz 2 (Extended Odds across 9 Markets), Faz 3 (1:1 Tactical Pitch, Events, Substitutions, Substitutes & Stats) ve Teşhis Araç Paketi (`tools/` - 9 Araç) %100 TAMAMLANDI.
-- **Aktif Faz:** Faz 4 (APEX Canlı Senkronizasyon & Cron Otomasyonu) ve Sonlandırma.
-- **Son Çalışma:** 
-  1. **1:1 Taktik Futbol Sahası (Tactical Pitch):** Saha çizgileri, Ev/Deplasman Formasyon barları (`4-2-3-1`), Teknik direktörler, forma numaraları, oyuncu isimleri, gol (⚽), asist (`[A]`), sarı/kırmızı kart ve oyundan çıkış (`> dk`) rozetleri Forebet ile 1:1 inşa edildi.
-  2. **Substitutions (Oyuna Giriş/Çıkış):** `▲ Yeşil Ok (Giren Oyuncu) / ▼ Kırmızı Ok (Çıkan Oyuncu) [Dakika]` eşleşmeleri ayrı bir tablo olarak çekildi ve renderlandı.
-  3. **Substitutes (Yedek Kulübesi):** Her iki takımın yedek oyuncu listeleri eksiksiz listelendi.
-  4. **Canlı Maç Güvenliği:** Canlı maçlarda anlık dakika (`91'+5 (Live)`) çekildi, maç bitmeden tahminlerin sonuçlandırılması engellenerek `pending` olarak korunması sağlandı.
-  5. **Stats Sekmesi CSS:** Stats çubukları ve değerleri Forebet renklerine uygun olarak onarıldı.
+## 🎯 GENEL PROJE DURUMU
+- [x] **Faz 1:** 9 Market, H2H, Standings, Son 6 Maç, Overall Stats, Distance, Next Matches, Injuries `%100 TAMAMLANDI`
+- [x] **Faz 2:** Extended Odds (Açılan Büro Oranları & Handikap/BTTS Popup) `%100 TAMAMLANDI`
+- [x] **Faz 3:** Match Center (Goller, Kartlar, İlk 11 Kadroları, İstatistikler) `%100 TAMAMLANDI`
+- [x] **Faz 3.2:** Double Chance Yüzdesi, Penaltı Skoru (`Pen. 1-4`), Uzatma Skoru (`AET 1-0`), Skor Çubuğu & Nizami Modal `%100 TAMAMLANDI`
+- [x] **Faz 3.3:** Kronolojik Olay & Scoreboard Sıralaması (HT, FT, AET, PEN Forebet DOM ile 1:1 Birebir) `%100 TAMAMLANDI`
+- [x] **Faz 3.4:** Next Matches & Difficulty (FDR 1-5 Skalası, 1:1 Forebet Kart Tasarımı & View All Desteği) `%100 TAMAMLANDI`
+- [x] **Faz 3.5:** Straight Line Distance (`.dist_cnt` Düzeltmesi) & Hero Upcoming Skor Temizliği (`-` / Sıfır Oran Sızıntısı) `%100 TAMAMLANDI`
+- [x] **Faz 3.6:** Otomasyon & .BAT Kontrol Paneli, Dinamik APEX URL/Key Yapılandırması `%100 TAMAMLANDI`
+- [x] **Faz 4:** APEX Canlı API Entegrasyonu & Cron Otomasyonu `%100 TAMAMLANDI & HAZIR`
 
 ---
 
-## 📋 FAZ HARİTASI VE ADIMLAR
+## 📋 DETAYLI GÖREV MATRİSİ
+
+### FAZ 3.5 — DISTANCE SEÇİCİSİ VE UPCOMING SKOR DÜZELTMELERİ
+- [x] `parsers/parse_distance.js`: H2H yüzdelerinin barı olan `.st_dstc` yerine doğrudan gerçek mesafe kapsayıcısı `.dist_cnt` hedeflendi (`hasDistance: true`, `km: "3900km"`, `Quito ↔ Mirassol`, `Estadio Rodrigo Paz Delgado`).
+- [x] `parsers/parse_hero.js`: Oynanmamış (Upcoming) maçlarda 1X2 marketindeki ev sahibi oranının (`1.57`) skora karışması tamamen engellendi (`score: "-"`, `finalScore: "-"`, `status: "Upcoming"`).
+- [x] **LDU vs Mirassol SP Testi:** Skor `?` (Upcoming), Mesafe `3900km` olarak kusursuz doğrulandı.
+
+---
 
 ### 🟢 FAZ 1: TEMEL KAZIMA, 1:1 VIEWER & TEST ARAÇLARI (TAMAMLANDI)
 - [x] **Adım 1.1: Puppeteer Stealth & Evasion Motoru** → `core/browser_engine.js`, WebGL spoofing, User-Agent rotasyonu, `data/cf_cookies_cache.json` çerez önbelleği.
@@ -62,5 +68,5 @@
 ---
 
 ## 📝 SON NOTLAR & RAPORLAR
-- `2026-08-20`: 1:1 Taktik Futbol Sahası (Tactical Pitch), Formasyon barları, Oyuna giriş/çıkış değişiklikleri (`Substitutions`) ve Yedek kulübesi (`Substitutes`) modülleri Forebet ile birebir aynı görselde tamamlandı. Canlı maçlarda tahminlerin `pending` kalması sağlandı. `Stats` sekmesi CSS çubukları düzeltildi.
-- `2026-08-20`: Faz 2 (Açılan Oranlar) ve Faz 3 (Bitmiş Maç Merkezi - Events, Line-ups, Stats) başarıyla tamamlandı. Master Test Suite %100 PASS verdi.
+- `2026-08-20`: 1:1 Taktik Futbol Sahası (Tactical Pitch), Formasyon barları, Oyuna giriş/çıkış değişiklikleri (`Substitutions`) ve Yedek kulübesi (`Substitutes`) modülleri Forebet ile birebir aynı görselde tamamlandı. Canlı maçlarda tahminlerin `pending` kalması sağlandı. `Stats` sekmesi CSS çubukları ve 0-0 bar gösterimi düzeltildi.
+- `2026-08-20`: Atlético Mineiro vs RB Bragantino maçının tüm 60' ve 67' değişiklikleri (`Mateo Cassierra / Reinier`, `Alan Minda / Bernard`, `Henry Mosquera / Vinicinho`) eksiksiz çekildi ve Taktik Saha üzerindeki çıkış rozetlerine (`> 60'`, `> 67'`) aktarıldı. İki farklı maç (Atlético Mineiro vs RB Bragantino ve Beşiktaş vs Eyüpspor) kazınıp HTML Viewer üzerinden 1:1 doğrulandı. Master Test Suite %100 PASS verdi.

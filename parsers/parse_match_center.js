@@ -89,6 +89,11 @@ async function parseMatchCenter(page, hero = {}) {
               scoreStr: score
             };
           }
+          eventsList.push({
+            type: 'scoreboard',
+            label: time || 'Score',
+            score: score || ''
+          });
           return;
         }
 
@@ -125,7 +130,8 @@ async function parseMatchCenter(page, hero = {}) {
         let scoreAtTime = scoreMatch ? scoreMatch[1].replace(/\s+/g, '') : null;
 
         if (inPenaltyShootout) {
-          const isScored = isGoalNormal || isPenGoal || text.includes('(pen.)');
+          const isMissed = isPenMiss || html.includes('pen-miss') || html.includes('miss') || html.includes('cross') || text.includes('✖');
+          const isScored = (isGoalNormal || isPenGoal || html.includes('pen-goal') || text.includes('✔')) || (!isMissed && text.includes('(pen.)'));
           eventsList.push({
             type: 'penalty_kick',
             minute: minStr || 'Pen',

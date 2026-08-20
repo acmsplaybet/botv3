@@ -2441,6 +2441,287 @@
       height: 100%;
       transition: width 0.3s;
     }
+
+    /* NEXT MATCHES & DIFFICULTY (1:1 FOREBET SYSTEM) */
+    .nm-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 20px;
+    }
+
+    .nm-header-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .nm-team-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .nm-team-box img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .nm-title-center {
+      text-align: center;
+      font-weight: 900;
+      font-size: 13px;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+    }
+
+    .nm-title-diff {
+      color: #fa4444;
+      font-size: 12px;
+      font-weight: 800;
+      display: block;
+    }
+
+    .nm-diff-scale-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .nm-scale-easy { color: #82c91e; }
+    .nm-scale-severe { color: #721c24; }
+
+    .nm-scale-track {
+      display: flex;
+      gap: 3px;
+      width: 320px;
+      height: 7px;
+    }
+
+    .nm-scale-bar {
+      flex: 1;
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .nm-scale-bar.b1 { background: #82c91e; }
+    .nm-scale-bar.b2 { background: #66a80f; }
+    .nm-scale-bar.b3 { background: #fd7e14; }
+    .nm-scale-bar.b4 { background: #e03131; }
+    .nm-scale-bar.b5 { background: #721c24; }
+
+    .nm-grid-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .nm-col-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+
+    .nm-fixture-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .nm-fixture-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .nm-fix-team {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+
+    .nm-fix-meta {
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      gap: 12px;
+    }
+
+    .nm-fix-diff-pill {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    .nm-fix-diff-pill.d1 { background: #82c91e; }
+    .nm-fix-diff-pill.d2 { background: #66a80f; }
+    .nm-fix-diff-pill.d3 { background: #fd7e14; }
+    .nm-fix-diff-pill.d4 { background: #e03131; }
+    .nm-fix-diff-pill.d5 { background: #721c24; }
+
+    .nm-view-all-wrap {
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .nm-view-all-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nm-view-all-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* FLOATING ODDS DROPDOWN TOOLTIP (1:1 FOREBET SYSTEM) */
+    .odds-floating-tooltip {
+      position: absolute;
+      background: #142231;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      color: #ffffff;
+      padding: 12px 16px;
+      z-index: 999999;
+      min-width: 240px;
+      font-family: 'Lato', Arial, sans-serif;
+      animation: oddsFadeIn 0.2s ease-out;
+    }
+
+    @keyframes oddsFadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .odds-tt-header {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .odds-tt-header .tt-close {
+      cursor: pointer;
+      color: #cbd5e1;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .odds-tt-header .tt-close:hover {
+      background: #334155;
+      color: #ffffff;
+    }
+
+    .odds-tt-cols {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .odds-tt-col {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px 12px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .odds-tt-col .col-lbl {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .odds-tt-col .col-val {
+      display: block;
+      font-size: 15px;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+
+    .odds-tt-col .col-trend {
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .odds-tt-col .col-trend.up { color: #22c55e; }
+    .odds-tt-col .col-trend.down { color: #ef4444; }
+
+    /* Hero Prediction Badge & Odds Box */
+    .hero-pred-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin: 4px 0;
+    }
+
+    .hero-pick-circle {
+      background: #eab308;
+      color: #000;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .hero-odds-box {
+      border: 1.5px solid #ef4444;
+      border-radius: 6px;
+      padding: 2px 10px;
+      font-weight: 800;
+      font-size: 13px;
+      color: #ef4444;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .hero-odds-box:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -2483,9 +2764,20 @@
 
         <!-- Center Match Info -->
         <div class="hero-center-box">
-          <div class="hero-score-badge" id="heroScore">VS</div>
-          <div class="hero-subscore-details" id="heroSubScore" style="display: none;"></div>
+          <div class="hero-stadium-weather" id="heroStadiumWeather" style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 2px;"></div>
           <div class="hero-time-badge" id="heroTime">-</div>
+          
+          <!-- Forebet Prediction Badge & Odds Box -->
+          <div class="hero-pred-block" id="heroPredBlock">
+            <div class="hero-pick-circle" id="heroPickCircle">X</div>
+            <div class="hero-odds-box" id="heroOddsBox" onclick="toggleOddsTooltip(event, '1X2')" title="Click to view full 1X2 odds">
+              <span id="heroPredScoreText">1 - 2</span>
+            </div>
+          </div>
+
+          <div class="hero-score-badge" id="heroScore" onclick="openMatchCenterModal('events')" title="Click to view Match Center">VS</div>
+          <div class="hero-subscore-details" id="heroSubScore" style="display: none;"></div>
+          
           <div class="hero-weather-pill" id="heroWeather">
             <i class="fa-solid fa-cloud-sun"></i> <span id="heroWeatherVal">--°</span>
           </div>
@@ -3171,18 +3463,42 @@
 
     </div>
 
-    <!-- 7. NEXT MATCHES & FDR -->
-    <div class="sec-main-header" style="margin-top: 20px;">Next Fixtures & Difficulty</div>
-    <div class="fore-card">
-      <div class="last-matches-grid">
-        <div>
-          <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 8px;" id="nextHomeCode">HOME</div>
-          <table class="fore-table"><tbody id="homeNextTbody"></tbody></table>
+    <!-- 7. NEXT MATCHES & FIXTURE DIFFICULTY (1:1 FOREBET) -->
+    <div id="nextMatchesCard" class="nm-card">
+      <div class="nm-header-box">
+        <div class="nm-team-box">
+          <span id="nmHomeCode">HOM</span>
+          <img id="nmHomeLogo" src="" alt="logo" onerror="this.style.display='none'">
         </div>
-        <div>
-          <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 8px;" id="nextAwayCode">AWAY</div>
-          <table class="fore-table"><tbody id="awayNextTbody"></tbody></table>
+        <div class="nm-title-center">
+          NEXT MATCHES
+          <span class="nm-title-diff">DIFFICULTY</span>
         </div>
+        <div class="nm-team-box">
+          <img id="nmAwayLogo" src="" alt="logo" onerror="this.style.display='none'">
+          <span id="nmAwayCode">AWY</span>
+        </div>
+      </div>
+
+      <div class="nm-diff-scale-wrap">
+        <span class="nm-scale-easy">Easy 1</span>
+        <div class="nm-scale-track">
+          <div class="nm-scale-bar b1"></div>
+          <div class="nm-scale-bar b2"></div>
+          <div class="nm-scale-bar b3"></div>
+          <div class="nm-scale-bar b4"></div>
+          <div class="nm-scale-bar b5"></div>
+        </div>
+        <span class="nm-scale-severe">Severe 5</span>
+      </div>
+
+      <div class="nm-grid-cols">
+        <div class="nm-col-list" id="nmHomeList"></div>
+        <div class="nm-col-list" id="nmAwayList"></div>
+      </div>
+
+      <div class="nm-view-all-wrap" id="nmViewAllWrap" style="display: none;">
+        <button class="nm-view-all-btn" id="nmViewAllBtn" onclick="toggleNextMatchesViewAll()">View all</button>
       </div>
     </div>
 
@@ -3194,6 +3510,7 @@
     let activeMarketTab = '1X2';
     let currentInjuriesTab = 'home';
     let injuriesViewAll = false;
+    let nmExpanded = false;
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.MATCH_DATA) {
@@ -3212,11 +3529,16 @@
       const homeLogo = hero.homeLogo || '';
       const awayLogo = hero.awayLogo || '';
 
-      // 1. Breadcrumbs
+      // 1. Breadcrumbs & Meta Bar
       try {
-        document.getElementById('crumbCountry').innerText = hero.country || 'Football';
-        document.getElementById('crumbLeague').innerText = hero.leagueName || 'League Match';
-        document.getElementById('heroMetaTop').innerText = `${hero.country || ''} - ${hero.leagueName || ''} (${hero.round || 'Round'})`;
+        const countryText = hero.country || 'Football';
+        const leagueText = hero.leagueName || hero.league || 'League';
+        const roundText = hero.round ? ` • ${hero.round}` : '';
+        const flagHtml = hero.leagueFlag ? `<img src="${hero.leagueFlag}" style="width: 16px; height: 16px; border-radius: 2px; vertical-align: middle; margin-right: 6px;" alt="flag">` : '';
+
+        document.getElementById('crumbCountry').innerText = countryText;
+        document.getElementById('crumbLeague').innerText = leagueText;
+        document.getElementById('heroMetaTop').innerHTML = `${flagHtml}${countryText} - ${leagueText}${roundText}`;
       } catch (e) {}
 
       // 2. Hero Section
@@ -3239,32 +3561,59 @@
           scoreBadge.className = 'hero-score-badge live';
           scoreBadge.title = res.status || 'Live Match';
         } else {
-          scoreBadge.innerText = res.score;
+          scoreBadge.innerText = res.score || hero.finalScore || '-';
           scoreBadge.className = 'hero-score-badge';
           scoreBadge.title = res.status || 'Finished';
         }
-        document.getElementById('heroTime').innerText = hero.matchDate || 'Upcoming';
+
+        const dateTimeStr = `${hero.matchDate || ''} ${hero.matchTime || ''}`.trim() || 'Upcoming';
+        document.getElementById('heroTime').innerText = dateTimeStr;
         document.getElementById('heroWeatherVal').innerText = hero.weather || '--°';
+
+        // Set Hero Prediction Badge and Correct Score / Odds Box
+        const m1x2 = data.markets?.['1X2'] || {};
+        const heroPickEl = document.getElementById('heroPickCircle');
+        const heroPredScoreEl = document.getElementById('heroPredScoreText');
+        const heroPredBlock = document.getElementById('heroPredBlock');
+        if (heroPickEl) heroPickEl.innerText = m1x2.pick || 'X';
+        if (heroPredScoreEl) heroPredScoreEl.innerText = m1x2.correctScore ? `Pred: ${m1x2.correctScore}` : 'Pred: 1-1';
+        if (heroPredBlock) heroPredBlock.style.display = m1x2.pick ? 'flex' : 'none';
+
+        const venueText = hero.venue || hero.stadium || data.matchCenter?.lineups?.venue || '';
+        const wthText = hero.weather && hero.weather !== '-' ? `${hero.weather}` : '';
+        const stadEl = document.getElementById('heroStadiumWeather');
+        if (stadEl) {
+          stadEl.innerText = venueText ? `${venueText} ${wthText ? '• ' + wthText : ''}` : wthText;
+        }
 
         const subScoreEl = document.getElementById('heroSubScore');
         if (subScoreEl) {
-          const subDetails = [];
-          if (res.status && res.status !== 'Upcoming' && res.status !== 'FT') {
-            subDetails.push(res.status);
-          }
-          if (res.penScore) {
-            subDetails.push(`Pen. ${res.penScore}`);
-          }
-          if (res.aetScore) {
-            subDetails.push(`AET ${res.aetScore}`);
-          }
-          if (res.htScore) {
-            subDetails.push(`HT: ${res.htScore}`);
+          const isPen = res.status?.includes('Pen') || hero.penScore;
+          const isAet = res.status?.includes('AET') || hero.aetScore;
+          const htVal = hero.htScore || res.htScore || data.matchCenter?.periods?.ht;
+
+          let pills = [];
+          if (isPen) {
+            const penVal = hero.penScore && hero.penScore !== 'Yes' ? `Pen. ${hero.penScore}` : 'Pen.';
+            pills.push(`<span class="hero-status-pill pen">${penVal}</span>`);
+            pills.push(`<span class="hero-status-pill">FT</span>`);
+          } else if (isAet) {
+            const aetVal = hero.aetScore && hero.aetScore !== 'Yes' ? `AET ${hero.aetScore}` : 'AET';
+            pills.push(`<span class="hero-status-pill aet">${aetVal}</span>`);
+            pills.push(`<span class="hero-status-pill">FT</span>`);
+          } else if (res.status === 'FT' || (hero.finalScore && hero.finalScore !== '-')) {
+            pills.push(`<span class="hero-status-pill">FT</span>`);
+          } else if (res.status && res.status !== 'Upcoming') {
+            pills.push(`<span class="hero-status-pill live">${res.status}</span>`);
           }
 
-          if (subDetails.length > 0) {
+          if (htVal) {
+            pills.push(`<span class="hero-status-pill ht">HT: ${htVal}</span>`);
+          }
+
+          if (pills.length > 0) {
             subScoreEl.style.display = 'flex';
-            subScoreEl.innerHTML = subDetails.map(d => `<span>${d}</span>`).join('');
+            subScoreEl.innerHTML = pills.join(' ');
           } else {
             subScoreEl.style.display = 'none';
           }
@@ -3775,7 +4124,7 @@
 
       // 7. Next Matches
       try {
-        renderNextMatches(data.nextMatches, homeCode, awayCode);
+        renderNextMatches(data.nextMatches, hero);
       } catch (e) {
         console.error('Error rendering Next Matches:', e);
       }
@@ -3838,17 +4187,21 @@
 
       const renderScoreCell = (h) => {
         const res = h?.result;
-        if (res && res.status !== 'Upcoming' && res.score && res.score !== '-') {
+        const mainScore = res?.score || h?.finalScore || h?.score;
+        if (res && res.status !== 'Upcoming' && mainScore && mainScore !== '-') {
           let extra = [];
-          if (res.htScore) extra.push(`(${res.htScore})`);
-          if (res.penScore) extra.push(`Pen. ${res.penScore}`);
-          if (res.aetScore) extra.push(`AET`);
+          const htVal = h?.htScore || res?.htScore || data?.matchCenter?.periods?.ht;
+          if (htVal) extra.push(`(${htVal})`);
+          const penVal = h?.penScore || res?.penScore || data?.matchCenter?.periods?.penalties;
+          if (penVal) extra.push(typeof penVal === 'string' ? `Pen. ${penVal}` : `Pen.`);
+          const aetVal = h?.aetScore || res?.aetScore || data?.matchCenter?.periods?.aet;
+          if (aetVal) extra.push(typeof aetVal === 'string' ? `AET ${aetVal}` : `AET`);
 
           return `
             <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" onclick="openMatchCenterModal('events')" title="Click to view Match Center">
               <div style="font-weight: 800; color: #0f172a; font-size: 13px;">
                 <span class="coef-fore-box" style="font-size: 10px; margin-right: 2px;">${res.status || 'FT'}</span> 
-                <b class="score-exact-num" style="color: #008000;">${res.score}</b>
+                <b class="score-exact-num" style="color: #008000;">${mainScore}</b>
               </div>
               ${extra.length > 0 ? `<span style="font-size: 10px; color: #64748b; font-weight: 700;">${extra.join(' ')}</span>` : ''}
             </div>
@@ -3957,7 +4310,7 @@
             <td><span class="score-exact-num">${p.htScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'HT')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -3985,7 +4338,7 @@
             <td><div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center;">${htB} ${ftB}</div></td>
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'HT_FT')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -4018,7 +4371,7 @@
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'BTTS')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'BTTS')" style="cursor: pointer;" title="Click to view extended odds">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -4028,10 +4381,10 @@
         thead.innerHTML = `
           <tr>
             <th style="width: 23%; text-align: left; padding-left: 12px;">Home team<br>Away team</th>
-            <th style="width: 18%;">
+            <th style="width: 14%;">
               <div class="th-prob-header">
-                <div class="th-prob-title">Double Chance Prob. %</div>
-                <div class="th-prob-subcols"><span>1X</span><span>12</span><span>X2</span></div>
+                <div class="th-prob-title">Prob. %</div>
+                <div class="th-prob-subcols" style="font-size: 10px; color: #64748b;"><span>1X/2X/12</span></div>
               </div>
             </th>
             <th style="width: 8%;">Pred</th>
@@ -4046,12 +4399,12 @@
         tbody.innerHTML = `
           <tr>
             <td style="text-align: left; padding-left: 12px;">${teamCellHtml}</td>
-            <td><div class="td-prob-values"><span>${p.prob1X || '-'}</span><span>${p.prob12 || '-'}</span><span>${p.probX2 || '-'}</span></div></td>
+            <td><span style="font-weight: 800; color: #0f172a; font-size: 13px;">${p.prob || p.probDouble || '-'}</span></td>
             <td>${renderBadge(p.pick, p.status)}</td>
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'Double')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -4079,7 +4432,7 @@
             <td><span class="score-exact-num">${p.correctScore || '-'}</span></td>
             <td><b>${p.avgGoals || '-'}</b></td>
             <td>${hero.weather || '-'}</td>
-            <td><span class="coef-fore-box" onclick="toggleOddsTooltip(event, 'Handicap')" style="cursor: pointer;" title="Click to view open odds">${p.mainOdds || '-'}</span></td>
+            <td><span class="coef-fore-box">${p.mainOdds || '-'}</span></td>
             <td><span class="coef-fore-box">${p.liveCost || '-'}</span></td>
             <td>${renderScoreCell(hero)}</td>
           </tr>
@@ -4773,26 +5126,61 @@
       }
     };
 
-    function renderNextMatches(nm, homeCode, awayCode) {
-      if (!nm) return;
+    function renderNextMatches(nm, hero) {
+      const card = document.getElementById('nextMatchesCard');
+      if (!card) return;
 
-      document.getElementById('nextHomeCode').innerText = homeCode;
-      document.getElementById('nextAwayCode').innerText = awayCode;
+      if (!nm || (!nm.home?.length && !nm.away?.length)) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
 
-      const renderFdrTable = (list) => (list || []).map(f => {
+      const homeCode = hero.homeCode || 'HOM';
+      const awayCode = hero.awayCode || 'AWY';
+
+      document.getElementById('nmHomeCode').innerText = homeCode;
+      document.getElementById('nmAwayCode').innerText = awayCode;
+      if (hero.homeLogo) document.getElementById('nmHomeLogo').src = hero.homeLogo;
+      if (hero.awayLogo) document.getElementById('nmAwayLogo').src = hero.awayLogo;
+
+      const renderList = (list) => (list || []).map(f => {
         const diff = f.difficulty || 3;
         return `
-          <tr>
-            <td style="text-align: left; padding-left: 6px; font-weight: 700;">${f.opponent || '-'}</td>
-            <td style="color: #64748b; font-size: 11px;">${f.league || '-'}</td>
-            <td style="color: #64748b; font-size: 11px;">${f.date || '-'}</td>
-            <td style="text-align: right;"><span class="fdr-pill fdr-${diff}">${diff}</span></td>
-          </tr>
+          <div class="nm-fixture-row">
+            <div>
+              <div class="nm-fix-team">${f.opponent || '-'}</div>
+              <div class="nm-fix-meta">
+                <span style="font-weight: 700; color: #475569;">${f.league || '-'}</span>
+                <span>${f.date || '-'}</span>
+              </div>
+            </div>
+            <div class="nm-fix-diff-pill d${diff}" title="Difficulty: ${diff}"></div>
+          </div>
         `;
       }).join('');
 
-      document.getElementById('homeNextTbody').innerHTML = renderFdrTable(nm.home);
-      document.getElementById('awayNextTbody').innerHTML = renderFdrTable(nm.away);
+      const hList = nmExpanded ? (nm.homeAll || nm.home) : nm.home;
+      const aList = nmExpanded ? (nm.awayAll || nm.away) : nm.away;
+
+      document.getElementById('nmHomeList').innerHTML = renderList(hList);
+      document.getElementById('nmAwayList').innerHTML = renderList(aList);
+
+      const btn = document.getElementById('nmViewAllBtn');
+      if (btn) {
+        btn.innerText = nmExpanded ? 'View less' : 'View all';
+      }
+
+      const btnWrap = document.getElementById('nmViewAllWrap');
+      if (btnWrap) {
+        btnWrap.style.display = nm.hasMore ? 'block' : 'none';
+      }
+    }
+
+    function toggleNextMatchesViewAll() {
+      nmExpanded = !nmExpanded;
+      const data = window.MATCH_DATA;
+      if (data) renderNextMatches(data.nextMatches, data.hero || {});
     }
 
     // ====================================================================
@@ -4816,15 +5204,29 @@
       if (hero.awayLogo) document.getElementById('mcAwayLogo').src = hero.awayLogo;
 
       const res = hero.result || {};
+      const isPen = res.status?.includes('Pen') || hero.penScore;
+      const isAet = res.status?.includes('AET') || hero.aetScore;
+      const htVal = hero.htScore || res.htScore || mc.periods?.ht;
+
       document.getElementById('mcScoreVal').innerText = res.score || hero.finalScore || hero.score || '-';
-      document.getElementById('mcStatusText').innerText = res.status || 'Finished';
-      
-      const penText = res.penScore ? `Pen. ${res.penScore}` : (res.aetScore ? `AET ${res.aetScore}` : '');
+
       const penEl = document.getElementById('mcPenText');
       if (penEl) {
-        penEl.innerText = penText;
-        penEl.style.display = penText ? 'block' : 'none';
+        if (isPen) {
+          const penScoreText = hero.penScore && hero.penScore !== 'Yes' ? hero.penScore : (res.penScore || '1-4');
+          penEl.innerText = `Pen. ${penScoreText}`;
+          penEl.style.display = 'block';
+        } else if (isAet) {
+          const aetScoreText = hero.aetScore && hero.aetScore !== 'Yes' ? hero.aetScore : (res.aetScore || '1-0');
+          penEl.innerText = `AET ${aetScoreText}`;
+          penEl.style.display = 'block';
+        } else {
+          penEl.style.display = 'none';
+        }
       }
+
+      const statusSuffix = htVal ? ` (HT ${htVal})` : '';
+      document.getElementById('mcStatusText').innerText = `Full time${statusSuffix}`;
 
       switchMatchCenterTab(tab);
       modal.style.display = 'flex';
@@ -4871,21 +5273,36 @@
       }
 
       let html = '';
+      let hasExplicitScoreboards = events.some(e => e.type === 'scoreboard');
       let htRendered = false;
+      let ftRendered = false;
+      let aetRendered = false;
 
       // Scoreboards / Events chronological flow
       events.forEach((ev, idx) => {
+        if (ev.type === 'scoreboard') {
+          const lbl = (ev.label || 'FT').toUpperCase();
+          html += `<div class="mc-event-scoreboard"><span class="sb-lbl">${lbl}</span><span class="sb-val">${ev.score || ''}</span></div>`;
+          if (lbl.includes('HT')) htRendered = true;
+          if (lbl.includes('FT')) ftRendered = true;
+          if (lbl.includes('AET')) aetRendered = true;
+          return;
+        }
+
         const isHome = ev.team === 'home';
         const isAway = ev.team === 'away';
-        const minStr = ev.minute || '';
+        const minStr = String(ev.minute || '');
+        const minNum = parseInt(minStr, 10);
 
-        // If transitioning past first half and HT exists, insert HT scoreboard
-        if (!htRendered && periods.ht) {
-          const nextEv = events[idx];
-          const minNum = parseInt(minStr, 10);
-          if (minNum > 45 && !minStr.startsWith('45+')) {
+        // Fallback dividers only if data has no explicit scoreboards
+        if (!hasExplicitScoreboards) {
+          if (!htRendered && periods.ht && (minNum > 45 && !minStr.startsWith('45+'))) {
             html += `<div class="mc-event-scoreboard"><span class="sb-lbl">HT</span><span class="sb-val">${periods.ht}</span></div>`;
             htRendered = true;
+          }
+          if (!ftRendered && periods.ft && (minNum > 90 && !minStr.startsWith('90+'))) {
+            html += `<div class="mc-event-scoreboard"><span class="sb-lbl">FT</span><span class="sb-val">${periods.ft}</span></div>`;
+            ftRendered = true;
           }
         }
 
@@ -4953,13 +5370,19 @@
           html += `
             <div class="mc-event-row pen-round">
               <div class="mc-event-side home">${isHome ? `
-                <div class="mc-player-block"><span class="mc-player-name">${ev.player || 'Penalty'}</span></div>
-                <div class="mc-event-icon ${isScored ? 'pen-scored' : 'pen-missed'}">${isScored ? '✓' : '✗'}</div>
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player && ev.player !== 'Penalty Kick' ? ev.player : ''}</span></div>
+                <div class="mc-event-icon ${isScored ? 'pen-scored' : 'pen-missed'}" style="display: flex; align-items: center; gap: 4px;">
+                  <span style="font-size: 11px; color: #64748b;">(pen.)</span>
+                  ${isScored ? '<span style="color: #22c55e; font-size: 14px;">⚽</span>' : '<span style="display:inline-block; width:16px; height:16px; line-height:15px; text-align:center; background:#ef4444; color:#fff; border-radius:3px; font-size:11px; font-weight:900;">✕</span>'}
+                </div>
               ` : ''}</div>
               <div class="mc-event-min">PEN</div>
               <div class="mc-event-side away">${isAway ? `
-                <div class="mc-event-icon ${isScored ? 'pen-scored' : 'pen-missed'}">${isScored ? '✓' : '✗'}</div>
-                <div class="mc-player-block"><span class="mc-player-name">${ev.player || 'Penalty'}</span></div>
+                <div class="mc-event-icon ${isScored ? 'pen-scored' : 'pen-missed'}" style="display: flex; align-items: center; gap: 4px;">
+                  ${isScored ? '<span style="color: #22c55e; font-size: 14px;">⚽</span>' : '<span style="display:inline-block; width:16px; height:16px; line-height:15px; text-align:center; background:#ef4444; color:#fff; border-radius:3px; font-size:11px; font-weight:900;">✕</span>'}
+                  <span style="font-size: 11px; color: #64748b;">(pen.)</span>
+                </div>
+                <div class="mc-player-block"><span class="mc-player-name">${ev.player && ev.player !== 'Penalty Kick' ? ev.player : ''}</span></div>
               ` : ''}</div>
             </div>
           `;
@@ -5011,18 +5434,25 @@
               ` : ''}</div>
               <div class="mc-event-min">${ev.minute}'</div>
               <div class="mc-event-side away">${isAway ? `
-                <div class="mc-player-block"><span class="mc-player-name">${ev.player || ev.detail || 'Event'}</span></div>
+                <div class="mc-event-side away">
+                  <div class="mc-player-block"><span class="mc-player-name">${ev.player || ev.detail || 'Event'}</span></div>
+                </div>
               ` : ''}</div>
             </div>
           `;
         }
       });
 
-      if (!htRendered && periods.ht) {
-        html += `<div class="mc-event-scoreboard"><span class="sb-lbl">HT</span><span class="sb-val">${periods.ht}</span></div>`;
-      }
-      if (periods.ft) {
-        html += `<div class="mc-event-scoreboard"><span class="sb-lbl">FT</span><span class="sb-val">${periods.ft}</span></div>`;
+      if (!hasExplicitScoreboards) {
+        if (!htRendered && periods.ht) {
+          html += `<div class="mc-event-scoreboard"><span class="sb-lbl">HT</span><span class="sb-val">${periods.ht}</span></div>`;
+        }
+        if (!ftRendered && periods.ft) {
+          html += `<div class="mc-event-scoreboard"><span class="sb-lbl">FT</span><span class="sb-val">${periods.ft}</span></div>`;
+        }
+        if (!aetRendered && periods.aet) {
+          html += `<div class="mc-event-scoreboard"><span class="sb-lbl">AET</span><span class="sb-val">${periods.aet}</span></div>`;
+        }
       }
 
       container.innerHTML = html;
@@ -5079,7 +5509,7 @@
                 <span class="mc-jersey-num" style="color: ${numColor};">${p.num || ''}</span>
               </div>
               <div class="mc-player-pname">${p.name || ''}</div>
-              ${p.subMinute ? `<div class="mc-player-submin">&gt; ${p.subMinute}</div>` : ''}
+              ${p.subMinute ? `<div class="mc-player-submin">&gt; ${String(p.subMinute).replace(/>/g, '').trim()}</div>` : ''}
             </div>
           `).join('')}
         </div>
@@ -5132,15 +5562,18 @@
 
         const renderSubCol = (subList) => {
           if (!subList || subList.length === 0) return `<div style="color: #6b7280; font-size: 11px; padding: 4px;">-</div>`;
-          return subList.map(s => `
+          return subList.map(s => {
+            const minStr = s.minute ? String(s.minute).replace(/'/g, '').trim() + "'" : '';
+            return `
             <div class="mc-sub-change-row">
               <div class="mc-sub-change-pair">
                 <div class="mc-sub-in"><span class="mc-sub-in-arrow">▲</span> ${s.playerIn || s}</div>
                 <div class="mc-sub-out"><span class="mc-sub-out-arrow">▼</span> ${s.playerOut || '-'}</div>
               </div>
-              <div class="mc-sub-minute">${s.minute ? s.minute + "'" : ''}</div>
+              <div class="mc-sub-minute">${minStr}</div>
             </div>
-          `).join('');
+          `;
+          }).join('');
         };
 
         document.getElementById('mcSubsHomeList').innerHTML = renderSubCol(homeSubEvents.length ? homeSubEvents : home.inOutChanges);
@@ -5177,9 +5610,13 @@
         const aVal = item.away || '0';
         const hNum = parseFloat(String(hVal).replace('%', '')) || 0;
         const aNum = parseFloat(String(aVal).replace('%', '')) || 0;
-        const total = (hNum + aNum) || 1;
-        const hPct = Math.round((hNum / total) * 100);
-        const aPct = 100 - hPct;
+        const sum = hNum + aNum;
+        let hPct = 0;
+        let aPct = 0;
+        if (sum > 0) {
+          hPct = Math.round((hNum / sum) * 100);
+          aPct = 100 - hPct;
+        }
 
         return `
           <div class="mc-stat-item">
@@ -5197,26 +5634,30 @@
       }).join('');
     }
 
-    // Floating Odds Dropdown Tooltip
+    // Floating Odds Dropdown Tooltip (Strictly for 1X2, UnderOver, BTTS)
     function toggleOddsTooltip(event, marketKey) {
-      event.stopPropagation();
+      if (event) event.stopPropagation();
       const data = window.MATCH_DATA;
       if (!data) return;
       const markets = data.markets || {};
       const hero = data.hero || {};
-      const m = markets[marketKey] || markets['1X2'] || {};
+      
+      const validMarkets = ['1X2', 'UnderOver', 'BTTS'];
+      const targetKey = validMarkets.includes(marketKey) ? marketKey : '1X2';
+      const m = markets[targetKey] || {};
       const ext = m.extendedOdds;
 
       const tt = document.getElementById('oddsFloatingTooltip');
       if (!tt) return;
 
-      if (tt.style.display === 'block') {
+      if (tt.style.display === 'block' && tt.dataset.activeMarket === targetKey) {
         tt.style.display = 'none';
         return;
       }
+      tt.dataset.activeMarket = targetKey;
 
       let oddsHtml = '';
-      if (ext && (ext['1'] || ext['X'] || ext['2'])) {
+      if (targetKey === '1X2' && ext && (ext['1'] || ext['X'] || ext['2'])) {
         oddsHtml = `
           <div class="odds-tt-cols">
             <div class="odds-tt-col"><span class="col-lbl">1</span><b class="col-val">${ext['1'] || '-'}</b></div>
@@ -5224,14 +5665,14 @@
             <div class="odds-tt-col"><span class="col-lbl">2</span><b class="col-val">${ext['2'] || '-'}</b></div>
           </div>
         `;
-      } else if (ext && (ext['under'] || ext['over'])) {
+      } else if (targetKey === 'UnderOver' && ext && (ext['under'] || ext['over'])) {
         oddsHtml = `
           <div class="odds-tt-cols">
             <div class="odds-tt-col"><span class="col-lbl">Under</span><b class="col-val">${ext.under || '-'}</b></div>
             <div class="odds-tt-col"><span class="col-lbl">Over</span><b class="col-val">${ext.over || '-'}</b></div>
           </div>
         `;
-      } else if (ext && (ext['yes'] || ext['no'])) {
+      } else if (targetKey === 'BTTS' && ext && (ext['yes'] || ext['no'])) {
         oddsHtml = `
           <div class="odds-tt-cols">
             <div class="odds-tt-col"><span class="col-lbl">Yes</span><b class="col-val">${ext.yes || '-'}</b></div>
@@ -5239,15 +5680,16 @@
           </div>
         `;
       } else {
-        oddsHtml = `<div style="padding: 10px; text-align: center; color: #94a3b8;">Main Odds: <b>${m.mainOdds || '-'}</b></div>`;
+        oddsHtml = `<div style="padding: 10px; text-align: center; color: #94a3b8; font-size: 13px;">Main Odds: <b style="color: #38bdf8; font-size: 16px;">${m.mainOdds || '-'}</b></div>`;
       }
 
       tt.innerHTML = `
-        <div class="odds-tt-header">${hero.homeTeam || 'Home'} - ${hero.awayTeam || 'Away'} <span class="tt-close" onclick="document.getElementById('oddsFloatingTooltip').style.display='none'">✕</span></div>
+        <div class="odds-tt-header">${hero.homeTeam || 'Home'} - ${hero.awayTeam || 'Away'} (${targetKey}) <span class="tt-close" onclick="document.getElementById('oddsFloatingTooltip').style.display='none'">✕</span></div>
         ${oddsHtml}
       `;
 
-      const rect = event.target.getBoundingClientRect();
+      const target = event.currentTarget || event.target;
+      const rect = target.getBoundingClientRect();
       tt.style.left = `${Math.max(10, rect.left - 60)}px`;
       tt.style.top = `${rect.bottom + window.scrollY + 6}px`;
       tt.style.display = 'block';

@@ -2,6 +2,120 @@
 
 Tüm önemli değişiklikler, yeni modüller ve hata düzeltmeleri bu dosyada [Semantic Versioning](https://semver.org/) kurallarına göre tutulur.
 
+## [3.3.0-GOLDEN-MASTER] — 2026-08-20
+### 🏆 BPA V3 Golden Master Release (Tüm Modüller Tamamlandı)
+- **Kapsamlı Veri Çıkarımı:**
+  - 9 Tahmin Pazarı (1X2, U/O 2.5, HT 1X2, HT/FT, BTTS, Double Chance, Handicap, Corners, Cards).
+  - Extended Odds (Büro oranları & handikap/oran hareketleri popup'ı).
+  - Match Center Olayları (Goller, asistler, penaltılar `✔/✖`, kartlar `🟨/🟥`, ilk 11 kadroları, yedekler, değişiklikler, maç içi şut/topla oynama barları).
+  - H2H, 4 Bloklu Son Maçlar Formu, 10 Kategorili Overall Stats, Straight Line Distance (`3900km`), Next Matches Fixture Difficulty (1-5 FDR & View all).
+  - Oynanmamış maçlarda net skor koruması (`-` / `Upcoming`).
+- **Otomasyon & Dağıtım Altyapısı:**
+  - `run_bot.bat` interaktif terminal kontrol paneli eklendi.
+  - Canlı hosting/staged APEX API URL ve Gizli Anahtar desteği (`config.json` / CLI parametresi).
+
+## [3.2.9-PRO] — 2026-08-20
+### 🎯 Distance & Upcoming Score Parsing Fixes
+- **Straight Line Distance Seçici İyileştirmesi (`parsers/parse_distance.js`):**
+  - Forebet'te H2H yüzdeler çubuğu olan `.st_dstc` yerine doğrudan gerçek mesafe modülü olan `.dist_cnt` hedeflendi.
+  - `hasDistance: true`, `km: "3900km"`, şehirler ve stadyum bilgileri eksiksiz ayrıştırıldı.
+- **Oynanmamış (Upcoming) Maçlarda Skor Alanına Oran Sızmasının Engellenmesi (`parsers/parse_hero.js`):**
+  - Skor seçicisi yalnızca doğrulanmış `\d+ - \d+` formatındaki gerçek skor kutularıyla sınırlandırıldı (`evhdbte` ve gövde fallback'leri kaldırıldı).
+  - Oynanmamış maçlarda `score: "-"`, `finalScore: "-"` ve `status: "Upcoming"` standardı sağlandı.
+
+## [3.2.8-PRO] — 2026-08-20
+### 🎯 Next Matches & Fixture Difficulty (1:1 Forebet FDR & View All Desteği)
+- **Tüm Fikstür ve Zorluk Puanları (`parsers/parse_next_matches.js`):**
+  - Forebet `.diff_blocks_container` yapısından ilk 6 maç ve `hidd_stat` içindeki tüm gelecek maçlar, lig ve tarih bilgisiyle çıkarıldı.
+  - Zorluk seviyeleri (`Easy 1 ... Severe 5`) renk kodlarına göre 1-5 puan skalasında işlendi.
+- **1:1 Forebet Kartı ve Skala Çubuğu (`viewer/template_viewer.html`):**
+  - `LDU NEXT MATCHES DIFFICULTY MIR` başlığı, 5 renkli skala barı ve 2 sütunlu şık kart tasarımı yerleştirildi.
+  - Ortalanmış `View all` butonuyla 6 maçtan 16 maça kadar dinamik açılma/kapanma sağlandı.
+
+## [3.2.7-PRO] — 2026-08-20
+### 🎯 Forebet DOM 1:1 Kronolojik Olay & Scoreboard Sıralaması (HT, FT, AET, PEN)
+- **Doğrudan Olay Akışı Scoreboardları (`type: "scoreboard"`):**
+  - Forebet'in `.match-events__scoreboard` satırları (HT, FT, AET, PEN) hiçbir yapay hesaplama yapılmaksızın Forebet DOM'unda geldiği sırayla `events` listesine eklendi.
+- **Stenhousemuir vs Motherwell Doğrulaması:**
+  - 85' oyuncu değişikliği ➡️ 90+3' sarı kart ➡️ **`FT 0-0`** ➡️ 91' uzatma oyuncu değişikliği ➡️ ... ➡️ 120' sarı kart ➡️ **`AET 1-0`** kusursuz sıralandı.
+- **FFV Erfurt W vs Ingolstadt W Doğrulaması:**
+  - 20' gol ➡️ **`HT 0-1`** ➡️ 67' kırmızı kart ➡️ 90+4' gol ➡️ **`FT 1-1`** ➡️ **`AET 1-1`** ➡️ Penaltı atışları birebir aynı sırayla aktarıldı.
+
+## [3.2.6-PRO] — 2026-08-20
+### 🎯 Penaltı Skoru (`Pen. 1-4`), Uzatma Skoru (`AET 1-0`), Nizami Rozetler & Modal Header
+- **Net Penaltı ve Uzatma Skorları (`penScore: "1-4"`, `aetScore: "1-0"`):**
+  - Forebet `.match_res_status` alanı regex ile taranarak genel "Yes" yerine net skor sayıları (`Pen. 1-4`, `AET 1-0`) JSON şemasına aktarıldı.
+- **Hero Skor Satırı (1:1 Nizami Forebet):**
+  - Üst üste yığılan 4 ayrı kırmızı kutu kaldırıldı. Forebet standartlarında tek bir satır (`Pen. 1-4 • FT • HT: 0-1`) haline getirildi.
+- **Match Center Modal Başlığı:**
+  - Modal üst kısmında penaltı/uzatma rozeti (`Pen. 1-4` / `AET 1-0`), ana skor (`1 - 1` / `0 - 0`) ve `Full time (HT 0-1)` 1:1 Forebet masaüstü düzenine bağlandı.
+- **Penaltı Olayları & Zaman Çizelgesi (Timeline):**
+  - Gol olan penaltılar `(pen.) ✔` (yeşil top), kaçan penaltılar `(pen.) ✖` (kırmızı çarpı) ile ayrıştırıldı.
+  - Maç içi olaylar zaman çizelgesine `HT`, `FT`, `AET` ve `PEN` ara çubukları kronolojik olarak yerleştirildi.
+
+## [3.2.5-PRO] — 2026-08-20
+### 🎯 Double Chance Yüzdesi & Özel Maç Durumları (Pen., AET, Cancl.)
+- **Double Chance Yüzdesi (1:1 Forebet):**
+  - Forebet'in Double Chance pazarındaki `Prob. % 1X/2X/12` tek yüzdelik yapısı (`76%`) ve pick (`X2`) `parsers/parse_markets.js` ve `viewer/template_viewer.html` içinde tam 1:1 formatlandı.
+- **Penaltılara Kalan Maçlar (Pen. FT):**
+  - `.ladtm` içindeki "Pen." indikatörü algılanarak `status: "Pen. FT"` ve `penScore: "Yes"` olarak çıkarıldı (Örn: `FFV Erfurt W vs Ingolstadt W`).
+- **Uzatmaya Giden Maçlar (AET FT):**
+  - `.ladtm` içindeki "AET" indikatörü algılanarak `status: "AET FT"` ve `aetScore: "Yes"` olarak çıkarıldı (Örn: `Stenhousemuir FC vs Motherwell`).
+- **İptal Edilen / Ertelenen Maçlar (Cancl. / Postp.):**
+  - `.l_min` içindeki "Cancl." indikatörüyle `status: "Cancl."` ve `score: "-"` olarak bağlandı; tablodaki oranların skor sanılması engellendi (Örn: `PSK Dinskaya vs Pobeda`).
+
+## [3.2.4-PRO] — 2026-08-20
+### 🎯 Lig Bayrağı, Ülke/Lig/Raunt Tespiti, Hava Durumu & HT/Penaltı Skorları
+- **Lig Bayrağı, Ülke ve Lig Adı:**
+  - Forebet'in `getstag` parametreleri (`country`, `league`, `flagCode`, `leagueUrl`) ve `img.flsc` bayrakları dinamik olarak çözüldü (Örn: `Colombia`, `Primera A`, `https://www.forebet.com/images/fc/co.png`).
+- **Raunt (Round) Tespiti:**
+  - Sayfa başlıkları ve `.heading` elemanlarından maçın raunt/tur bilgisi çıkarıldı (Örn: `Round 30, Clausura`, `1/8-finals`).
+- **Hava Durumu (`weather`):**
+  - `.prwth .wnums` ve DOM elemanlarından sıcaklık bilgisi (`23°`, `27°`) çekilerek Hero ve market tablolarına bağlandı.
+- **İlk Yarı (HT), Uzatma (AET) ve Penaltı Skorları:**
+  - `.lscr_td .ht_scr` ve Match Center period verileriyle ilk yarı skorları (`HT 0-1`), uzatma (`AET`) ve penaltılar (`Pen. 4-3`) hem Hero kartına hem de tablodaki `Score` hücresine parantez içinde eklendi.
+- **Hero Çift Skor Çakışması Giderildi:**
+  - Forebet tahmini (`Pred: 1-1`) sarı rozetle, resmi maç skoru (`1 - 1 FT`) ise Match Center rozeti olarak Forebet 1:1 orijinal düzenine kavuşturuldu.
+
+## [3.2.3-PRO] — 2026-08-20
+### 🎯 Bitmiş Maç Tahmin Sonuçlandırması & Sadece 3 Markette Extended Odds Standardı
+- **Bitmiş Maçlarda Tahminlerin Sonuçlandırılması (FT Win / Loss):**
+  - Forebet DOM'unda `data-minute="FT"` ve `blink_me` sınıfının canlı maç sanılarak `pending`'de takılması sorunu çözüldü.
+  - FT bitmiş tüm maçlarda 1X2 (`1`, `X`, `2`), Under/Over 2.5 (`Under`, `Over`), BTTS (`Yes`, `No`), HT (`1`, `X`, `2`), HT/FT (`X/X`, `1/1` vb.) ve Double Chance pazarları maçın resmi FT ve HT skoruna göre anında `win` (yeşil) veya `loss` (kırmızı) olarak kesin sonuçlandırıldı.
+- **Sadece 3 Markette Açılan Büro Oranı (Extended Odds):**
+  - Kullanıcı kuralı doğrultusunda açılan büro oranları (Extended Odds) kesin olarak sadece 3 pazara sınırlandırıldı:
+    1. **1X2:** `1`, `X`, `2` açılan oranları.
+    2. **Under/Over 2.5:** `under`, `over` açılan oranları.
+    3. **BTTS (Both Teams To Score):** `yes`, `no` açılan oranları.
+  - Diğer pazarlarda (`HT`, `HT_FT`, `Double Chance`, `Handicap`, `Corners`, `Cards`, `Scorers`) açılan barem bulunmadığı için `extendedOdds: null` yapıldı ve yalnızca tek normal `mainOdds` değeri aktarıldı.
+- **Master Test Doğrulaması:**
+  - `tools/run_all_tests.js` test paketi çalıştırılarak Cloudflare Stealth, Veri Kalitesi (%100.0) ve APEX REST Ingestion Sync (HTTP 200) testleri başarıyla doğrulandı.
+
+## [3.2.2-PRO] — 2026-08-20
+### 🎯 Hero Form Badges (6 Maç), Deplasman Logosu & Floating Odds Tooltip Düzeltmesi
+- **6 Maçlık Hero Form Rozetleri:**
+  - Forebet DOM'undaki `.prformcont` elemanları taranarak hem Ev Sahibi hem Deplasman için tam 6 maçlık form dizileri (`homeForm`: `W, W, D, W, D, W`, `awayForm`: `D, L, L, W, D, D`) eksiksiz çıkarıldı. Fallback sahte veri üretimi kaldırıldı.
+- **Deplasman Logosu Filtrelemesi:**
+  - Deplasman takımı logosu yerine hava durumu/bayrak resimlerinin seçilmesi önlendi; `.st_logo_box_img_container img` vb. gerçek takım logo kapsayıcıları filtrelenerek Red Bull Bragantino logosu (`icons/3861.png`) kusursuz bağlandı.
+- **Forebet Hero Tahmin & Oran Kutusu (1:1 Floating Odds Dropdown):**
+  - Forebet Hero kartı ortasına Forebet ana tahmin rozeti (`X`, `1`, `2`) ve tahmini skor/oran kutusu (`1 - 2`) eklendi.
+  - Bu kutucuğa veya market tablolarındaki `Odds` butonlarına tıklandığında açılan `.odds-floating-tooltip` CSS stilleri, koyu z-index 999999 teması ve dinamik pozisyonlama mekanizması onarıldı.
+- **Master Test Doğrulaması:**
+  - `tools/run_all_tests.js` test paketi çalıştırılarak Cloudflare Stealth, Veri Kalitesi (%100.0) ve APEX REST Ingestion Sync (HTTP 200) testleri başarıyla doğrulandı.
+
+## [3.2.1-PRO] — 2026-08-20
+### 🛡️ Match Center İyileştirmeleri, Substitutions & Stats Bar Standardı
+- **Atlético Mineiro vs RB Bragantino Match Center Doğrulaması:**
+  - 60' ve 67' dakikalarındaki tüm değişiklikler (`Mateo Cassierra / Reinier`, `Alan Minda / Bernard`, `Henry Mosquera / Vinicinho`) başarıyla çekilerek hem `events` dizisine hem de Taktik Saha üzerindeki çıkış rozetlerine (`> 60'`, `> 67'`) aktarıldı.
+- **Stats Bar 0-0 ve Yüzde Görseli:**
+  - `template_viewer.html` içindeki `renderMcStats` fonksiyonunda her iki takımın değeri 0-0 olduğunda progress bar'ın yarı yarıya dolu görünmesi düzeltildi; toplam 0 iken boş nötr gri track görünmesi sağlandı.
+- **Canlı Maç Dakika Zırhlama:**
+  - `parse_hero.js` içinde canlı maç dakikası okunurken meydana gelebilecek çift kesme işareti (`61'' (Live)`) formatı `61' (Live)` olarak standartlaştırıldı.
+- **Substitutions Tablosu Formatlaması:**
+  - `renderMcLineups` fonksiyonunda dakika formatı (`60'`) iki sütunlu Ev/Deplasman ızgarasında çift tırnak tekrarsız temiz hale getirildi.
+- **Uçtan Uca Çoklu Maç Doğrulaması:**
+  - İki farklı maç (Atlético Mineiro vs RB Bragantino ve Beşiktaş vs Eyüpspor) kazınarak HTML Viewer üzerinde test edildi. Master Test Suite %100 PASS verdi.
+
 ## [3.2.0-PRO] — 2026-08-20
 ### ✨ 1:1 Taktik Futbol Sahası, Canlı Maç Güvenliği ve Kadro Değişiklikleri
 - **1:1 Taktik Futbol Sahası (Tactical Pitch):**
