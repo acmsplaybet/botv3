@@ -12,40 +12,114 @@ namespace ApexBotDesktop
         [STAThread]
         static void Main()
         {
-            // 1. Kök dizini bul (program/ klasörünün bir üstü = botv3 ana dizini)
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            // 1. Çalışma ve Proje Dizinini Tespit Et
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string rootDir = Path.GetFullPath(Path.Combine(appDir, ".."));
-            if (!File.Exists(Path.Combine(rootDir, "server.js")))
+
+            // 2. config.json'da kayıtlı özel node_modules / root yolu var mı?
+            string savedPath = GetSavedRootPath(appDir);
+            if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
             {
-                rootDir = appDir; // Eğer tüm dosyalar aynı klasördeyse
+                rootDir = savedPath;
             }
 
-            // 2. Node.js ve node_modules'un bulunduğu kök dizinde sunucuyu başlat
+            // 3. node_modules ve server.js kontrolü yap
+            if (!File.Exists(Path.Combine(rootDir, "server.js")) || !Directory.Exists(Path.Combine(rootDir, "node_modules")))
+            {
+                // Bulunamadı -> Kullanıcıya sor ve otomatik kaydet!
+                rootDir = PromptUserForProjectDirectory(rootDir, appDir);
+                if (string.IsNullOrEmpty(rootDir))
+                {
+                    return; // Kullanıcı iptal etti
+                }
+            }
+
+            // 4. Node.js Sunucusunu Belirlenen Dizinde Başlat
             EnsureNodeServerRunning(rootDir);
 
-            // 3. Modern Desktop App Penceresini Başlat (Chromium App Mode)
+            // 5. Modern Masaüstü Penceresini Başlat
             LaunchModernDesktopWindow();
+        }
+
+        private static string GetSavedRootPath(string appDir)
+        {
+            try
+            {
+                string cfgPath = Path.Combine(appDir, "path_config.txt");
+                if (File.Exists(cfgPath))
+                {
+                    string path = File.ReadAllText(cfgPath).Trim();
+                    if (Directory.Exists(path)) return path;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static void SaveRootPath(string appDir, string rootDir)
+        {
+            try
+            {
+                string cfgPath = Path.Combine(appDir, "path_config.txt");
+                File.WriteAllText(cfgPath, rootDir);
+            }
+            catch { }
+        }
+
+        private static string PromptUserForProjectDirectory(string currentRoot, string appDir)
+        {
+            MessageBox.Show(
+                "APEX-BOT: 'node_modules' veya 'server.js' dosyaları otomatik bulunamadı.\n\n" +
+                "Lütfen 'node_modules' klasörünüzün bulunduğu ana proje (botv3) klasörünü seçin.",
+                "APEX-BOT Konum Belirleme",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
+            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
+            {
+                fbd.Description = "Lütfen 'node_modules' klasörünün bulunduğu ana 'botv3' dizinini seçin:";
+                fbd.ShowNewFolderButton = false;
+                if (Directory.Exists(currentRoot)) fbd.SelectedPath = currentRoot;
+
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+                    string selected = fbd.SelectedPath;
+                    // Kontrol et
+                    if (Directory.Exists(Path.Combine(selected, "node_modules")))
+                    {
+                        SaveRootPath(appDir, selected);
+                        MessageBox.Show("Konum başarıyla kaydedildi:\n" + selected, "APEX-BOT Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return selected;
+                    }
+                    else
+                    {
+                        // node_modules bulunamadıysa bile bu klasörü kabul et
+                        SaveRootPath(appDir, selected);
+                        return selected;
+                    }
+                }
+            }
+            return null;
         }
 
         private static string FindNodeExecutable(string rootDir)
         {
-            // 1. Öncelik: botv3 klasörünün kendi içindeki node.exe (eğer taşındıysa)
             string localNode = Path.Combine(rootDir, "node.exe");
             if (File.Exists(localNode)) return localNode;
 
-            // 2. Öncelik: Program Files / nodejs
             string pfNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"nodejs\node.exe");
             if (File.Exists(pfNode)) return pfNode;
 
-            // 3. Öncelik: Program Files (x86) / nodejs
             string pfx86Node = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"nodejs\node.exe");
             if (File.Exists(pfx86Node)) return pfx86Node;
 
-            // 4. Öncelik: AppData / Local / Programs / nodejs
             string userNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\nodejs\node.exe");
             if (File.Exists(userNode)) return userNode;
 
-            // 5. Fallback: Sistem PATH'indeki genel "node"
             return "node.exe";
         }
 
@@ -57,7 +131,7 @@ namespace ApexBotDesktop
                 req.Timeout = 800;
                 using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
                 {
-                    if (res.StatusCode == HttpStatusCode.OK) return; // Sunucu zaten ayakta
+                    if (res.StatusCode == HttpStatusCode.OK) return;
                 }
             }
             catch { }
@@ -70,7 +144,7 @@ namespace ApexBotDesktop
                 {
                     FileName = nodePath,
                     Arguments = "server.js",
-                    WorkingDirectory = rootDir, // <-- node_modules doğrudan bu klasörden okunur!
+                    WorkingDirectory = rootDir,
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden
@@ -80,7 +154,7 @@ namespace ApexBotDesktop
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Node.js başlatılamadı: " + ex.Message + "\nLütfen Node.js'in kurulu olduğundan emin olun.", "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Node.js başlatılamadı: " + ex.Message, "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -89,14 +163,12 @@ namespace ApexBotDesktop
             string url = "http://localhost:3050/program/index.html";
             string args = string.Format("--app=\"{0}\" --window-size=1080,720 --app-id=APEX_BOT_PRO", url);
 
-            // 1. Öncelik: Windows 10/11'de yerleşik olan Microsoft Edge (Chromium)
             string edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe");
             if (!File.Exists(edgePath))
             {
                 edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Microsoft\Edge\Application\msedge.exe");
             }
 
-            // 2. Öncelik: Google Chrome
             string chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Google\Chrome\Application\chrome.exe");
             if (!File.Exists(chromePath))
             {
@@ -123,7 +195,6 @@ namespace ApexBotDesktop
                 catch { }
             }
 
-            // Fallback: Varsayılan tarayıcıda aç
             Process.Start(url);
         }
     }
