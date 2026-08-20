@@ -15,22 +15,11 @@ namespace ApexBotDesktop
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // 1. Çalışma Dizinini Belirle
-            string appDir = AppDomain.CurrentDomain.BaseDirectory;
-            string rootDir = appDir; // Varsayılan: EXE'nin kendi klasörü (Örn: C:\APEX-BOT)
+            // 1. Çalışma Dizinini Doğrudan EXE'nin Kendi Klasörü Yap
+            string rootDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // Eğer EXE'nin yanında server.js yoksa, bir üst klasöre bak
-            if (!File.Exists(Path.Combine(rootDir, "server.js")))
-            {
-                string parentDir = Path.GetFullPath(Path.Combine(appDir, ".."));
-                if (File.Exists(Path.Combine(parentDir, "server.js")))
-                {
-                    rootDir = parentDir;
-                }
-            }
-
-            // 2. path_config.txt içinde kayıtlı özel bir yol var mı?
-            string savedPath = GetSavedRootPath(appDir);
+            // 2. Özel bir yol path_config.txt içinde kayıtlıysa oku
+            string savedPath = GetSavedRootPath(rootDir);
             if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath) && File.Exists(Path.Combine(savedPath, "server.js")))
             {
                 rootDir = savedPath;
@@ -39,14 +28,14 @@ namespace ApexBotDesktop
             // 3. node_modules ve server.js kontrolü
             if (!File.Exists(Path.Combine(rootDir, "server.js")))
             {
-                rootDir = PromptUserForProjectDirectory(rootDir, appDir);
+                rootDir = PromptUserForProjectDirectory(rootDir);
                 if (string.IsNullOrEmpty(rootDir)) return;
             }
 
-            // 4. Node.js Sunucusunu Belirlenen Dizinde Başlat
+            // 4. Node.js Sunucusunu Bu Klasörde Başlat
             EnsureNodeServerRunning(rootDir);
 
-            // 5. Modern Masaüstü Penceresini Başlat
+            // 5. Modern Masaüstü Chromium Penceresini Aç
             LaunchModernDesktopWindow();
         }
 
@@ -75,11 +64,11 @@ namespace ApexBotDesktop
             catch { }
         }
 
-        private static string PromptUserForProjectDirectory(string currentRoot, string appDir)
+        private static string PromptUserForProjectDirectory(string currentRoot)
         {
             MessageBox.Show(
                 "APEX-BOT: 'server.js' veya 'node_modules' dosyaları otomatik bulunamadı.\n\n" +
-                "Lütfen bot dosyalarınızın bulunduğu ana klasörü (APEX-BOT) seçin.",
+                "Lütfen bot dosyalarınızın bulunduğu ana klasörü seçin.",
                 "APEX-BOT Konum Belirleme",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
@@ -87,14 +76,14 @@ namespace ApexBotDesktop
 
             using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
-                fbd.Description = "Lütfen bot dosyalarının bulunduğu ana klasörü seçin:";
+                fbd.Description = "Lütfen APEX-BOT ana klasörünü seçin:";
                 fbd.ShowNewFolderButton = false;
                 if (Directory.Exists(currentRoot)) fbd.SelectedPath = currentRoot;
 
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     string selected = fbd.SelectedPath;
-                    SaveRootPath(appDir, selected);
+                    SaveRootPath(currentRoot, selected);
                     return selected;
                 }
             }
@@ -103,15 +92,19 @@ namespace ApexBotDesktop
 
         private static string FindNodeExecutable(string rootDir)
         {
+            // 1. Kendi klasöründeki node.exe
             string localNode = Path.Combine(rootDir, "node.exe");
             if (File.Exists(localNode)) return localNode;
 
+            // 2. Program Files
             string pfNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"nodejs\node.exe");
             if (File.Exists(pfNode)) return pfNode;
 
+            // 3. Program Files (x86)
             string pfx86Node = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"nodejs\node.exe");
             if (File.Exists(pfx86Node)) return pfx86Node;
 
+            // 4. AppData
             string userNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\nodejs\node.exe");
             if (File.Exists(userNode)) return userNode;
 
@@ -123,10 +116,10 @@ namespace ApexBotDesktop
             try
             {
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create("http://localhost:3050/api/status");
-                req.Timeout = 800;
+                req.Timeout = 1000;
                 using (HttpWebResponse res = (HttpWebResponse)req.GetResponse())
                 {
-                    if (res.StatusCode == HttpStatusCode.OK) return;
+                    if (res.StatusCode == HttpStatusCode.OK) return; // Zaten çalışıyor
                 }
             }
             catch { }
@@ -145,17 +138,32 @@ namespace ApexBotDesktop
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
                 Process.Start(psi);
-                Thread.Sleep(1200);
+
+                // Sunucu ayağa kalkana kadar döngüyle kontrol et (Max 5 saniye)
+                for (int i = 0; i < 10; i++)
+                {
+                    Thread.Sleep(500);
+                    try
+                    {
+                        HttpWebRequest testReq = (HttpWebRequest)WebRequest.Create("http://localhost:3050/api/status");
+                        testReq.Timeout = 500;
+                        using (HttpWebResponse testRes = (HttpWebResponse)testReq.GetResponse())
+                        {
+                            if (testRes.StatusCode == HttpStatusCode.OK) break;
+                        }
+                    }
+                    catch { }
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Node.js başlatılamadı: " + ex.Message, "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Node.js başlatılamadı: " + ex.Message + "\nLütfen Node.js'in sistemde kurulu olduğundan emin olun.", "APEX-BOT Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private static void LaunchModernDesktopWindow()
         {
-            string url = "http://localhost:3050/program/index.html";
+            string url = "http://localhost:3050/";
             string args = string.Format("--app=\"{0}\" --window-size=1080,720 --app-id=APEX_BOT_PRO", url);
 
             string edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe");

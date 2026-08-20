@@ -1,0 +1,8 @@
+{
+  "apexImportUrl": "http://localhost/apex-api/api/import.php",
+  "apexSecret": "apex_secret_key_2026",
+  "concurrency": 2,
+  "headless": "new",
+  "autoSyncApex": true,
+  "timeoutMs": 30000
+}
