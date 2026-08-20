@@ -149,11 +149,13 @@ goto MENU
 :SUNUCU
 cls
 echo ===============================================================================
-echo 💻 LOCALHOST EXPRESS GÖRÜNTÜLEYİCİ SUNUCUSU BAŞLATILIYOR...
+echo 💻 WEB KONTROL PANELİ VE GÖRÜNTÜLEYİCİ BAŞLATILIYOR...
 echo ===============================================================================
-echo Sunucu adresi: http://localhost:3000
-echo Durdurmak için bu pencereyi kapatabilir veya Ctrl+C basabilirsiniz.
 echo.
+echo 🌐 Tarayıcı otomatik açılıyor: http://localhost:3050
+echo 🛑 Sunucuyu durdurmak için bu pencereyi kapatabilir veya Ctrl+C basabilirsiniz.
+echo.
+start http://localhost:3050
 node server.js
 pause
 goto MENU

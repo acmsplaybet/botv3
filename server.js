@@ -1,8 +1,14 @@
 /**
  * ====================================================================
- * BPA V3 BOT CONTROLLER SERVER & LIVE LOG STREAMER
+ * BPA V3 — MASTER BOT CONTROLLER SERVER & LIVE WEB DASHBOARD (server.js)
  * ====================================================================
- * Supports Single Match, Daily Crawl, Date-Range Archiving, and Stop Control
+ * Features:
+ * - Real-time SSE Live Log Streaming & Progress Monitoring
+ * - Automated Scheduler / Recurring Cron for Live Matches & Bülten
+ * - Dynamic APEX API URL & Secret Key Configuration (.json persistent)
+ * - Single Match, Batch Crawling (Today, Yesterday, Tomorrow)
+ * - 1:1 Match Viewer HTTP Hosting & JSON APIs
+ * ====================================================================
  */
 
 const http = require('http');
@@ -12,7 +18,7 @@ const url = require('url');
 
 const { scrapeMatch } = require('./scrape_match');
 const { discoverDailyMatches } = require('./core/daily_discovery');
-const { runCrawlPool } = require('./core/crawl_pool');
+const { syncMatchToApex, loadConfig } = require('./core/apex_sync_client');
 
 const PORT = process.env.PORT || 3050;
 
@@ -47,455 +53,431 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-// Global State for Daily / Range Crawler
+// Global Job State
 let activeJob = {
   isRunning: false,
-  jobType: null, // 'daily' or 'range'
-  jobId: null,
-  startDate: null,
-  endDate: null,
-  currentDate: null,
-  totalDays: 0,
-  completedDays: 0,
+  jobType: null, // 'single', 'daily', 'batch'
+  targetDate: null,
+  limit: null,
   totalMatches: 0,
   completedMatches: 0,
   failedMatches: 0,
-  dbIngested: 0,
   progressPct: 0,
-  speed: 0,
-  activeWorkers: {},
-  cancelRequested: false
+  currentMatch: null,
+  cancelRequested: false,
+  startTime: null
 };
 
-function getDatesArray(startDateStr, endDateStr) {
-  const dates = [];
-  const curr = new Date(startDateStr);
-  const end = new Date(endDateStr);
-  while (curr <= end) {
-    dates.push(curr.toISOString().split('T')[0]);
-    curr.setDate(curr.getDate() + 1);
-  }
-  return dates;
+// Scheduler (Otomatik Zamanlayıcı) State
+let schedulerState = {
+  enabled: false,
+  intervalMinutes: 30,
+  targetMode: 'today', // 'today', 'yesterday', 'all'
+  limit: 20,
+  timerId: null,
+  lastRunTime: null,
+  nextRunTime: null,
+  runCount: 0
+};
+
+// Scheduler Runner
+function startScheduler(intervalMinutes = 30, targetMode = 'today', limit = 20) {
+  stopScheduler();
+  schedulerState.enabled = true;
+  schedulerState.intervalMinutes = intervalMinutes;
+  schedulerState.targetMode = targetMode;
+  schedulerState.limit = limit;
+
+  const ms = intervalMinutes * 60 * 1000;
+  schedulerState.nextRunTime = new Date(Date.now() + ms).toLocaleTimeString();
+
+  broadcastEvent('scheduler_update', schedulerState);
+  broadcastLog(`⏰ Otomatik Zamanlayıcı BAŞLATILDI: Her ${intervalMinutes} dakikada bir [${targetMode}] çalışacak.`, 'success');
+
+  schedulerState.timerId = setInterval(async () => {
+    if (activeJob.isRunning) {
+      broadcastLog(`⏰ Zamanlayıcı tetiklendi ancak aktif bir kazıma devam ettiği için bu tur atlandı.`, 'warning');
+      return;
+    }
+
+    broadcastLog(`⏰ [ZAMANLAYICI TETİKLENDİ] Otomatik kazıma döngüsü başlıyor (${schedulerState.targetMode})...`, 'info');
+    schedulerState.lastRunTime = new Date().toLocaleTimeString();
+    schedulerState.runCount++;
+    schedulerState.nextRunTime = new Date(Date.now() + ms).toLocaleTimeString();
+    broadcastEvent('scheduler_update', schedulerState);
+
+    try {
+      await runInternalBatchJob(schedulerState.targetMode, schedulerState.limit);
+    } catch (e) {
+      broadcastLog(`❌ Zamanlayıcı kazıma hatası: ${e.message}`, 'error');
+    }
+  }, ms);
 }
 
+function stopScheduler() {
+  if (schedulerState.timerId) {
+    clearInterval(schedulerState.timerId);
+    schedulerState.timerId = null;
+  }
+  schedulerState.enabled = false;
+  schedulerState.nextRunTime = null;
+  broadcastEvent('scheduler_update', schedulerState);
+  broadcastLog(`⏸️ Otomatik Zamanlayıcı DURDURULDU.`, 'warning');
+}
+
+// Internal Batch Scraper
+async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
+  if (activeJob.isRunning) {
+    throw new Error('Hali hazırda çalışan bir kazıma işlemi mevcut.');
+  }
+
+  const today = new Date();
+  let dateStr = today.toISOString().split('T')[0];
+  if (dateKeyword === 'yesterday') {
+    const y = new Date(today);
+    y.setDate(y.getDate() - 1);
+    dateStr = y.toISOString().split('T')[0];
+  } else if (dateKeyword === 'tomorrow') {
+    const t = new Date(today);
+    t.setDate(t.getDate() + 1);
+    dateStr = t.toISOString().split('T')[0];
+  } else if (dateKeyword && dateKeyword.includes('-')) {
+    dateStr = dateKeyword;
+  }
+
+  activeJob = {
+    isRunning: true,
+    jobType: 'batch',
+    targetDate: dateStr,
+    limit,
+    totalMatches: 0,
+    completedMatches: 0,
+    failedMatches: 0,
+    progressPct: 0,
+    currentMatch: null,
+    cancelRequested: false,
+    startTime: Date.now()
+  };
+
+  broadcastEvent('job_started', activeJob);
+  broadcastLog(`🚀 Günlük maç keşfi başlatılıyor: ${dateStr} (Limit: ${limit || 'Tümü'})...`, 'info');
+
+  try {
+    const cfg = loadConfig();
+    const discovery = await discoverDailyMatches(dateStr, { headless: cfg.headless || 'new' });
+    let matches = discovery.matches || [];
+
+    if (matches.length === 0) {
+      broadcastLog(`⚠️ Bu tarih için geçerli maç bulunamadı (${dateStr}).`, 'warning');
+      activeJob.isRunning = false;
+      broadcastEvent('job_finished', activeJob);
+      return;
+    }
+
+    if (limit && limit > 0) {
+      matches = matches.slice(0, limit);
+    }
+
+    activeJob.totalMatches = matches.length;
+    broadcastLog(`✅ Keşif tamamlandı: Toplam ${discovery.total_matches_in_list} maçtan ${matches.length} tanesi işleme alındı.`, 'success');
+    broadcastEvent('job_progress', activeJob);
+
+    for (let i = 0; i < matches.length; i++) {
+      if (activeJob.cancelRequested) {
+        broadcastLog(`🛑 Kazıma işlemi kullanıcı tarafından iptal edildi.`, 'warning');
+        break;
+      }
+
+      const m = matches[i];
+      const matchUrl = m.url || m.link;
+      const title = m.homeTeam && m.awayTeam ? `${m.homeTeam} vs ${m.awayTeam}` : `Maç #${i + 1}`;
+
+      activeJob.currentMatch = title;
+      broadcastLog(`[${i + 1}/${matches.length}] Kazınıyor: ${title}...`, 'info');
+
+      try {
+        const res = await scrapeMatch(matchUrl, {
+          headless: cfg.headless || 'new',
+          syncApex: cfg.autoSyncApex !== undefined ? cfg.autoSyncApex : true,
+          apiUrl: cfg.apexImportUrl,
+          apiKey: cfg.apexSecret
+        });
+
+        if (res && res.success) {
+          activeJob.completedMatches++;
+          broadcastLog(`✅ [${i + 1}/${matches.length}] Başarılı: ${title}`, 'success');
+        } else {
+          activeJob.failedMatches++;
+          broadcastLog(`❌ [${i + 1}/${matches.length}] Başarısız: ${title}`, 'error');
+        }
+      } catch (err) {
+        activeJob.failedMatches++;
+        broadcastLog(`❌ [${i + 1}/${matches.length}] Hata: ${err.message}`, 'error');
+      }
+
+      activeJob.progressPct = Math.round(((i + 1) / matches.length) * 100);
+      broadcastEvent('job_progress', activeJob);
+
+      if (i < matches.length - 1 && !activeJob.cancelRequested) {
+        await new Promise(r => setTimeout(r, 1200));
+      }
+    }
+
+    const elapsed = ((Date.now() - activeJob.startTime) / 1000).toFixed(1);
+    broadcastLog(`🎉 Batch kazıma tamamlandı! (${activeJob.completedMatches} başarılı, ${activeJob.failedMatches} hatalı, ${elapsed}s)`, 'success');
+  } catch (err) {
+    broadcastLog(`❌ Kritik Batch Hatası: ${err.message}`, 'error');
+  } finally {
+    activeJob.isRunning = false;
+    activeJob.currentMatch = null;
+    broadcastEvent('job_finished', activeJob);
+  }
+}
+
+// HTTP Server
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
-  // Enable CORS
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Apex-Secret');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     return res.end();
   }
 
-  // 1. SSE Stream for Live Logs & Real-time Progress
+  // 1. SSE Stream
   if (pathname === '/api/stream') {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive'
     });
-    res.write(': connected\n\n');
     sseClients.push(res);
-
     req.on('close', () => {
       sseClients = sseClients.filter(c => c !== res);
+    });
+
+    // Send initial status
+    broadcastEvent('job_status', activeJob);
+    broadcastEvent('scheduler_update', schedulerState);
+    return;
+  }
+
+  // 2. Status & Config APIs
+  if (pathname === '/api/status') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      activeJob,
+      scheduler: schedulerState,
+      config: loadConfig()
+    }));
+  }
+
+  if (pathname === '/api/config' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(loadConfig()));
+  }
+
+  if (pathname === '/api/config' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body);
+        const p = path.join(__dirname, 'config.json');
+        let cfg = loadConfig();
+        if (payload.apexImportUrl) cfg.apexImportUrl = payload.apexImportUrl.trim();
+        if (payload.apexSecret) cfg.apexSecret = payload.apexSecret.trim();
+        if (payload.headless !== undefined) cfg.headless = payload.headless;
+        if (payload.autoSyncApex !== undefined) cfg.autoSyncApex = Boolean(payload.autoSyncApex);
+
+        fs.writeFileSync(p, JSON.stringify(cfg, null, 2), 'utf8');
+        broadcastLog(`🌐 APEX Ayarları güncellendi: ${cfg.apexImportUrl}`, 'success');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, config: cfg }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: e.message }));
+      }
     });
     return;
   }
 
-  // 2. POST /api/stop - Emergency Stop All Operations
-  if (pathname === '/api/stop' && req.method === 'POST') {
-    activeJob.cancelRequested = true;
-    activeJob.isRunning = false;
-    broadcastLog(`🛑 Kullanıcı tarafından tüm işlemler durduruldu.`, 'warning');
-    broadcastEvent('job_stopped', { message: 'Tüm işlemler durduruldu.' });
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ success: true, message: 'İşlemler durduruldu.' }));
+  // 3. Test APEX Connection
+  if (pathname === '/api/test-apex' && req.method === 'POST') {
+    try {
+      const cfg = loadConfig();
+      // Dummy sample payload to test connection
+      const sampleMatch = {
+        meta: { scrapedAt: new Date().toISOString() },
+        hero: { homeTeam: 'Test LDU', awayTeam: 'Test MIR', matchDate: '2026-08-20', league: 'Test League', result: { status: 'Upcoming', score: '-' } },
+        markets: { '1X2': { pick: '1', prob1: '50%', probX: '25%', prob2: '25%' } }
+      };
+
+      const syncRes = await syncMatchToApex(sampleMatch, cfg.apexImportUrl, cfg.apexSecret);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(syncRes));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: e.message }));
+    }
   }
 
-  // 3. POST /api/scrape - Single Match Scraper
-  if (pathname === '/api/scrape' && req.method === 'POST') {
+  // 4. Trigger Batch Crawl
+  if (pathname === '/api/scrape-batch' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const dateKey = payload.date || 'today';
+        const limit = payload.limit ? parseInt(payload.limit, 10) : null;
+
+        if (activeJob.isRunning) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: false, error: 'Halihazırda bir kazıma devam ediyor.' }));
+        }
+
+        // Run async in background
+        runInternalBatchJob(dateKey, limit).catch(console.error);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, message: `Kazıma başlatıldı: ${dateKey}` }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // 5. Trigger Single Scrape
+  if (pathname === '/api/scrape-single' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', async () => {
       try {
         const payload = JSON.parse(body || '{}');
         const targetUrl = payload.url;
-
         if (!targetUrl || !targetUrl.startsWith('http')) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Geçersiz veya eksik URL' }));
+          return res.end(JSON.stringify({ success: false, error: 'Geçersiz URL' }));
         }
 
-        broadcastLog(`⚡ Tekil maç kazıma tetiklendi: ${targetUrl}`, 'start');
-
+        broadcastLog(`🔗 Tek maç kazıma başlatılıyor: ${targetUrl}`, 'info');
+        const cfg = loadConfig();
         const result = await scrapeMatch(targetUrl, {
-          onLog: (msg) => {
-            console.log(msg);
-            broadcastLog(msg.replace(/\x1B\[\d+m/g, ''), 'log');
-          }
+          headless: cfg.headless || 'new',
+          syncApex: cfg.autoSyncApex !== undefined ? cfg.autoSyncApex : true,
+          apiUrl: cfg.apexImportUrl,
+          apiKey: cfg.apexSecret
         });
 
-        broadcastLog(`🎉 Kazıma başarıyla tamamlandı!`, 'success');
-
+        broadcastLog(`🎉 Tek maç kazıma tamamlandı: ${result.slug}`, 'success');
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          success: true,
-          slug: result.slug,
-          viewerUrl: `/output/${result.slug}/viewer.html`,
-          jsonUrl: `/output/${result.slug}/match_data.json`,
-          latestViewerUrl: `/output/latest_viewer.html`,
-          matchData: result.matchData
-        }));
-
-      } catch (err) {
-        broadcastLog(`❌ Hata: ${err.message}`, 'error');
+        return res.end(JSON.stringify({ success: true, result }));
+      } catch (e) {
+        broadcastLog(`❌ Tek maç hatası: ${e.message}`, 'error');
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
+        return res.end(JSON.stringify({ success: false, error: e.message }));
       }
     });
     return;
   }
 
-  // 4. POST /api/range/start - Start Date-Range Historical Archiving
-  if (pathname === '/api/range/start' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', async () => {
-      try {
-        if (activeJob.isRunning) {
-          res.writeHead(409, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Zaten aktif bir tarama işlemi yürütülüyor.' }));
-        }
-
-        const payload = JSON.parse(body || '{}');
-        const startDate = payload.startDate || '2026-07-25';
-        const endDate = payload.endDate || '2026-08-19';
-        const concurrency = parseInt(payload.concurrency, 10) || 4;
-        const saveDb = payload.saveDb === true;
-
-        const dates = getDatesArray(startDate, endDate);
-        const jobId = `range_${Date.now()}`;
-
-        activeJob = {
-          isRunning: true,
-          jobType: 'range',
-          jobId,
-          startDate,
-          endDate,
-          currentDate: dates[0],
-          totalDays: dates.length,
-          completedDays: 0,
-          totalMatches: 0,
-          completedMatches: 0,
-          failedMatches: 0,
-          dbIngested: 0,
-          progressPct: 0,
-          speed: 0,
-          activeWorkers: {},
-          cancelRequested: false
-        };
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          success: true,
-          jobId,
-          totalDays: dates.length,
-          message: `${startDate} ile ${endDate} arası (${dates.length} Gün) arşivleme başlatıldı.`
-        }));
-
-        // Execute in background
-        (async () => {
-          try {
-            broadcastLog(`🌙 [${jobId}] Tarih Aralığı Arşivleme Başlatıldı: ${startDate} ➔ ${endDate} (${dates.length} Gün)...`, 'start');
-
-            const archiveBaseDir = path.join(__dirname, 'archive');
-            if (!fs.existsSync(archiveBaseDir)) fs.mkdirSync(archiveBaseDir, { recursive: true });
-
-            for (let i = 0; i < dates.length; i++) {
-              if (activeJob.cancelRequested) {
-                broadcastLog(`🛑 Arşivleme durduruldu.`, 'warning');
-                break;
-              }
-
-              const targetDate = dates[i];
-              activeJob.currentDate = targetDate;
-              const dayDir = path.join(archiveBaseDir, targetDate);
-              const summaryPath = path.join(dayDir, 'summary.json');
-
-              broadcastLog(`🗓️ [${i + 1}/${dates.length}] Gün Taranıyor: ${targetDate}...`, 'info');
-
-              // Resume check
-              if (fs.existsSync(summaryPath)) {
-                try {
-                  const sum = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
-                  if (sum.status === 'completed') {
-                    broadcastLog(`⏩ ${targetDate} daha önce taranmış (${sum.completed} maç). Atlanıyor...`, 'success');
-                    activeJob.completedDays++;
-                    activeJob.completedMatches += sum.completed || 0;
-                    continue;
-                  }
-                } catch (e) {}
-              }
-
-              if (!fs.existsSync(dayDir)) fs.mkdirSync(dayDir, { recursive: true });
-
-              const discovery = await discoverDailyMatches(targetDate, {
-                logger: (m) => broadcastLog(m, 'log')
-              });
-
-              if (activeJob.cancelRequested) break;
-
-              if (discovery.quoted_count === 0) {
-                fs.writeFileSync(summaryPath, JSON.stringify({ date: targetDate, status: 'completed', total: 0, completed: 0 }), 'utf8');
-                activeJob.completedDays++;
-                continue;
-              }
-
-              activeJob.totalMatches += discovery.quoted_count;
-
-              const dayResults = await runCrawlPool(discovery.matches, {
-                concurrency,
-                saveDb,
-                saveLocal: true,
-                shouldStop: () => activeJob.cancelRequested,
-                logger: (m) => broadcastLog(m, 'log'),
-                onProgress: (prog) => {
-                  broadcastEvent('range_progress', {
-                    jobId,
-                    currentDate: targetDate,
-                    dayIndex: i + 1,
-                    totalDays: dates.length,
-                    ...prog
-                  });
-                },
-                onMatch: (matchInfo) => {
-                  activeJob.activeWorkers[matchInfo.workerId] = {
-                    label: `${matchInfo.home_team} vs ${matchInfo.away_team}`,
-                    odd: matchInfo.odd,
-                    duration: matchInfo.duration
-                  };
-                  broadcastEvent('daily_match', { jobId, ...matchInfo });
-                }
-              });
-
-              if (activeJob.cancelRequested) break;
-
-              activeJob.completedDays++;
-              activeJob.completedMatches += dayResults.completed;
-              activeJob.failedMatches += dayResults.failed;
-
-              fs.writeFileSync(summaryPath, JSON.stringify({
-                date: targetDate,
-                status: 'completed',
-                total: discovery.quoted_count,
-                completed: dayResults.completed,
-                failed: dayResults.failed,
-                durationSeconds: dayResults.durationSeconds,
-                scrapedAt: new Date().toISOString()
-              }, null, 2), 'utf8');
-
-              broadcastLog(`✅ [${i + 1}/${dates.length}] ${targetDate} tamamlandı (${dayResults.completed} maç).`, 'success');
-            }
-
-            activeJob.isRunning = false;
-            if (!activeJob.cancelRequested) {
-              broadcastLog(`🎉 [${jobId}] Tarih Aralığı Arşivleme Başarıyla Tamamlandı! Toplam ${activeJob.completedMatches} maç arşivlendi.`, 'success');
-              broadcastEvent('range_complete', { jobId, completedMatches: activeJob.completedMatches });
-            }
-
-          } catch (rangeErr) {
-            activeJob.isRunning = false;
-            broadcastLog(`❌ [${jobId}] Arşivleme Hatası: ${rangeErr.message}`, 'error');
-          }
-        })();
-
-      } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
-      }
-    });
-    return;
-  }
-
-  // 5. POST /api/daily/start - Start Single Day Crawl
-  if (pathname === '/api/daily/start' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', async () => {
-      try {
-        if (activeJob.isRunning) {
-          res.writeHead(409, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Zaten aktif bir tarama işlemi yürütülüyor.' }));
-        }
-
-        const payload = JSON.parse(body || '{}');
-        const dateStr = payload.date || new Date().toISOString().split('T')[0];
-        const concurrency = parseInt(payload.concurrency, 10) || 4;
-        const saveDb = payload.saveDb !== undefined ? payload.saveDb : false;
-
-        const jobId = `job_${Date.now()}`;
-        activeJob = {
-          isRunning: true,
-          jobType: 'daily',
-          jobId,
-          startDate: dateStr,
-          endDate: dateStr,
-          currentDate: dateStr,
-          totalDays: 1,
-          completedDays: 0,
-          totalMatches: 0,
-          completedMatches: 0,
-          failedMatches: 0,
-          dbIngested: 0,
-          progressPct: 0,
-          speed: 0,
-          activeWorkers: {},
-          cancelRequested: false
-        };
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, jobId, message: 'Günlük tarama görevi başlatıldı.' }));
-
-        (async () => {
-          try {
-            broadcastLog(`🚀 [${jobId}] Günlük tarama başlatıldı (${dateStr}, ${concurrency} Sekme)...`, 'start');
-
-            const discovery = await discoverDailyMatches(dateStr, {
-              logger: (msg) => broadcastLog(msg, 'log')
-            });
-
-            if (activeJob.cancelRequested) return;
-
-            activeJob.totalMatches = discovery.quoted_count;
-
-            if (discovery.quoted_count === 0) {
-              broadcastLog(`⚠️ Bu tarih için geçerli oran içeren maç bulunamadı.`, 'warning');
-              activeJob.isRunning = false;
-              return;
-            }
-
-            const crawlResults = await runCrawlPool(discovery.matches, {
-              concurrency,
-              saveDb,
-              saveLocal: true,
-              shouldStop: () => activeJob.cancelRequested,
-              logger: (msg, color) => broadcastLog(msg, 'log'),
-              onProgress: (prog) => {
-                activeJob.completedMatches = prog.completed;
-                activeJob.failedMatches = prog.failed;
-                activeJob.progressPct = prog.progressPct;
-                activeJob.speed = prog.speedMatchesPerSec;
-                broadcastEvent('daily_progress', { jobId, ...prog });
-              },
-              onMatch: (matchInfo) => {
-                activeJob.activeWorkers[matchInfo.workerId] = {
-                  label: `${matchInfo.home_team} vs ${matchInfo.away_team}`,
-                  odd: matchInfo.odd,
-                  duration: matchInfo.duration
-                };
-                broadcastEvent('daily_match', { jobId, ...matchInfo });
-              }
-            });
-
-            activeJob.dbIngested = crawlResults.dbIngested;
-            activeJob.isRunning = false;
-            if (!activeJob.cancelRequested) {
-              broadcastLog(`🎉 [${jobId}] Günlük tarama tamamlandı!`, 'success');
-              broadcastEvent('daily_complete', { jobId, ...crawlResults });
-            }
-
-          } catch (jobErr) {
-            activeJob.isRunning = false;
-            broadcastLog(`❌ [${jobId}] Tarama işlemi başarısız: ${jobErr.message}`, 'error');
-          }
-        })();
-
-      } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
-      }
-    });
-    return;
-  }
-
-  // 6. GET /api/status - Get Active Job Status
-  if (pathname === '/api/status' || pathname === '/api/daily/status') {
+  // 6. Stop/Cancel Job
+  if (pathname === '/api/stop-job' && req.method === 'POST') {
+    activeJob.cancelRequested = true;
+    broadcastLog(`🛑 Kazıma durdurma isteği iletildi...`, 'warning');
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify(activeJob));
+    return res.end(JSON.stringify({ success: true, message: 'İptal isteği alındı' }));
   }
 
-  // 7. GET /api/history - List past scrapes
-  if (pathname === '/api/history') {
-    const outDir = path.join(__dirname, 'output');
-    const list = [];
-    if (fs.existsSync(outDir)) {
-      const items = fs.readdirSync(outDir, { withFileTypes: true });
-      for (const it of items) {
-        if (it.isDirectory()) {
-          const jsonPath = path.join(outDir, it.name, 'match_data.json');
-          if (fs.existsSync(jsonPath)) {
-            try {
-              const rawSlug = decodeURIComponent(it.name).replace(/-\d+$/, '');
-              const slugParts = rawSlug.split('-');
-              let homeName = data.hero?.homeTeam;
-              let awayName = data.hero?.awayTeam;
-              if (!homeName || !awayName) {
-                const mid = Math.max(1, Math.floor(slugParts.length / 2));
-                homeName = homeName || slugParts.slice(0, mid).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-                awayName = awayName || slugParts.slice(mid).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-              }
+  // 7. Scheduler API
+  if (pathname === '/api/scheduler' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        if (payload.action === 'start') {
+          startScheduler(payload.intervalMinutes || 30, payload.targetMode || 'today', payload.limit || 20);
+        } else if (payload.action === 'stop') {
+          stopScheduler();
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, scheduler: schedulerState }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: e.message }));
+      }
+    });
+    return;
+  }
 
-              list.push({
-                slug: it.name,
-                home: homeName,
-                away: awayName,
-                date: data.hero?.matchDate || (data.meta?.scrapedAt ? data.meta.scrapedAt.split('T')[0] : '-'),
-                score: data.hero?.finalScore || data.hero?.score,
-                scrapedAt: data.meta?.scrapedAt,
-                viewerUrl: `/output/${it.name}/viewer.html`
-              });
-            } catch (e) {}
+  // 8. Recent Matches API
+  if (pathname === '/api/recent-matches') {
+    try {
+      const outDir = path.join(__dirname, 'output');
+      const list = [];
+      if (fs.existsSync(outDir)) {
+        const entries = fs.readdirSync(outDir, { withFileTypes: true });
+        for (const ent of entries) {
+          if (ent.isDirectory()) {
+            const jPath = path.join(outDir, ent.name, 'match_data.json');
+            const vPath = path.join(outDir, ent.name, 'viewer.html');
+            if (fs.existsSync(jPath)) {
+              try {
+                const data = JSON.parse(fs.readFileSync(jPath, 'utf8'));
+                list.push({
+                  slug: ent.name,
+                  homeTeam: data.hero?.homeTeam || 'Home',
+                  awayTeam: data.hero?.awayTeam || 'Away',
+                  homeLogo: data.hero?.homeLogo || '',
+                  awayLogo: data.hero?.awayLogo || '',
+                  score: data.hero?.finalScore || data.hero?.score || '-',
+                  status: data.hero?.result?.status || 'Upcoming',
+                  date: data.hero?.matchDate || '',
+                  league: data.hero?.league || '',
+                  viewerUrl: `/output/${ent.name}/viewer.html`,
+                  scrapedAt: data.meta?.scrapedAt || ''
+                });
+              } catch (_) {}
+            }
           }
         }
       }
+      // Sort newest first
+      list.sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(list.slice(0, 30)));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: e.message }));
     }
-    list.sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0));
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify(list));
   }
 
-  // 8. Static File Serving (HTML, JS, CSS, JSON, Assets)
+  // 9. Static File Serving (HTML Viewer, output, assets)
   let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
 
-  if (!filePath.startsWith(__dirname)) {
-    res.writeHead(403);
-    return res.end('Forbidden');
-  }
-
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end('404 Not Found');
-    }
-
-    const ext = path.extname(filePath);
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
     res.writeHead(200, { 'Content-Type': contentType });
     fs.createReadStream(filePath).pipe(res);
-  });
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('404 Sayfa Bulunamadı');
+  }
 });
 
 server.listen(PORT, () => {
-  console.log(`\n=============================================================`);
-  console.log(`🚀 BPA V3 BOT CONTROLLER & DATE-RANGE SERVER ÇALIŞIYOR`);
-  console.log(`🌐 Kontrol Paneli: http://localhost:${PORT}`);
-  console.log(`=============================================================\n`);
+  console.log(`\n======================================================`);
+  console.log(`🌐 BPA V3 WEB DASHBOARD BAŞLATILDI!`);
+  console.log(`🚀 Tarayıcıdan açın: http://localhost:${PORT}`);
+  console.log(`======================================================\n`);
 });
