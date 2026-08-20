@@ -189,7 +189,8 @@ namespace ApexBotDesktop
         private static void LaunchAndMonitorDesktopWindow(string rootDir)
         {
             string url = "http://localhost:3050/";
-            string args = string.Format("--app=\"{0}\" --window-size=1260,800 --app-id=APEX_BOT_PRO", url);
+            string profileDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"ApexBotProfile");
+            string args = string.Format("--app=\"{0}\" --window-size=1260,800 --user-data-dir=\"{1}\" --no-first-run --no-default-browser-check", url, profileDir);
 
             string edgePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe");
             if (!File.Exists(edgePath))
