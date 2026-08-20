@@ -191,6 +191,24 @@ async function scrapeMatch(url, options = {}) {
     fs.writeFileSync(path.join(latestDir, 'latest_match.json'), JSON.stringify(matchData, null, 2), 'utf-8');
     generateMatchViewer(matchData, path.join(latestDir, 'latest_viewer.html'));
 
+    // 14. APEX REST Senkronizasyonu (Otomatik / CLI Destekli)
+    const { syncMatchToApex, loadConfig } = require('./core/apex_sync_client');
+    const cfg = loadConfig();
+    const shouldSync = options.syncApex !== undefined ? options.syncApex : cfg.autoSyncApex;
+
+    if (shouldSync) {
+      try {
+        const syncRes = await syncMatchToApex(matchData, options.apiUrl, options.apiKey);
+        if (syncRes.success) {
+          logger(`📡 [APEX SYNC] ✅ Başarıyla aktarıldı (HTTP ${syncRes.statusCode}) -> ${syncRes.targetUrl}`, COLORS.green);
+        } else {
+          logger(`📡 [APEX SYNC] ⚠️ Aktarım başarısız: ${syncRes.error || syncRes.statusCode} (${syncRes.targetUrl})`, COLORS.yellow);
+        }
+      } catch (syncErr) {
+        logger(`📡 [APEX SYNC] ⚠️ Aktarım hatası: ${syncErr.message}`, COLORS.yellow);
+      }
+    }
+
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
     logger(`🎉 [BAŞARILI] Kazıma tamamlandı (${elapsed} saniye)!`, COLORS.green);
     logger(`📁 JSON: ${jsonPath}`, COLORS.cyan);
@@ -225,6 +243,9 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   let targetUrl = 'https://www.forebet.com/en/football/matches/besiktas-ey%C3%BCpspor-2494866';
   let headless = 'new';
+  let syncApex = true;
+  let apiUrl = null;
+  let apiKey = null;
 
   for (const arg of args) {
     if (arg.startsWith('--url=')) {
@@ -232,13 +253,19 @@ if (require.main === module) {
     } else if (arg.startsWith('--headless=')) {
       const val = arg.split('=')[1].toLowerCase();
       headless = val === 'true' || val === 'new' ? 'new' : false;
+    } else if (arg.startsWith('--sync-apex=')) {
+      syncApex = arg.split('=')[1].toLowerCase() === 'true';
+    } else if (arg.startsWith('--api-url=')) {
+      apiUrl = arg.split('=')[1];
+    } else if (arg.startsWith('--api-key=')) {
+      apiKey = arg.split('=')[1];
     } else if (arg.startsWith('http')) {
       targetUrl = arg;
     }
   }
 
-  scrapeMatch(targetUrl, { headless }).catch(err => {
-    console.error('Bot sonlandı (Hata ile):', err.message);
+  scrapeMatch(targetUrl, { headless, syncApex, apiUrl, apiKey }).catch(err => {
+    console.error('Fatal Error:', err);
     process.exit(1);
   });
 }

@@ -7,6 +7,7 @@ output/
 archive/
 temp_profiles/
 scratch/
+gereksiz/
 assets/
 
 # Cloudflare Cookies & State (Do not commit active session tokens)
