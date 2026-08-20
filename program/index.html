@@ -21,7 +21,7 @@
       --accent-success: #22c55e;
       --accent-warning: #f59e0b;
       --accent-danger: #ef4444;
-      --accent-purple: #a855f7;
+      --accent-purple: #c084fc;
       
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
@@ -29,45 +29,45 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; user-select: none; }
-    body { background: var(--bg-root); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+    body { background: var(--bg-root); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 14.5px; }
 
     /* Custom Scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2a3754; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #3b4d75; }
 
     /* Custom Desktop Titlebar */
     .titlebar {
-      height: 38px;
+      height: 44px;
       background: #080c14;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
+      padding: 0 16px;
       border-bottom: 1px solid var(--border-color);
-      font-size: 11.5px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-muted);
       flex-shrink: 0;
     }
-    .titlebar-brand { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 800; font-size: 12px; }
+    .titlebar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 800; font-size: 14.5px; }
     .titlebar-brand span { color: var(--accent-primary); }
-    .titlebar-badge { font-size: 10px; background: #1e293b; color: #94a3b8; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+    .titlebar-badge { font-size: 11px; background: #1e293b; color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.2); }
     
-    .emergency-controls { display: flex; align-items: center; gap: 6px; }
+    .emergency-controls { display: flex; align-items: center; gap: 8px; }
     .btn-emergency {
       background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
+      border: 1px solid rgba(239, 68, 68, 0.4);
       color: #fca5a5;
-      font-size: 11px;
+      font-size: 12.5px;
       font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 5px;
+      padding: 5px 12px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       transition: all 0.15s;
     }
     .btn-emergency:hover { background: var(--accent-danger); color: #fff; }
@@ -76,71 +76,73 @@
     .app-layout {
       display: flex;
       flex: 1;
-      height: calc(100vh - 38px);
+      height: calc(100vh - 44px);
       overflow: hidden;
     }
 
     /* 1. Sol Sidebar */
     .sidebar {
-      width: 215px;
-      min-width: 195px;
+      width: 250px;
+      min-width: 230px;
       background: var(--bg-sidebar);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 12px 10px;
+      padding: 14px 12px;
       flex-shrink: 0;
+      overflow-y: auto;
     }
-    .nav-label { font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 6px 4px; }
+    .nav-label { font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin: 12px 6px 6px; }
     .nav-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 6px;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
       color: var(--text-muted);
-      font-size: 12px;
+      font-size: 13.5px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
-    .nav-btn i { width: 14px; font-size: 12.5px; text-align: center; }
-    .nav-btn:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
-    .nav-btn.active { background: #1e293b; color: var(--accent-primary); font-weight: 700; border-left: 3px solid var(--accent-primary); }
+    .nav-btn i { width: 18px; font-size: 15px; text-align: center; }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+    .nav-btn.active { background: #1e293b; color: var(--accent-primary); font-weight: 700; border-left: 4px solid var(--accent-primary); }
 
     .health-widget {
       background: var(--bg-subpanel);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 11px;
+      padding: 12px 14px;
+      font-size: 12px;
+      margin-top: 10px;
     }
-    .health-title { font-weight: 800; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .health-row { display: flex; justify-content: space-between; margin-bottom: 2px; color: var(--text-muted); font-size: 10.5px; }
+    .health-title { font-weight: 800; font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .health-row { display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--text-muted); font-size: 12px; }
     .health-row b { color: #fff; font-weight: 700; }
 
     /* Worker Slots */
-    .workers-box { margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 6px; }
-    .worker-slot { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
-    .worker-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-    .worker-dot.busy { background: var(--accent-success); box-shadow: 0 0 6px var(--accent-success); }
+    .workers-box { margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 8px; }
+    .worker-slot { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 3px; }
+    .worker-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .worker-dot.busy { background: var(--accent-success); box-shadow: 0 0 8px var(--accent-success); }
     .worker-dot.idle { background: #475569; }
 
     /* 2. Orta Alan & Tab Views */
     .main-workspace {
       flex: 1;
-      min-width: 320px;
+      min-width: 400px;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
-      padding: 14px 16px;
-      gap: 12px;
+      padding: 16px 20px;
+      gap: 14px;
       background: var(--bg-root);
     }
 
-    .tab-content { display: none; flex-direction: column; gap: 12px; }
+    .tab-content { display: none; flex-direction: column; gap: 14px; flex: 1; }
     .tab-content.active { display: flex; }
 
     /* URL Bar */
@@ -148,32 +150,32 @@
       display: flex;
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 4px 6px;
+      border-radius: 8px;
+      padding: 6px 8px;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .url-input-container input {
       flex: 1;
       background: transparent;
       border: none;
       outline: none;
-      padding: 5px 6px;
-      font-size: 12px;
+      padding: 6px 8px;
+      font-size: 13.5px;
       color: #fff;
     }
     .btn-action {
       background: #0284c7;
       color: #fff;
       border: none;
-      padding: 6px 14px;
-      border-radius: 5px;
-      font-size: 11.5px;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       transition: background 0.15s;
       white-space: nowrap;
     }
@@ -183,73 +185,73 @@
     /* Quick Grid */
     .quick-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
     }
     .btn-tile {
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 10px 12px;
+      border-radius: 8px;
+      padding: 12px 14px;
       cursor: pointer;
       text-align: left;
       transition: all 0.15s;
     }
     .btn-tile:hover { border-color: var(--accent-primary); background: #1a253d; }
-    .btn-tile-title { font-size: 11.5px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
-    .btn-tile-desc { font-size: 10px; color: var(--text-muted); }
+    .btn-tile-title { font-size: 13px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .btn-tile-desc { font-size: 11px; color: var(--text-muted); }
 
     /* Dual Panels */
     .panels-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
     }
     .card {
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px 14px;
+      padding: 14px 16px;
     }
     .card-head {
-      font-size: 11.5px;
+      font-size: 13px;
       font-weight: 800;
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
-      padding-bottom: 6px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .card-head i { color: var(--accent-primary); margin-right: 5px; }
+    .card-head i { color: var(--accent-primary); margin-right: 6px; }
 
     /* Schedule Task Row */
     .sched-task-box {
       background: var(--bg-subpanel);
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
     }
     .sched-task-info { display: flex; flex-direction: column; gap: 2px; }
-    .sched-task-name { font-size: 11.5px; font-weight: 700; color: #fff; }
-    .sched-task-sub { font-size: 9.5px; color: var(--text-muted); }
+    .sched-task-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .sched-task-sub { font-size: 11px; color: var(--text-muted); }
     .sched-time-input {
       background: #1e293b;
       border: 1px solid var(--border-color);
-      border-radius: 4px;
+      border-radius: 5px;
       color: var(--accent-primary);
       font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
-      font-size: 12px;
-      padding: 3px 6px;
+      font-size: 13px;
+      padding: 4px 8px;
       outline: none;
-      width: 75px;
+      width: 85px;
       text-align: center;
     }
 
@@ -257,67 +259,67 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 0;
-      font-size: 11px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 8px 0;
+      font-size: 12.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
     .setting-item:last-child { border-bottom: none; }
     .setting-name { font-weight: 600; color: var(--text-main); }
-    .setting-sub { font-size: 9.5px; color: var(--text-dim); }
+    .setting-sub { font-size: 11px; color: var(--text-dim); }
 
     /* Form Controls */
     .form-input {
       background: var(--bg-subpanel);
       border: 1px solid var(--border-color);
-      border-radius: 5px;
-      padding: 6px 8px;
-      font-size: 11.5px;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12.5px;
       color: #fff;
       outline: none;
       width: 100%;
     }
     .form-input:focus { border-color: var(--accent-primary); }
 
-    .toggle-switch { position: relative; display: inline-block; width: 32px; height: 17px; }
+    .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .2s; border-radius: 17px; }
-    .toggle-slider:before { position: absolute; content: ""; height: 11px; width: 11px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .2s; border-radius: 20px; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
     input:checked + .toggle-slider { background-color: var(--accent-success); }
-    input:checked + .toggle-slider:before { transform: translateX(15px); }
+    input:checked + .toggle-slider:before { transform: translateX(16px); }
 
-    /* Terminal Console */
+    /* Terminal Console (Fills Available Height) */
     .terminal-box {
       background: #050810;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       flex-direction: column;
-      height: 170px;
-      min-height: 130px;
+      flex: 1;
+      min-height: 220px;
       overflow: hidden;
     }
     .terminal-header {
       background: #0a0f1d;
-      padding: 5px 10px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border-color);
-      font-size: 10.5px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-dim);
     }
     .terminal-logs {
       flex: 1;
-      padding: 6px 10px;
+      padding: 10px 12px;
       overflow-y: auto;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 10.5px;
-      line-height: 1.45;
+      font-size: 12px;
+      line-height: 1.5;
       color: #cbd5e1;
     }
-    .log-row { margin-bottom: 2px; word-break: break-all; }
-    .log-t { color: #64748b; margin-right: 5px; }
+    .log-row { margin-bottom: 3px; word-break: break-all; }
+    .log-t { color: #64748b; margin-right: 6px; }
     .log-ok { color: #4ade80; font-weight: 600; }
     .log-info { color: #38bdf8; }
     .log-warn { color: #fbbf24; }
@@ -325,8 +327,8 @@
 
     /* 3. Sağ Panel */
     .right-sidebar {
-      width: 330px;
-      min-width: 270px;
+      width: 360px;
+      min-width: 300px;
       background: var(--bg-sidebar);
       border-left: 1px solid var(--border-color);
       display: flex;
@@ -335,50 +337,50 @@
       flex-shrink: 0;
     }
     .right-header {
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 11.5px;
+      font-size: 13px;
       font-weight: 800;
     }
     .matches-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 8px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
     .match-item-card {
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 8px 10px;
+      border-radius: 8px;
+      padding: 10px 12px;
       transition: border-color 0.15s;
     }
     .match-item-card:hover { border-color: var(--accent-primary); }
-    .mc-meta { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-weight: 700; margin-bottom: 3px; }
-    .mc-time-pill { background: rgba(56, 189, 248, 0.12); color: var(--accent-primary); padding: 1px 5px; border-radius: 3px; font-weight: 700; }
-    .mc-main { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-    .mc-score { background: #1e293b; color: var(--accent-primary); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; font-weight: 800; }
+    .mc-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); font-weight: 700; margin-bottom: 4px; }
+    .mc-time-pill { background: rgba(56, 189, 248, 0.12); color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+    .mc-main { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .mc-score { background: #1e293b; color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: 800; }
     
-    .mc-btn-group { display: flex; gap: 4px; }
+    .mc-btn-group { display: flex; gap: 6px; }
     .btn-sm {
       flex: 1;
-      padding: 4px 6px;
-      border-radius: 4px;
+      padding: 6px 8px;
+      border-radius: 5px;
       border: 1px solid var(--border-color);
       background: var(--bg-subpanel);
       color: var(--text-muted);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 3px;
+      gap: 4px;
       cursor: pointer;
       transition: all 0.15s;
     }
@@ -401,22 +403,22 @@
 
     <!-- Güvenli Kontrol ve Aksiyon Butonları -->
     <div class="emergency-controls">
-      <button class="btn-emergency" onclick="stopActiveJob()" title="Kazımayı Durdur: Yalnızca o an devam eden maç kazıma işlemini güvenle durdurur. Veri kaybı olmaz.">
+      <button class="btn-emergency" onclick="stopActiveJob()" title="Kazımayı Durdur: Yalnızca o an devam eden maç kazıma işlemini güvenle durdurur.">
         <i class="fa-solid fa-pause"></i> Kazımayı Durdur
       </button>
-      <button class="btn-emergency" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fde68a;" onclick="resetBotState()" title="Botu Sıfırla: Botun iç kuyruğunu sıfırlar ve sistemi boşta durumuna getirir. Kişisel tarayıcılarınıza asla dokunmaz!">
+      <button class="btn-emergency" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fde68a;" onclick="resetBotState()" title="Botu Sıfırla: Botun iç kuyruğunu sıfırlar ve sistemi boşta durumuna getirir. Kişisel tarayıcılarınıza dokunmaz!">
         <i class="fa-solid fa-rotate-left"></i> Botu Sıfırla
       </button>
-      <button class="btn-emergency" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: var(--accent-primary);" onclick="resyncToApex()" title="APEX'e Aktar: Son kazınan maçları anında APEX API veritabanına tekrar gönderir.">
+      <button class="btn-emergency" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: var(--accent-primary);" onclick="resyncToApex()" title="APEX'e Aktar: Son kazınan maçları anında APEX API veritabanına aktarır.">
         <i class="fa-solid fa-cloud-arrow-up"></i> APEX'e Aktar
       </button>
     </div>
 
     <!-- Saat ve Canlı Durum Başlığı -->
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span style="font-size: 10.5px; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Sistem Saati:</span>
-      <span id="topClock" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fff; font-weight: 700;">00:00:00</span>
-      <span id="connStatus" style="color: var(--accent-success); font-size: 10.5px; font-weight: 700;"><i class="fa-solid fa-circle" style="font-size: 7px;"></i> Canlı</span>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 11.5px; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Sistem Saati:</span>
+      <span id="topClock" style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #fff; font-weight: 700;">00:00:00</span>
+      <span id="connStatus" style="color: var(--accent-success); font-size: 11.5px; font-weight: 700;"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Canlı</span>
     </div>
   </div>
 
@@ -437,7 +439,7 @@
         <div class="nav-btn" onclick="clearCache()"><i class="fa-solid fa-broom" style="color: #cbd5e1;"></i> Önbellek Temizle</div>
       </div>
 
-      <!-- Canlı Sistem Sağlık Durumu & Sekme (Worker) Monitörü -->
+      <!-- Canlı Sistem Sağlık Durumu & Sekme Monitörü -->
       <div class="health-widget">
         <div class="health-title">
           <span>Sistem Sağlığı</span>
@@ -458,7 +460,7 @@
 
         <!-- 4 Sekme / Worker Durumları -->
         <div class="workers-box">
-          <div class="health-title" style="margin-bottom: 3px;">Sekme Durumları</div>
+          <div class="health-title" style="margin-bottom: 4px;">Sekme Durumları</div>
           <div class="worker-slot" id="wSlot1"><span><span class="worker-dot idle"></span>Sekme #1:</span> <span id="wState1">Boşta</span></div>
           <div class="worker-slot" id="wSlot2"><span><span class="worker-dot idle"></span>Sekme #2:</span> <span id="wState2">Boşta</span></div>
           <div class="worker-slot" id="wSlot3"><span><span class="worker-dot idle"></span>Sekme #3:</span> <span id="wState3">Boşta</span></div>
@@ -467,7 +469,7 @@
       </div>
     </aside>
 
-    <!-- 2. ORTA ÇALIŞMA ALANI (SEKMELİ YAPI) -->
+    <!-- 2. ORTA ÇALIŞMA ALANI -->
     <main class="main-workspace">
 
       <!-- ================= SEKME 1: DASHBOARD ================= -->
@@ -475,7 +477,7 @@
 
         <!-- URL Scrape Bar -->
         <div class="url-input-container">
-          <i class="fa-solid fa-link" style="color: var(--text-dim); margin-left: 4px;"></i>
+          <i class="fa-solid fa-link" style="color: var(--text-dim); margin-left: 6px; font-size: 14px;"></i>
           <input type="text" id="targetUrlInput" placeholder="Forebet Maç URL'si yapıştırın...">
           <button class="btn-action" id="btnScrapeSingle" onclick="handleScrapeSingle()">
             <i class="fa-solid fa-bolt"></i> Kazı
@@ -510,7 +512,7 @@
           <div class="card">
             <div class="card-head">
               <span><i class="fa-solid fa-clock"></i> Zamanlayıcı Özeti</span>
-              <span id="dashSchedBadge" style="font-size: 10.5px; color: var(--accent-success); font-weight: 700;">AKTİF</span>
+              <span id="dashSchedBadge" style="font-size: 11.5px; color: var(--accent-success); font-weight: 700;">AKTİF</span>
             </div>
             <div class="setting-item">
               <span>06:00 Dünün Bitmiş Maçları:</span>
@@ -525,11 +527,11 @@
           <div class="card">
             <div class="card-head">
               <span><i class="fa-solid fa-server"></i> APEX API Durumu</span>
-              <button class="btn-sm" style="flex: none; padding: 2px 6px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Test</button>
+              <button class="btn-sm" style="flex: none; padding: 4px 8px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Test</button>
             </div>
             <div class="setting-item">
               <span>Hedef URL:</span>
-              <b style="color: var(--accent-primary); font-size: 10.5px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="dashApexUrl">http://...</b>
+              <b style="color: var(--accent-primary); font-size: 11.5px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="dashApexUrl">http://...</b>
             </div>
             <div class="setting-item">
               <span>Eşzamanlı Sekme:</span>
@@ -567,7 +569,7 @@
               <div class="sched-task-name"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dünün Bitmiş Maçları</div>
               <div class="sched-task-sub">Skorlar, Penaltılar, AET & Olayları çeker</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
               <input type="time" class="sched-time-input" id="timeYesterday" value="06:00" onchange="saveSchedulerTasks()">
               <label class="toggle-switch">
                 <input type="checkbox" id="enableYesterday" checked onchange="saveSchedulerTasks()">
@@ -579,9 +581,9 @@
           <div class="sched-task-box">
             <div class="sched-task-info">
               <div class="sched-task-name"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarının Bülteni & Oranlar</div>
-              <div class="sched-task-sub">Gelecek maçların açılış oranları & tahminlerini çeker</div>
+              <div class="sched-task-sub">Gelecek maçların tahminlerini & oranlarını çeker</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
               <input type="time" class="sched-time-input" id="timeTomorrow" value="18:00" onchange="saveSchedulerTasks()">
               <label class="toggle-switch">
                 <input type="checkbox" id="enableTomorrow" checked onchange="saveSchedulerTasks()">
@@ -595,7 +597,7 @@
               <div class="sched-task-name"><i class="fa-solid fa-play" style="color: var(--accent-primary);"></i> Bugünün Canlı Bülteni</div>
               <div class="sched-task-sub">Günün maçlarını güncelle (Opsiyonel)</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
               <input type="time" class="sched-time-input" id="timeToday" value="12:00" onchange="saveSchedulerTasks()">
               <label class="toggle-switch">
                 <input type="checkbox" id="enableToday" onchange="saveSchedulerTasks()">
@@ -611,16 +613,16 @@
         <div class="card">
           <div class="card-head">
             <span><i class="fa-solid fa-server"></i> APEX REST API Yapılandırması</span>
-            <button class="btn-sm" style="flex: none; padding: 3px 8px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
+            <button class="btn-sm" style="flex: none; padding: 4px 10px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Bağlantıyı Test Et</button>
           </div>
 
-          <div style="margin-bottom: 10px;">
-            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">APEX Import API URL</div>
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">APEX Import API URL</div>
             <input type="text" class="form-input" id="apexUrlInput" placeholder="http://localhost/apex-api/api/import.php">
           </div>
 
-          <div style="margin-bottom: 10px;">
-            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">X-Apex-Secret Gizli Anahtarı</div>
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">X-Apex-Secret Gizli Anahtarı</div>
             <input type="password" class="form-input" id="apexSecretInput" placeholder="apex_secret_key_2026">
           </div>
 
@@ -635,8 +637,8 @@
             </label>
           </div>
 
-          <div style="margin-top: 10px;">
-            <button class="btn-action" style="width: 100%; justify-content: center; padding: 7px 12px;" onclick="saveApexConfig()">
+          <div style="margin-top: 14px;">
+            <button class="btn-action" style="width: 100%; justify-content: center; padding: 9px 14px;" onclick="saveApexConfig()">
               <i class="fa-solid fa-floppy-disk"></i> APEX Ayarlarını Kaydet
             </button>
           </div>
@@ -655,7 +657,7 @@
               <div class="setting-name">Eşzamanlı Sekme Sayısı (Worker Concurrency)</div>
               <div class="setting-sub">Aynı anda kaç sekme ile kazıma yapılsın?</div>
             </div>
-            <select class="form-input" id="cfgConcurrency" style="width: 130px;" onchange="saveGeneralSettings()">
+            <select class="form-input" id="cfgConcurrency" style="width: 160px;" onchange="saveGeneralSettings()">
               <option value="1">1 Sekme (Düşük RAM)</option>
               <option value="2" selected>2 Sekme (Önerilen)</option>
               <option value="4">4 Sekme (Yüksek Hız)</option>
@@ -684,13 +686,13 @@
             </label>
           </div>
 
-          <div style="margin-top: 10px;">
-            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Özel output/ Klasörü Konumu</div>
+          <div style="margin-top: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Özel output/ Klasörü Konumu</div>
             <input type="text" class="form-input" id="cfgOutputPath" placeholder="Varsayılan: ./output" onchange="saveGeneralSettings()">
           </div>
 
-          <div style="margin-top: 10px;">
-            <button class="btn-action" style="width: 100%; justify-content: center; padding: 7px 12px;" onclick="saveGeneralSettings()">
+          <div style="margin-top: 14px;">
+            <button class="btn-action" style="width: 100%; justify-content: center; padding: 9px 14px;" onclick="saveGeneralSettings()">
               <i class="fa-solid fa-floppy-disk"></i> Ayarları Kaydet
             </button>
           </div>
@@ -703,11 +705,15 @@
     <aside class="right-sidebar">
       <div class="right-header">
         <span><i class="fa-solid fa-list-check" style="color: var(--accent-primary);"></i> Son Kazınan Maçlar</span>
-        <button class="btn-sm" style="flex: none; padding: 2px 6px;" onclick="fetchRecentMatches()"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="btn-sm" style="flex: none; padding: 4px 8px;" onclick="fetchRecentMatches()"><i class="fa-solid fa-rotate-right"></i></button>
       </div>
 
       <div class="matches-scroll" id="recentMatchesList">
-        <div style="text-align: center; color: var(--text-dim); padding: 14px;">Yükleniyor...</div>
+        <div style="text-align: center; color: var(--text-muted); padding: 24px 14px; font-size: 12.5px; line-height: 1.6;">
+          <i class="fa-solid fa-folder-open" style="font-size: 26px; color: var(--text-dim); margin-bottom: 8px; display: block;"></i>
+          Henüz kazınmış maç bulunmuyor.<br>
+          <span style="color: var(--accent-primary); font-weight: 600;">"Dün"</span> veya <span style="color: var(--accent-purple); font-weight: 600;">"Yarın"</span> butonuna basarak kazımayı başlatabilirsiniz.
+        </div>
       </div>
     </aside>
 
@@ -832,7 +838,7 @@
 
           if (isBusy && (i === 1 || i === 2)) {
             dot.className = 'worker-dot busy';
-            stateSpan.innerText = curMatch ? curMatch.substring(0, 14) + '...' : 'Kazınıyor...';
+            stateSpan.innerText = curMatch ? curMatch.substring(0, 16) + '...' : 'Kazınıyor...';
             stateSpan.style.color = 'var(--accent-success)';
           } else {
             dot.className = 'worker-dot idle';
@@ -995,7 +1001,12 @@
         const container = document.getElementById('recentMatchesList');
 
         if (!list || list.length === 0) {
-          container.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 14px;">Henüz maç bulunmuyor.</div>`;
+          container.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 24px 14px; font-size: 12.5px; line-height: 1.6;">
+              <i class="fa-solid fa-folder-open" style="font-size: 26px; color: var(--text-dim); margin-bottom: 8px; display: block;"></i>
+              Henüz kazınmış maç bulunmuyor.<br>
+              <span style="color: var(--accent-primary); font-weight: 600;">"Dün"</span> veya <span style="color: var(--accent-purple); font-weight: 600;">"Yarın"</span> butonuna basarak kazımayı başlatabilirsiniz.
+            </div>`;
           return;
         }
 
