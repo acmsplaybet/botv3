@@ -232,13 +232,15 @@ namespace ApexBotDesktop
             {
                 appProc.WaitForExit();
 
-                // Çıkış Onayı
+                // Çıkış Onayı (En ön planda, masaüstünün en üstünde açılır)
                 DialogResult dr = MessageBox.Show(
                     "APEX-BOT masaüstü penceresi kapatıldı.\n\n" +
                     "Arka planda çalışan Node.js ve bot süreçlerini de tamamen durdurmak istiyor musunuz?",
                     "APEX-BOT Çıkış",
                     MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1,
+                    MessageBoxOptions.DefaultDesktopOnly
                 );
 
                 if (dr == DialogResult.Yes)
@@ -249,6 +251,21 @@ namespace ApexBotDesktop
                         {
                             _nodeProcess.Kill();
                         }
+                    }
+                    catch { }
+
+                    // Port 3050 ve node kalıntılarını temizle
+                    try
+                    {
+                        ProcessStartInfo killPsi = new ProcessStartInfo
+                        {
+                            FileName = "taskkill",
+                            Arguments = "/F /IM node.exe /T",
+                            CreateNoWindow = true,
+                            UseShellExecute = false,
+                            WindowStyle = ProcessWindowStyle.Hidden
+                        };
+                        Process.Start(killPsi);
                     }
                     catch { }
                 }

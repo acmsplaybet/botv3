@@ -355,13 +355,16 @@
       <span class="titlebar-badge">v3.3.0</span>
     </div>
 
-    <!-- Güvenli Kontrol Butonları -->
+    <!-- Güvenli Kontrol Butonları (Duraklat/Devam Et, Durdur, Sıfırla, APEX) -->
     <div class="emergency-controls">
-      <button class="btn-emergency" onclick="stopActiveJob()" title="Kazımayı Durdur: O an devam eden maç kazıma işlemini güvenle durdurur.">
-        <i class="fa-solid fa-pause"></i> Kazımayı Durdur
+      <button class="btn-emergency" id="btnPauseResume" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fde68a;" onclick="togglePauseResume()" title="Duraklat / Devam Et: Kazımayı anlık dondurur veya kaldığı maçtan devam ettirir.">
+        <i class="fa-solid fa-pause" id="iconPauseResume"></i> <span id="textPauseResume">Duraklat</span>
       </button>
-      <button class="btn-emergency" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fde68a;" onclick="resetBotState()" title="Botu Sıfırla: Botun iç kuyruğunu sıfırlar ve sistemi boşta durumuna getirir.">
-        <i class="fa-solid fa-rotate-left"></i> Botu Sıfırla
+      <button class="btn-emergency" onclick="stopActiveJob()" title="Kazımayı Durdur: O an devam eden maç kazıma işlemini tamamen sonlandırır.">
+        <i class="fa-solid fa-stop"></i> Durdur
+      </button>
+      <button class="btn-emergency" style="background: rgba(148, 163, 184, 0.15); border-color: rgba(148, 163, 184, 0.35); color: #cbd5e1;" onclick="resetBotState()" title="Botu Sıfırla: Botun iç kuyruğunu sıfırlar ve sistemi boşta durumuna getirir.">
+        <i class="fa-solid fa-rotate-left"></i> Sıfırla
       </button>
       <button class="btn-emergency" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: var(--accent-primary);" onclick="resyncToApex()" title="APEX'e Aktar: Son kazınan maçları anında APEX API veritabanına aktarır.">
         <i class="fa-solid fa-cloud-arrow-up"></i> APEX'e Aktar
@@ -528,6 +531,15 @@
             </select>
           </div>
 
+          <!-- Açılışta Otomatik Kazıma Başlat -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-weight: 600; color: #fff;">Açılışta Otomatik Kazıma Başlat (Auto-Start)</div>
+              <div style="font-size: 11px; color: var(--text-dim);">Program açıldığı anda bugünün bültenini otomatik kazımaya başlasın mı?</div>
+            </div>
+            <input type="checkbox" id="cfgAutoStart" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-primary);" onchange="saveGeneralSettings()">
+          </div>
+
           <div style="margin-top: 12px;">
             <div style="font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Özel output/ Klasörü Konumu</div>
             <input type="text" class="form-input" id="cfgOutputPath" placeholder="Varsayılan: ./output" onchange="saveGeneralSettings()">
@@ -615,35 +627,30 @@
           document.getElementById('cfgConcurrency').value = data.config.concurrency || 2;
           document.getElementById('dashConcurrency').innerText = (data.config.concurrency || 2) + ' Sekme';
           document.getElementById('cfgOutputPath').value = data.config.outputDir || '';
+          document.getElementById('cfgAutoStart').checked = Boolean(data.config.autoStartOnLaunch);
+
+          // Eğer açılışta otomatik kazıma aktifse ve bot henüz çalışmıyorsa başlat
+          if (data.config.autoStartOnLaunch && !data.activeJob?.isRunning && !window._autoStarted) {
+            window._autoStarted = true;
+            appendLog(new Date().toLocaleTimeString(), '[AUTO_START] Açılışta otomatik kazıma ayarı aktif, bugünün bülteni başlatılıyor...', 'info');
+            setTimeout(() => handleScrapeBatch('today', null), 2000);
+          }
         }
       } catch (e) {}
-    }
-
-    async function saveSchedulerTasks() {
-      const tasks = [
-        { id: 'yesterday', name: 'Dünün Sonuçlanan Maçları', time: document.getElementById('timeYesterday').value, mode: 'yesterday', enabled: true, limit: null },
-        { id: 'tomorrow', name: 'Yarının Bülteni & Oranları', time: document.getElementById('timeTomorrow').value, mode: 'tomorrow', enabled: true, limit: null }
-      ];
-
-      await fetch('/api/scheduler', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: true, tasks })
-      });
-      appendLog(new Date().toLocaleTimeString(), '[SCHEDULER] Otomasyon saatleri kaydedildi.', 'success');
     }
 
     async function saveGeneralSettings() {
       const conc = parseInt(document.getElementById('cfgConcurrency').value, 10) || 2;
       const outDir = document.getElementById('cfgOutputPath').value.trim();
+      const autoStart = document.getElementById('cfgAutoStart').checked;
 
       await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ concurrency: conc, outputDir: outDir })
+        body: JSON.stringify({ concurrency: conc, outputDir: outDir, autoStartOnLaunch: autoStart })
       });
       loadSettings();
-      appendLog(new Date().toLocaleTimeString(), `[SETTINGS] Sekme ayarı güncellendi (Sekme: ${conc}).`, 'success');
+      appendLog(new Date().toLocaleTimeString(), `[SETTINGS] Ayarlar güncellendi (Sekme: ${conc}, Oto-Başlat: ${autoStart ? 'AÇIK' : 'KAPALI'}).`, 'success');
       switchTab('dashboard');
     }
 
@@ -780,16 +787,59 @@
         }
       } catch (e) {
         alert('Hata: ' + e.message);
+    // 7. Emergency & Control Actions
+    let isCurrentlyPaused = false;
+
+    async function togglePauseResume() {
+      const btn = document.getElementById('btnPauseResume');
+      const icon = document.getElementById('iconPauseResume');
+      const text = document.getElementById('textPauseResume');
+
+      if (!isCurrentlyPaused) {
+        // Duraklat
+        try {
+          const res = await fetch('/api/pause-job', { method: 'POST' });
+          const d = await res.json();
+          if (d.success) {
+            isCurrentlyPaused = true;
+            icon.className = 'fa-solid fa-play';
+            text.innerText = 'Devam Et';
+            btn.style.background = 'rgba(34, 197, 94, 0.15)';
+            btn.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+            btn.style.color = '#86efac';
+            appendLog(new Date().toLocaleTimeString(), '[PAUSE] Kazıma duraklatıldı. Kaldığı yerden devam ettirmek için "Devam Et" butonuna basabilirsiniz.', 'warning');
+          }
+        } catch (_) {}
+      } else {
+        // Devam Et
+        try {
+          const res = await fetch('/api/resume-job', { method: 'POST' });
+          const d = await res.json();
+          if (d.success) {
+            isCurrentlyPaused = false;
+            icon.className = 'fa-solid fa-pause';
+            text.innerText = 'Duraklat';
+            btn.style.background = 'rgba(245, 158, 11, 0.15)';
+            btn.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+            btn.style.color = '#fde68a';
+            appendLog(new Date().toLocaleTimeString(), '[RESUME] Kazıma kaldığı yerden devam ettiriliyor...', 'success');
+          }
+        } catch (_) {}
       }
     }
 
-    // 7. Emergency
     async function stopActiveJob() {
+      isCurrentlyPaused = false;
+      document.getElementById('iconPauseResume').className = 'fa-solid fa-pause';
+      document.getElementById('textPauseResume').innerText = 'Duraklat';
       appendLog(new Date().toLocaleTimeString(), `[STOP] Aktif maç kazıma işlemi durduruluyor...`, 'warning');
       try { await fetch('/api/stop-job', { method: 'POST' }); } catch (_) {}
     }
 
     async function resetBotState() {
+      isCurrentlyPaused = false;
+      document.getElementById('iconPauseResume').className = 'fa-solid fa-pause';
+      document.getElementById('textPauseResume').innerText = 'Duraklat';
       appendLog(new Date().toLocaleTimeString(), `[RESET] Bot iç durumu sıfırlanıyor...`, 'info');
       try {
         const res = await fetch('/api/reset-bot', { method: 'POST' });

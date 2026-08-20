@@ -76,6 +76,7 @@ const MIME_TYPES = {
 // Global Job State
 let activeJob = {
   isRunning: false,
+  isPaused: false,
   jobType: null,
   targetDate: null,
   limit: null,
@@ -219,6 +220,12 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
         broadcastLog(`[CANCEL] Kullanıcı isteği ile kazıma durduruldu.`, 'warning');
         break;
       }
+
+      // Duraklatma (Pause) Kontrolü — Kullanıcı Devam Et diyene kadar bekler
+      while (activeJob.isPaused && !activeJob.cancelRequested) {
+        await new Promise(r => setTimeout(r, 400));
+      }
+      if (activeJob.cancelRequested) break;
 
       const m = matches[i];
       const matchUrl = m.url || m.link;
@@ -476,9 +483,27 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // 6.0 Pause / Resume Scrape Job (Kaldığı yerden devam ettirir)
+  if (pathname === '/api/pause-job' && req.method === 'POST') {
+    activeJob.isPaused = true;
+    broadcastLog(`[PAUSE] Kazıma duraklatıldı. Kaldığı maç ve indeks hafızada tutuluyor.`, 'warning');
+    broadcastEvent('job_status', activeJob);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, isPaused: true }));
+  }
+
+  if (pathname === '/api/resume-job' && req.method === 'POST') {
+    activeJob.isPaused = false;
+    broadcastLog(`[RESUME] Kazıma kaldığı yerden devam ettiriliyor...`, 'success');
+    broadcastEvent('job_status', activeJob);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, isPaused: false }));
+  }
+
   // 6. Stop Current Scrape Job
   if (pathname === '/api/stop-job' && req.method === 'POST') {
     activeJob.cancelRequested = true;
+    activeJob.isPaused = false;
     broadcastLog(`[STOP] Aktif maç kazıma işlemi durduruluyor...`, 'warning');
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: true, message: 'Aktif kazıma durdurma isteği alındı.' }));
