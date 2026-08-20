@@ -483,20 +483,28 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 8. Recent Matches API
+  // 8. Recent Matches API with Exact Scraped Time
   if (pathname === '/api/recent-matches') {
     try {
-      const outDir = path.join(__dirname, 'output');
+      const cfg = loadConfig();
+      const outDir = cfg.outputDir && fs.existsSync(cfg.outputDir) ? cfg.outputDir : path.join(__dirname, 'output');
       const list = [];
       if (fs.existsSync(outDir)) {
         const entries = fs.readdirSync(outDir, { withFileTypes: true });
         for (const ent of entries) {
           if (ent.isDirectory()) {
             const jPath = path.join(outDir, ent.name, 'match_data.json');
-            const vPath = path.join(outDir, ent.name, 'viewer.html');
             if (fs.existsSync(jPath)) {
               try {
                 const data = JSON.parse(fs.readFileSync(jPath, 'utf8'));
+                let timeStr = '';
+                if (data.meta?.scrapedAt) {
+                  const d = new Date(data.meta.scrapedAt);
+                  const hh = String(d.getHours()).padStart(2, '0');
+                  const mm = String(d.getMinutes()).padStart(2, '0');
+                  timeStr = `${hh}:${mm}`;
+                }
+
                 list.push({
                   slug: ent.name,
                   homeTeam: data.hero?.homeTeam || 'Home',
@@ -508,7 +516,8 @@ const server = http.createServer(async (req, res) => {
                   date: data.hero?.matchDate || '',
                   league: data.hero?.league || '',
                   viewerUrl: `/output/${ent.name}/viewer.html`,
-                  scrapedAt: data.meta?.scrapedAt || ''
+                  scrapedAt: data.meta?.scrapedAt || '',
+                  scrapedTime: timeStr || '-'
                 });
               } catch (_) {}
             }
@@ -518,11 +527,29 @@ const server = http.createServer(async (req, res) => {
       // Sort newest first
       list.sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0));
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify(list.slice(0, 30)));
+      return res.end(JSON.stringify(list.slice(0, 40)));
     } catch (e) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: e.message }));
     }
+  }
+
+  // 8.1 Clear Temp Cache API
+  if (pathname === '/api/clear-cache' && req.method === 'POST') {
+    broadcastLog(`🧹 Geçici önbellek ve tarayıcı kalıntıları temizleniyor...`, 'info');
+    try {
+      const tempDir = path.join(__dirname, 'temp_profiles');
+      if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+      broadcastLog(`✅ Önbellek başarıyla temizlendi.`, 'success');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, message: 'Önbellek temizlendi.' }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: e.message }));
+    }
+    return;
   }
 
   // 9. Static File Serving (HTML Viewer, output, assets)

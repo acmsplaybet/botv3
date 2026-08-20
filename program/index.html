@@ -82,8 +82,8 @@
 
     /* 1. Sol Sidebar */
     .sidebar {
-      width: 200px;
-      min-width: 180px;
+      width: 210px;
+      min-width: 190px;
       background: var(--bg-sidebar);
       border-right: 1px solid var(--border-color);
       display: flex;
@@ -315,8 +315,8 @@
 
     /* 3. Sağ Panel */
     .right-sidebar {
-      width: 320px;
-      min-width: 260px;
+      width: 330px;
+      min-width: 270px;
       background: var(--bg-sidebar);
       border-left: 1px solid var(--border-color);
       display: flex;
@@ -350,6 +350,7 @@
     }
     .match-item-card:hover { border-color: var(--accent-primary); }
     .mc-meta { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-dim); font-weight: 700; margin-bottom: 3px; }
+    .mc-time-pill { background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); padding: 1px 4px; border-radius: 3px; font-weight: 700; }
     .mc-main { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: #fff; margin-bottom: 6px; }
     .mc-score { background: #1e293b; color: var(--accent-primary); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; font-weight: 800; }
     
@@ -376,11 +377,32 @@
     .btn-sm.viewer:hover { background: var(--accent-primary); color: #000; }
     .btn-sm.compare { color: var(--accent-success); border-color: rgba(34, 197, 94, 0.3); }
     .btn-sm.compare:hover { background: var(--accent-success); color: #000; }
+
+    /* Modal for Directory Settings */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-box {
+      background: #111726;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 440px;
+      max-width: 90vw;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Window Bar with Emergency Stops -->
+  <!-- Top Window Bar -->
   <div class="titlebar">
     <div class="titlebar-brand">
       <i class="fa-solid fa-server" style="color: var(--accent-primary);"></i>
@@ -398,9 +420,11 @@
       </button>
     </div>
 
+    <!-- Saat ve Canlı Durum Başlığı -->
     <div style="display: flex; align-items: center; gap: 8px;">
-      <span id="topClock" style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">00:00:00</span>
-      <span id="connStatus" style="color: var(--accent-success); font-size: 10.5px;"><i class="fa-solid fa-circle" style="font-size: 7px;"></i> Live</span>
+      <span style="font-size: 10.5px; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> Sistem Saati:</span>
+      <span id="topClock" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fff; font-weight: 700;">00:00:00</span>
+      <span id="connStatus" style="color: var(--accent-success); font-size: 10.5px; font-weight: 700;"><i class="fa-solid fa-circle" style="font-size: 7px;"></i> Canlı</span>
     </div>
   </div>
 
@@ -409,14 +433,16 @@
     <!-- 1. SOL MENÜ -->
     <aside class="sidebar">
       <div>
-        <div class="nav-label">Modüller</div>
+        <div class="nav-label">Ana Modüller</div>
         <div class="nav-btn active" onclick="switchTab('dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
         <div class="nav-btn" onclick="switchTab('scheduler')"><i class="fa-solid fa-clock"></i> Zamanlayıcı</div>
         <div class="nav-btn" onclick="switchTab('apex')"><i class="fa-solid fa-database"></i> APEX API</div>
 
         <div class="nav-label">Teşhis & Araçlar</div>
         <div class="nav-btn" onclick="runMasterHealthSuite()"><i class="fa-solid fa-microscope" style="color: var(--accent-success);"></i> 9-Test Sağlık</div>
-        <div class="nav-btn" onclick="openOutputFolder()"><i class="fa-solid fa-folder-open"></i> output Klasörü</div>
+        <div class="nav-btn" onclick="openOutputFolder()"><i class="fa-solid fa-folder-open" style="color: var(--accent-warning);"></i> output Klasörü</div>
+        <div class="nav-btn" onclick="openDirModal()"><i class="fa-solid fa-folder-tree" style="color: var(--accent-primary);"></i> Dizin Konumları</div>
+        <div class="nav-btn" onclick="clearCache()"><i class="fa-solid fa-broom" style="color: #cbd5e1;"></i> Önbellek Temizle</div>
       </div>
 
       <!-- Canlı Sistem Sağlık Durumu Widget'ı -->
@@ -584,7 +610,7 @@
 
     </main>
 
-    <!-- 3. SAĞ PANEL (MAÇ LİSTESİ & FOREBET KIYASLAMA) -->
+    <!-- 3. SAĞ PANEL (MAÇ LİSTESİ & KAZINMA SAATLERİ) -->
     <aside class="right-sidebar">
       <div class="right-header">
         <span><i class="fa-solid fa-list-check" style="color: var(--accent-primary);"></i> Son Kazınan Maçlar</span>
@@ -596,6 +622,31 @@
       </div>
     </aside>
 
+  </div>
+
+  <!-- Dizin ve Konum Ayarları Modalı -->
+  <div class="modal-backdrop" id="dirModal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <b style="color: #fff; font-size: 13px;"><i class="fa-solid fa-folder-tree" style="color: var(--accent-primary);"></i> Konum & Dizin Ayarları</b>
+        <button style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px;" onclick="closeDirModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="margin-bottom: 10px;">
+        <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Ana Proje & node_modules Konumu</label>
+        <input type="text" class="form-input" id="cfgNodePath" placeholder="Örn: C:\xampp\htdocs\botv3 veya C:\APEX-BOT">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Yerel Çıktı (output/) Klasörü Konumu</label>
+        <input type="text" class="form-input" id="cfgOutputPath" placeholder="Örn: C:\xampp\htdocs\botv3\output">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-sm" style="padding: 6px 12px;" onclick="closeDirModal()">İptal</button>
+        <button class="btn-action" style="padding: 6px 14px;" onclick="saveDirSettings()"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -623,6 +674,7 @@
         if (data.config) {
           document.getElementById('apexUrlInput').value = data.config.apexImportUrl || '';
           document.getElementById('apexSecretInput').value = data.config.apexSecret || '';
+          document.getElementById('cfgOutputPath').value = data.config.outputDir || '';
         }
         if (data.scheduler) {
           document.getElementById('masterSchedToggle').checked = data.scheduler.enabled !== false;
@@ -802,7 +854,7 @@
       }
     }
 
-    // 7. Recent Matches & Compare
+    // 7. Recent Matches with Scraped Time
     async function fetchRecentMatches() {
       try {
         const res = await fetch('/api/recent-matches');
@@ -818,7 +870,10 @@
           <div class="match-item-card">
             <div class="mc-meta">
               <span>${m.league || 'Lig'}</span>
-              <span style="color: ${m.status === 'Upcoming' ? 'var(--accent-warning)' : 'var(--accent-success)'}">${m.status}</span>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="mc-time-pill">🕒 ${m.scrapedTime || '-'}</span>
+                <span style="color: ${m.status === 'Upcoming' ? 'var(--accent-warning)' : 'var(--accent-success)'}">${m.status}</span>
+              </div>
             </div>
             <div class="mc-main">
               <span>${m.homeTeam} - ${m.awayTeam}</span>
@@ -860,8 +915,39 @@
       }
     }
 
+    async function clearCache() {
+      try {
+        const res = await fetch('/api/clear-cache', { method: 'POST' });
+        const d = await res.json();
+        alert(d.message);
+      } catch (e) {
+        alert('Cache temizleme hatası: ' + e.message);
+      }
+    }
+
     function openOutputFolder() {
       window.open('/output', '_blank');
+    }
+
+    function openDirModal() {
+      document.getElementById('dirModal').style.display = 'flex';
+    }
+
+    function closeDirModal() {
+      document.getElementById('dirModal').style.display = 'none';
+    }
+
+    async function saveDirSettings() {
+      const nodePath = document.getElementById('cfgNodePath').value.trim();
+      const outputPath = document.getElementById('cfgOutputPath').value.trim();
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outputDir: outputPath })
+      });
+      closeDirModal();
+      appendLog(new Date().toLocaleTimeString(), '📁 Dizin konumları kaydedildi.', 'success');
+      alert('Dizin ayarları başarıyla kaydedildi!');
     }
   </script>
 </body>

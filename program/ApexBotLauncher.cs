@@ -15,26 +15,32 @@ namespace ApexBotDesktop
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // 1. Çalışma ve Proje Dizinini Tespit Et
+            // 1. Çalışma Dizinini Belirle
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
-            string rootDir = Path.GetFullPath(Path.Combine(appDir, ".."));
+            string rootDir = appDir; // Varsayılan: EXE'nin kendi klasörü (Örn: C:\APEX-BOT)
 
-            // 2. config.json'da kayıtlı özel node_modules / root yolu var mı?
+            // Eğer EXE'nin yanında server.js yoksa, bir üst klasöre bak
+            if (!File.Exists(Path.Combine(rootDir, "server.js")))
+            {
+                string parentDir = Path.GetFullPath(Path.Combine(appDir, ".."));
+                if (File.Exists(Path.Combine(parentDir, "server.js")))
+                {
+                    rootDir = parentDir;
+                }
+            }
+
+            // 2. path_config.txt içinde kayıtlı özel bir yol var mı?
             string savedPath = GetSavedRootPath(appDir);
-            if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
+            if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath) && File.Exists(Path.Combine(savedPath, "server.js")))
             {
                 rootDir = savedPath;
             }
 
-            // 3. node_modules ve server.js kontrolü yap
-            if (!File.Exists(Path.Combine(rootDir, "server.js")) || !Directory.Exists(Path.Combine(rootDir, "node_modules")))
+            // 3. node_modules ve server.js kontrolü
+            if (!File.Exists(Path.Combine(rootDir, "server.js")))
             {
-                // Bulunamadı -> Kullanıcıya sor ve otomatik kaydet!
                 rootDir = PromptUserForProjectDirectory(rootDir, appDir);
-                if (string.IsNullOrEmpty(rootDir))
-                {
-                    return; // Kullanıcı iptal etti
-                }
+                if (string.IsNullOrEmpty(rootDir)) return;
             }
 
             // 4. Node.js Sunucusunu Belirlenen Dizinde Başlat
@@ -72,8 +78,8 @@ namespace ApexBotDesktop
         private static string PromptUserForProjectDirectory(string currentRoot, string appDir)
         {
             MessageBox.Show(
-                "APEX-BOT: 'node_modules' veya 'server.js' dosyaları otomatik bulunamadı.\n\n" +
-                "Lütfen 'node_modules' klasörünüzün bulunduğu ana proje (botv3) klasörünü seçin.",
+                "APEX-BOT: 'server.js' veya 'node_modules' dosyaları otomatik bulunamadı.\n\n" +
+                "Lütfen bot dosyalarınızın bulunduğu ana klasörü (APEX-BOT) seçin.",
                 "APEX-BOT Konum Belirleme",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
@@ -81,26 +87,15 @@ namespace ApexBotDesktop
 
             using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
-                fbd.Description = "Lütfen 'node_modules' klasörünün bulunduğu ana 'botv3' dizinini seçin:";
+                fbd.Description = "Lütfen bot dosyalarının bulunduğu ana klasörü seçin:";
                 fbd.ShowNewFolderButton = false;
                 if (Directory.Exists(currentRoot)) fbd.SelectedPath = currentRoot;
 
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     string selected = fbd.SelectedPath;
-                    // Kontrol et
-                    if (Directory.Exists(Path.Combine(selected, "node_modules")))
-                    {
-                        SaveRootPath(appDir, selected);
-                        MessageBox.Show("Konum başarıyla kaydedildi:\n" + selected, "APEX-BOT Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        return selected;
-                    }
-                    else
-                    {
-                        // node_modules bulunamadıysa bile bu klasörü kabul et
-                        SaveRootPath(appDir, selected);
-                        return selected;
-                    }
+                    SaveRootPath(appDir, selected);
+                    return selected;
                 }
             }
             return null;
