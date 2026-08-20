@@ -181,8 +181,11 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
   broadcastLog(`[BATCH] Günlük Maç Keşfi başlatıldı: ${dateStr} (${dateKeyword})`, 'info');
 
   try {
-    const { discoverMatchesForDate } = require('./core/daily_discovery');
-    let matches = await discoverMatchesForDate(dateStr);
+    const { discoverDailyMatches } = require('./core/daily_discovery');
+    const discRes = await discoverDailyMatches(dateStr, {
+      logger: (msg) => broadcastLog(msg, 'info')
+    });
+    let matches = discRes && Array.isArray(discRes.matches) ? discRes.matches : [];
 
     if (!matches || matches.length === 0) {
       broadcastLog(`[WARNING] Bu tarih için maç bulunamadı: ${dateStr}`, 'warning');
@@ -573,11 +576,14 @@ const server = http.createServer(async (req, res) => {
         activeJob.startTime = new Date();
         activeJob.cancelRequested = false;
 
-        const { discoverMatchesForDate } = require('./core/daily_discovery');
+        const { discoverDailyMatches } = require('./core/daily_discovery');
         const testDate = new Date().toISOString().split('T')[0];
         broadcastLog(`[DISCOVERY] [DATE: ${testDate}] Günün bülteni taranıyor...`, 'info');
         
-        let matches = await discoverMatchesForDate(testDate);
+        const discRes = await discoverDailyMatches(testDate, {
+          logger: (msg) => broadcastLog(msg, 'info')
+        });
+        let matches = discRes && Array.isArray(discRes.matches) ? discRes.matches : [];
         if (!matches || matches.length === 0) {
           broadcastLog(`[DISCOVERY] [FALLBACK] Güncel liste boş, yedek test maçına geçiliyor.`, 'warning');
           matches = [{ url: 'https://www.forebet.com/en/football/matches/ldu-quito-mirassol-sp', home: 'LDU Quito', away: 'Mirassol SP' }];
