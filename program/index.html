@@ -72,7 +72,7 @@
     }
     .btn-emergency:hover { background: var(--accent-danger); color: #fff; }
 
-    /* Layout Container (Responsive Grid / Flex) */
+    /* Layout Container */
     .app-layout {
       display: flex;
       flex: 1;
@@ -80,7 +80,7 @@
       overflow: hidden;
     }
 
-    /* 1. Sol Sidebar (Kompakt ve Daralabilir) */
+    /* 1. Sol Sidebar */
     .sidebar {
       width: 200px;
       min-width: 180px;
@@ -121,7 +121,7 @@
     .health-row { display: flex; justify-content: space-between; margin-bottom: 2px; color: var(--text-muted); font-size: 10.5px; }
     .health-row b { color: #fff; font-weight: 700; }
 
-    /* 2. Orta Alan (Akıcı ve Esnek) */
+    /* 2. Orta Alan */
     .main-workspace {
       flex: 1;
       min-width: 320px;
@@ -170,7 +170,7 @@
     .btn-action:hover { background: #0369a1; }
     .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Quick Grid (Responsive 2x2 or 4x1) */
+    /* Quick Grid */
     .quick-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -189,10 +189,10 @@
     .btn-tile-title { font-size: 11.5px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
     .btn-tile-desc { font-size: 10px; color: var(--text-muted); }
 
-    /* Dual Panels (Responsive Columns) */
+    /* Dual Panels */
     .panels-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 10px;
     }
     .card {
@@ -213,6 +213,35 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
     .card-head i { color: var(--accent-primary); margin-right: 5px; }
+
+    /* Schedule Task Row */
+    .sched-task-box {
+      background: var(--bg-subpanel);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .sched-task-info { display: flex; flex-direction: column; gap: 2px; }
+    .sched-task-name { font-size: 11.5px; font-weight: 700; color: #fff; }
+    .sched-task-sub { font-size: 9.5px; color: var(--text-muted); }
+    .sched-time-input {
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--accent-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 3px 6px;
+      outline: none;
+      width: 75px;
+      text-align: center;
+    }
 
     .setting-item {
       display: flex;
@@ -246,15 +275,15 @@
     input:checked + .toggle-slider { background-color: var(--accent-success); }
     input:checked + .toggle-slider:before { transform: translateX(15px); }
 
-    /* Terminal Console (Kompakt ve Okunabilir) */
+    /* Terminal Console */
     .terminal-box {
       background: #050810;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       display: flex;
       flex-direction: column;
-      height: 180px;
-      min-height: 140px;
+      height: 170px;
+      min-height: 130px;
       overflow: hidden;
     }
     .terminal-header {
@@ -284,7 +313,7 @@
     .log-warn { color: #fbbf24; }
     .log-err { color: #f87171; font-weight: 700; }
 
-    /* 3. Sağ Panel (Maç Listesi) */
+    /* 3. Sağ Panel */
     .right-sidebar {
       width: 320px;
       min-width: 260px;
@@ -425,76 +454,90 @@
 
       <!-- Quick Actions Grid -->
       <div class="quick-grid">
+        <div class="btn-tile" onclick="handleScrapeBatch('yesterday', null)">
+          <div class="btn-tile-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Sonuçlar)</div>
+          <div class="btn-tile-desc">Bitmiş tüm maçları çek</div>
+        </div>
+
+        <div class="btn-tile" onclick="handleScrapeBatch('tomorrow', null)">
+          <div class="btn-tile-title"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten)</div>
+          <div class="btn-tile-desc">Açılış oranları & tahmin</div>
+        </div>
+
         <div class="btn-tile" onclick="handleScrapeBatch('today', 10)">
-          <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10)</div>
-          <div class="btn-tile-desc">Günün ilk 10 maçı</div>
+          <div class="btn-tile-title"><i class="fa-solid fa-play" style="color: var(--accent-success);"></i> Bugün (10 Test)</div>
+          <div class="btn-tile-desc">Hızlı canlı test</div>
         </div>
 
         <div class="btn-tile" onclick="handleScrapeBatch('today', null)">
           <div class="btn-tile-title"><i class="fa-solid fa-forward-fast" style="color: var(--accent-primary);"></i> Bugün (Tümü)</div>
-          <div class="btn-tile-desc">Tam bülten kazı</div>
-        </div>
-
-        <div class="btn-tile" onclick="handleScrapeBatch('yesterday', 10)">
-          <div class="btn-tile-title"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dün (Bitmiş)</div>
-          <div class="btn-tile-desc">Skorları güncelle</div>
-        </div>
-
-        <div class="btn-tile" onclick="handleScrapeBatch('tomorrow', 10)">
-          <div class="btn-tile-title"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarın (Bülten)</div>
-          <div class="btn-tile-desc">Açılış oranları</div>
+          <div class="btn-tile-desc">Tam bülteni kazı</div>
         </div>
       </div>
 
       <!-- Settings & Controls Dual Panels -->
       <div class="panels-row">
 
-        <!-- Panel 1: Otomasyon & Zamanlayıcı -->
+        <!-- Panel 1: Saat Bazlı Görev Zamanlayıcısı (Clock Scheduler) -->
         <div class="card">
           <div class="card-head">
-            <span><i class="fa-solid fa-clock"></i> Zamanlayıcı</span>
-            <span id="schedStatusBadge" style="font-size: 10px; color: var(--text-dim); font-weight: 700;">PASİF</span>
-          </div>
-
-          <div class="setting-item">
-            <div>
-              <div class="setting-name">Periyodik Kazıma</div>
-              <div class="setting-sub">Arka planda tara</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="schedToggle" onchange="toggleScheduler(this.checked)">
+            <span><i class="fa-solid fa-clock"></i> Otomasyon Görev Saatleri</span>
+            <label class="toggle-switch" title="Tüm otomatik zamanlayıcıyı aç/kapat">
+              <input type="checkbox" id="masterSchedToggle" checked onchange="saveSchedulerTasks()">
               <span class="toggle-slider"></span>
             </label>
           </div>
 
-          <div class="setting-item">
-            <div>
-              <div class="setting-name">Aralık</div>
-              <div class="setting-sub">Dakika periyodu</div>
+          <!-- Görev 1: Dün (06:00) -->
+          <div class="sched-task-box">
+            <div class="sched-task-info">
+              <div class="sched-task-name"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-warning);"></i> Dünün Bitmiş Maçları</div>
+              <div class="sched-task-sub">Skorlar, Penaltılar, AET & Olaylar</div>
             </div>
-            <select class="form-input" id="schedIntervalSelect" style="width: 100px;" onchange="saveSchedulerSettings()">
-              <option value="15">15 Dk</option>
-              <option value="30" selected>30 Dk</option>
-              <option value="60">60 Dk</option>
-            </select>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="time" class="sched-time-input" id="timeYesterday" value="06:00" onchange="saveSchedulerTasks()">
+              <label class="toggle-switch">
+                <input type="checkbox" id="enableYesterday" checked onchange="saveSchedulerTasks()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
 
-          <div class="setting-item">
-            <div>
-              <div class="setting-name">Başlangıçta Çalıştır</div>
-              <div class="setting-sub">Windows açılışında</div>
+          <!-- Görev 2: Yarın (18:00) -->
+          <div class="sched-task-box">
+            <div class="sched-task-info">
+              <div class="sched-task-name"><i class="fa-solid fa-calendar-days" style="color: var(--accent-purple);"></i> Yarının Bülteni & Oranlar</div>
+              <div class="sched-task-sub">Gelecek tahminler & Kupon üretimi</div>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="startOnBootToggle">
-              <span class="toggle-slider"></span>
-            </label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="time" class="sched-time-input" id="timeTomorrow" value="18:00" onchange="saveSchedulerTasks()">
+              <label class="toggle-switch">
+                <input type="checkbox" id="enableTomorrow" checked onchange="saveSchedulerTasks()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Görev 3: Bugün (Opsiyonel) -->
+          <div class="sched-task-box" style="margin-bottom: 4px;">
+            <div class="sched-task-info">
+              <div class="sched-task-name"><i class="fa-solid fa-play" style="color: var(--accent-primary);"></i> Bugünün Canlı Bülteni</div>
+              <div class="sched-task-sub">Günün maçlarını güncelle (Opsiyonel)</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="time" class="sched-time-input" id="timeToday" value="12:00" onchange="saveSchedulerTasks()">
+              <label class="toggle-switch">
+                <input type="checkbox" id="enableToday" onchange="saveSchedulerTasks()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
         </div>
 
-        <!-- Panel 2: APEX API & İndirme Tercihleri -->
+        <!-- Panel 2: APEX API Ayarları -->
         <div class="card">
           <div class="card-head">
-            <span><i class="fa-solid fa-server"></i> APEX API</span>
+            <span><i class="fa-solid fa-server"></i> APEX API & Tercihler</span>
             <button class="btn-sm" style="flex: none; padding: 2px 6px;" onclick="testApexApi()"><i class="fa-solid fa-plug"></i> Test</button>
           </div>
 
@@ -508,7 +551,18 @@
             <input type="password" class="form-input" id="apexSecretInput" placeholder="apex_secret_key_2026">
           </div>
 
-          <div style="margin-top: 4px;">
+          <div class="setting-item">
+            <div>
+              <div class="setting-name">Yerel JSON/HTML Yedeği</div>
+              <div class="setting-sub">output klasörüne kaydet</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="saveLocalToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="margin-top: 6px;">
             <button class="btn-action" style="width: 100%; justify-content: center; padding: 5px 8px; font-size: 11px;" onclick="saveApexConfig()">
               <i class="fa-solid fa-floppy-disk"></i> Ayarları Kaydet
             </button>
@@ -561,7 +615,7 @@
       document.getElementById('topClock').innerText = d.toTimeString().split(' ')[0];
     }
 
-    // 2. Load Settings
+    // 2. Load Settings & Scheduler
     async function loadSettings() {
       try {
         const res = await fetch('/api/status');
@@ -571,15 +625,43 @@
           document.getElementById('apexSecretInput').value = data.config.apexSecret || '';
         }
         if (data.scheduler) {
-          document.getElementById('schedToggle').checked = data.scheduler.enabled;
-          document.getElementById('schedIntervalSelect').value = data.scheduler.intervalMinutes || 30;
-          document.getElementById('schedStatusBadge').innerText = data.scheduler.enabled ? 'AKTİF' : 'PASİF';
-          document.getElementById('schedStatusBadge').style.color = data.scheduler.enabled ? 'var(--accent-success)' : 'var(--text-dim)';
+          document.getElementById('masterSchedToggle').checked = data.scheduler.enabled !== false;
+          if (data.scheduler.tasks) {
+            data.scheduler.tasks.forEach(t => {
+              if (t.id === 'yesterday') {
+                document.getElementById('timeYesterday').value = t.time || '06:00';
+                document.getElementById('enableYesterday').checked = t.enabled;
+              } else if (t.id === 'tomorrow') {
+                document.getElementById('timeTomorrow').value = t.time || '18:00';
+                document.getElementById('enableTomorrow').checked = t.enabled;
+              } else if (t.id === 'today') {
+                document.getElementById('timeToday').value = t.time || '12:00';
+                document.getElementById('enableToday').checked = t.enabled;
+              }
+            });
+          }
         }
       } catch (e) {}
     }
 
-    // 2.1 Fetch Health Metrics
+    // 2.1 Save Scheduler Tasks
+    async function saveSchedulerTasks() {
+      const isMasterEnabled = document.getElementById('masterSchedToggle').checked;
+      const tasks = [
+        { id: 'yesterday', name: 'Dünün Sonuçlanan Maçları', time: document.getElementById('timeYesterday').value, mode: 'yesterday', enabled: document.getElementById('enableYesterday').checked, limit: null },
+        { id: 'tomorrow', name: 'Yarının Bülteni & Oranları', time: document.getElementById('timeTomorrow').value, mode: 'tomorrow', enabled: document.getElementById('enableTomorrow').checked, limit: null },
+        { id: 'today', name: 'Bugünün Canlı Bülteni', time: document.getElementById('timeToday').value, mode: 'today', enabled: document.getElementById('enableToday').checked, limit: 20 }
+      ];
+
+      await fetch('/api/scheduler', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: isMasterEnabled, tasks })
+      });
+      appendLog(new Date().toLocaleTimeString(), '⏰ Otomasyon saatleri kaydedildi.', 'success');
+    }
+
+    // 2.2 Fetch Health Metrics
     async function fetchHealthMetrics() {
       try {
         const res = await fetch('/api/health-metrics');
@@ -687,17 +769,6 @@
       } catch (e) {
         alert('Hata: ' + e.message);
       }
-    }
-
-    // 5. Scheduler Toggle & Save
-    async function toggleScheduler(enabled) {
-      const interval = parseInt(document.getElementById('schedIntervalSelect').value, 10) || 30;
-      await fetch('/api/scheduler', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: enabled ? 'start' : 'stop', intervalMinutes: interval, targetMode: 'today' })
-      });
-      loadSettings();
     }
 
     // 6. APEX Config Save & Test

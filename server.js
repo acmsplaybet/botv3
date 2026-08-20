@@ -68,62 +68,63 @@ let activeJob = {
   startTime: null
 };
 
-// Scheduler (Otomatik Zamanlayıcı) State
-let schedulerState = {
-  enabled: false,
-  intervalMinutes: 30,
-  targetMode: 'today', // 'today', 'yesterday', 'all'
-  limit: 20,
-  timerId: null,
-  lastRunTime: null,
-  nextRunTime: null,
-  runCount: 0
+// Scheduler (Saat Bazlı Çoklu Görev Zamanlayıcısı) State
+let schedulerConfig = {
+  enabled: true,
+  tasks: [
+    { id: 'yesterday', name: 'Dünün Sonuçlanan Maçları', time: '06:00', mode: 'yesterday', enabled: true, limit: null, lastRunDate: null },
+    { id: 'tomorrow', name: 'Yarının Bülteni & Oranları', time: '18:00', mode: 'tomorrow', enabled: true, limit: null, lastRunDate: null },
+    { id: 'today', name: 'Bugünün Canlı Bülteni', time: '12:00', mode: 'today', enabled: false, limit: 20, lastRunDate: null }
+  ]
 };
 
-// Scheduler Runner
-function startScheduler(intervalMinutes = 30, targetMode = 'today', limit = 20) {
-  stopScheduler();
-  schedulerState.enabled = true;
-  schedulerState.intervalMinutes = intervalMinutes;
-  schedulerState.targetMode = targetMode;
-  schedulerState.limit = limit;
-
-  const ms = intervalMinutes * 60 * 1000;
-  schedulerState.nextRunTime = new Date(Date.now() + ms).toLocaleTimeString();
-
-  broadcastEvent('scheduler_update', schedulerState);
-  broadcastLog(`⏰ Otomatik Zamanlayıcı BAŞLATILDI: Her ${intervalMinutes} dakikada bir [${targetMode}] çalışacak.`, 'success');
-
-  schedulerState.timerId = setInterval(async () => {
-    if (activeJob.isRunning) {
-      broadcastLog(`⏰ Zamanlayıcı tetiklendi ancak aktif bir kazıma devam ettiği için bu tur atlandı.`, 'warning');
-      return;
-    }
-
-    broadcastLog(`⏰ [ZAMANLAYICI TETİKLENDİ] Otomatik kazıma döngüsü başlıyor (${schedulerState.targetMode})...`, 'info');
-    schedulerState.lastRunTime = new Date().toLocaleTimeString();
-    schedulerState.runCount++;
-    schedulerState.nextRunTime = new Date(Date.now() + ms).toLocaleTimeString();
-    broadcastEvent('scheduler_update', schedulerState);
-
-    try {
-      await runInternalBatchJob(schedulerState.targetMode, schedulerState.limit);
-    } catch (e) {
-      broadcastLog(`❌ Zamanlayıcı kazıma hatası: ${e.message}`, 'error');
-    }
-  }, ms);
-}
-
-function stopScheduler() {
-  if (schedulerState.timerId) {
-    clearInterval(schedulerState.timerId);
-    schedulerState.timerId = null;
+// Config'den zamanlayıcıyı yükle
+function initSchedulerFromConfig() {
+  const cfg = loadConfig();
+  if (cfg.scheduler) {
+    schedulerConfig = { ...schedulerConfig, ...cfg.scheduler };
   }
-  schedulerState.enabled = false;
-  schedulerState.nextRunTime = null;
-  broadcastEvent('scheduler_update', schedulerState);
-  broadcastLog(`⏸️ Otomatik Zamanlayıcı DURDURULDU.`, 'warning');
 }
+initSchedulerFromConfig();
+
+function saveSchedulerToConfig() {
+  const cfg = loadConfig();
+  cfg.scheduler = schedulerConfig;
+  const p = path.join(__dirname, 'config.json');
+  try {
+    fs.writeFileSync(p, JSON.stringify(cfg, null, 2), 'utf8');
+  } catch (_) {}
+}
+
+// Her 10 saniyede bir saat kontrolü yapan Master Clock Engine
+setInterval(async () => {
+  if (!schedulerConfig.enabled) return;
+
+  const now = new Date();
+  const currentHHMM = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  const todayStr = now.toISOString().split('T')[0];
+
+  for (const task of schedulerConfig.tasks) {
+    if (task.enabled && task.time === currentHHMM && task.lastRunDate !== todayStr) {
+      if (activeJob.isRunning) {
+        broadcastLog(`⏰ [ZAMANLAYICI] Saat ${task.time} geldi (${task.name}), ancak aktif kazıma devam ettiği için bekleniyor...`, 'warning');
+        return;
+      }
+
+      task.lastRunDate = todayStr;
+      saveSchedulerToConfig();
+
+      broadcastLog(`⏰ [OTOMASYON TETİKLENDİ] Saat ${task.time} ➔ ${task.name} otomatik kazıma başlatılıyor!`, 'success');
+      broadcastEvent('scheduler_update', schedulerConfig);
+
+      try {
+        await runInternalBatchJob(task.mode, task.limit);
+      } catch (err) {
+        broadcastLog(`❌ [OTOMASYON HATASI] ${task.name}: ${err.message}`, 'error');
+      }
+    }
+  }
+}, 10000);
 
 // Internal Batch Scraper
 async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
@@ -458,20 +459,22 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 7. Scheduler API
+  // 7. Scheduler API (Save Clock Tasks)
   if (pathname === '/api/scheduler' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', () => {
       try {
         const payload = JSON.parse(body || '{}');
-        if (payload.action === 'start') {
-          startScheduler(payload.intervalMinutes || 30, payload.targetMode || 'today', payload.limit || 20);
-        } else if (payload.action === 'stop') {
-          stopScheduler();
+        if (payload.enabled !== undefined) schedulerConfig.enabled = Boolean(payload.enabled);
+        if (payload.tasks && Array.isArray(payload.tasks)) {
+          schedulerConfig.tasks = payload.tasks;
         }
+        saveSchedulerToConfig();
+        broadcastEvent('scheduler_update', schedulerConfig);
+        broadcastLog(`⏰ Otomasyon saatleri güncellendi (Aktif: ${schedulerConfig.enabled ? 'EVET' : 'HAYIR'})`, 'success');
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ success: true, scheduler: schedulerState }));
+        return res.end(JSON.stringify({ success: true, scheduler: schedulerConfig }));
       } catch (e) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: false, error: e.message }));
