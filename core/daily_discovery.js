@@ -74,11 +74,13 @@ async function discoverDailyMatches(dateStr, options = {}) {
 
     logger(`[Keşif] ✅ Tüm liste açıldı (Toplam ${moreClickedCount} kez 'More' tıklandı).`);
 
-    // 2. Parse all match rows from the DOM
+    // 2. Parse all match rows from the DOM (Main date table only)
     const rawMatches = await page.evaluate(() => {
-      const rows = Array.from(document.querySelectorAll('.schema .rcnt'));
+      const rows = Array.from(document.querySelectorAll('.schema:not(.ftrd) tr[onclick*="/matches/"], .schema:not(.ftrd) tr.rcnt, div.schema:not(.ftrd) .rcnt, table.main tr[onclick*="/matches/"]'));
       
       return rows.map((r, index) => {
+        if (r.closest('.ftrd') || r.closest('.widget') || r.closest('.sidebar') || r.closest('#rightcol') || r.closest('.stat-more')) return null;
+
         // Link & URL
         let href = '';
         const onclick = r.getAttribute('onclick');

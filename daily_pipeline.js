@@ -168,13 +168,15 @@ async function getMatchListing(browser, listUrl) {
       await new Promise(r => setTimeout(r, 1500));
     }
 
-    // DOM'dan Maç URL'lerini Çıkar
+    // DOM'dan Maç URL'lerini Çıkar (Sadece günün ana tahmin tablosu, sidebar ve ftrd bannerları hariç)
     matches = await page.evaluate(() => {
-      const rows = Array.from(document.querySelectorAll('.rcnt, .schema .rcnt, tr[class*="tr_"], div[class*="tr_"], .schema tr[onclick*="/matches/"]'));
+      const rows = Array.from(document.querySelectorAll('.schema:not(.ftrd) tr[onclick*="/matches/"], .schema:not(.ftrd) tr.rcnt, div.schema:not(.ftrd) .rcnt, table.main tr[onclick*="/matches/"]'));
       const list = [];
       const seen = new Set();
 
       rows.forEach(r => {
+        if (r.closest('.ftrd') || r.closest('.widget') || r.closest('.sidebar') || r.closest('#rightcol') || r.closest('.stat-more')) return;
+
         let href = '';
         const onclick = r.getAttribute('onclick');
         if (onclick && onclick.includes('/matches/')) {
