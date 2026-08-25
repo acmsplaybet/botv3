@@ -204,12 +204,13 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
       logger: (msg) => broadcastLog(msg, 'info')
     });
     const discMatches = discRes && Array.isArray(discRes.matches) ? discRes.matches : [];
-    const withOddsCount = discRes && discRes.withOddsCount ? discRes.withOddsCount : discMatches.length;
-    const withoutOddsCount = Math.max(0, discMatches.length - withOddsCount);
+    const totalFound = discRes && discRes.total_matches_in_list ? discRes.total_matches_in_list : discMatches.length;
+    const withOddsCount = discRes && (discRes.withOddsCount || discRes.quoted_count) ? (discRes.withOddsCount || discRes.quoted_count) : discMatches.length;
+    const withoutOddsCount = discRes && (discRes.withoutOddsCount !== undefined) ? discRes.withoutOddsCount : Math.max(0, totalFound - withOddsCount);
     let matches = [...discMatches];
 
     if (!matches || matches.length === 0) {
-      broadcastLog(`[WARNING] Bu tarih için maç bulunamadı: ${dateStr}`, 'warning');
+      broadcastLog(`[WARNING] Bu tarih için oranlı maç bulunamadı: ${dateStr}`, 'warning');
       activeJob.isRunning = false;
       broadcastEvent('job_finished', activeJob);
       return;
@@ -220,7 +221,7 @@ async function runInternalBatchJob(dateKeyword = 'today', limit = null) {
     }
 
     activeJob.totalMatches = matches.length;
-    broadcastLog(`[INFO] Toplam ${matches.length} maç kazıma kuyruğuna alındı.`, 'info');
+    broadcastLog(`[ORAN FİLTRESİ] ${withOddsCount} oranlı maç kuyruğa alındı (${withoutOddsCount} oransız maç elendi).`, 'success');
     broadcastEvent('job_progress', activeJob);
 
     const cfg = loadConfig();

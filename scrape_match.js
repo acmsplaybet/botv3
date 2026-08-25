@@ -46,7 +46,7 @@ function formatLog(msg, color = COLORS.reset) {
 
 async function scrapeMatch(url, options = {}) {
   const logger = options.onLog || ((msg) => console.log(formatLog(msg)));
-  const headless = options.headless !== undefined ? options.headless : 'new';
+  const headless = options.headless !== undefined ? options.headless : false;
   const syncApex = options.syncApex !== undefined ? options.syncApex : true;
 
   let browser = null;

@@ -11,8 +11,10 @@
 - [x] **Faz 3.3:** Kronolojik Olay & Scoreboard Sıralaması (HT, FT, AET, PEN Forebet DOM ile 1:1 Birebir) `%100 TAMAMLANDI`
 - [x] **Faz 3.4:** Next Matches & Difficulty (FDR 1-5 Skalası, 1:1 Forebet Kart Tasarımı & View All Desteği) `%100 TAMAMLANDI`
 - [x] **Faz 3.5:** Straight Line Distance (`.dist_cnt` Düzeltmesi) & Hero Upcoming Skor Temizliği (`-` / Sıfır Oran Sızıntısı) `%100 TAMAMLANDI`
-- [x] **Faz 3.6:** Otomasyon & .BAT Kontrol Paneli, Dinamik APEX URL/Key Yapılandırması `%100 TAMAMLANDI`
 - [x] **Faz 4:** APEX Canlı API Entegrasyonu & Cron Otomasyonu `%100 TAMAMLANDI & HAZIR`
+- [x] **Faz 4.1:** Numeric Odds Filtering & Discovery Optimization (Oransız amatör maçların elenmesi, Türkçe oran loglaması, `onclick` ve `<a>` satır ayrıştırması) `%100 TAMAMLANDI`
+- [x] **Faz 4.2:** Kalıcı Profil & Otomatik İnsan-Etkileşimli Cloudflare Kurtarma (Headless-to-Headful Escalation, `ONAYLA_VE_BASLAT.bat`, otomatik pencere açma & kapatma) `%100 TAMAMLANDI`
+- [x] **Faz 4.3:** Görev Yaşam Döngüsü & Akıllı Butonlar (Durdur/Sıfırla, Duraklat/Devam Et Sinyal Döngüsü, Sistemi Kapat & Süreç Temizliği) `%100 TAMAMLANDI`
 
 ---
 

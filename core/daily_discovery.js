@@ -29,7 +29,7 @@ async function discoverDailyMatches(dateStr, options = {}) {
 
   logger(`[Keşif] 🌐 Tarih sayfası açılıyor: ${targetUrl}`);
 
-  const browser = await createBrowser({ headless });
+  const browser = await createBrowser({ headless, useTempProfile: true });
   const page = await browser.newPage();
   await setupPageInterception(page);
 
@@ -80,8 +80,21 @@ async function discoverDailyMatches(dateStr, options = {}) {
       
       return rows.map((r, index) => {
         // Link & URL
-        const linkEl = r.querySelector('a.tnmscn, a[href*="/football/matches/"], a[href*="/predictions-predictions-"]');
-        const href = linkEl ? linkEl.href : '';
+        let href = '';
+        const onclick = r.getAttribute('onclick');
+        if (onclick && onclick.includes('/matches/')) {
+          const m = onclick.match(/'([^']+)'/);
+          if (m) href = m[1];
+        }
+
+        if (!href) {
+          const linkEl = r.querySelector('a.tnmscn, a[href*="/football/matches/"], a[href*="/matches/"]');
+          if (linkEl && linkEl.href) href = linkEl.href;
+        }
+
+        if (href && !href.startsWith('http')) {
+          href = 'https://www.forebet.com' + (href.startsWith('/') ? '' : '/') + href;
+        }
         
         // Extract matchId
         let matchId = null;
@@ -137,24 +150,32 @@ async function discoverDailyMatches(dateStr, options = {}) {
 
         // Odd (Oran)
         // Primary location: .bigOnly.prmod .lscrsp or .prmod span
-        const oddEl = r.querySelector('.bigOnly.prmod .lscrsp, .prmod .lscrsp, .lodd, .odd, .podd');
+        const oddEl = r.querySelector('.bigOnly.prmod .lscrsp, .prmod .lscrsp, .prmod span, span.lscrsp, .lodd, .odd, .podd, .l_od');
         let oddText = oddEl ? (oddEl.innerText || '').trim() : '';
         
         let numericOdd = null;
         if (oddText && oddText !== '-' && !isNaN(parseFloat(oddText))) {
-          numericOdd = parseFloat(oddText);
+          const parsed = parseFloat(oddText);
+          if (parsed > 1.0) numericOdd = parsed;
         }
 
         // Extra odds breakdown (1, X, 2)
-        const haoddSpans = Array.from(r.querySelectorAll('.haodd span')).map(s => (s.innerText || '').trim());
+        const haoddSpans = Array.from(r.querySelectorAll('.haodd span, .haodd div, .haodd_div span'))
+          .map(s => (s.innerText || '').trim())
+          .filter(Boolean);
         let odds1x2 = { 1: null, X: null, 2: null };
         if (haoddSpans.length >= 3) {
           odds1x2 = {
-            1: !isNaN(parseFloat(haoddSpans[0])) ? parseFloat(haoddSpans[0]) : null,
-            X: !isNaN(parseFloat(haoddSpans[1])) ? parseFloat(haoddSpans[1]) : null,
-            2: !isNaN(parseFloat(haoddSpans[2])) ? parseFloat(haoddSpans[2]) : null
+            1: !isNaN(parseFloat(haoddSpans[0])) && parseFloat(haoddSpans[0]) > 1.0 ? parseFloat(haoddSpans[0]) : null,
+            X: !isNaN(parseFloat(haoddSpans[1])) && parseFloat(haoddSpans[1]) > 1.0 ? parseFloat(haoddSpans[1]) : null,
+            2: !isNaN(parseFloat(haoddSpans[2])) && parseFloat(haoddSpans[2]) > 1.0 ? parseFloat(haoddSpans[2]) : null
           };
         }
+
+        const hasValidOdd = (numericOdd !== null && numericOdd > 1.0) || 
+                            (odds1x2[1] !== null && odds1x2[1] > 1.0) || 
+                            (odds1x2[2] !== null && odds1x2[2] > 1.0) || 
+                            (odds1x2.X !== null && odds1x2.X > 1.0);
 
         return {
           row_index: index,
@@ -175,24 +196,26 @@ async function discoverDailyMatches(dateStr, options = {}) {
             primary_odd: numericOdd,
             odds_1x2: odds1x2
           },
-          has_valid_odd: (numericOdd !== null && numericOdd > 1.0) || (odds1x2[1] !== null && odds1x2[1] > 1.0)
+          has_valid_odd: hasValidOdd
         };
       });
     });
 
-    await browser.close();
-
     // 3. Filter ONLY matches with valid odds and valid URLs
     const totalFound = rawMatches.length;
     const quotedMatches = rawMatches.filter(m => m.has_valid_odd && m.url && m.match_id);
+    const unquotedMatches = rawMatches.filter(m => !m.has_valid_odd && m.url);
 
-    logger(`[Keşif] 📊 İstatistik: Toplam ${totalFound} maç bulundu, ${quotedMatches.length} tanesinin ORANI MEVCUT.`);
+    logger(`[Keşif] 📋 Bülten Taranması: Toplam ${totalFound} maç keşfedildi.`);
+    logger(`[Keşif] 🎯 Oran Filtresi: ${quotedMatches.length} oranlı maç kuyruğa alındı (${unquotedMatches.length} oransız maç elendi).`);
 
     return {
       date: dateStr || new Date().toISOString().split('T')[0],
       total_matches_in_list: totalFound,
       quoted_count: quotedMatches.length,
-      unquoted_count: totalFound - quotedMatches.length,
+      withOddsCount: quotedMatches.length,
+      unquoted_count: unquotedMatches.length,
+      withoutOddsCount: unquotedMatches.length,
       matches: quotedMatches
     };
 

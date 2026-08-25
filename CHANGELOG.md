@@ -2,6 +2,28 @@
 
 Tüm önemli değişiklikler, yeni modüller ve hata düzeltmeleri bu dosyada [Semantic Versioning](https://semver.org/) kurallarına göre tutulur.
 
+## [3.4.1] — 2026-08-25
+### ⏹️ Gelişmiş Görev Yaşam Döngüsü, Duraklat / Devam Et & Sistemi Kapat
+- **Görevi İptal Et / Durdur Düzeltmesi (`bpa_desktop_agent.js`):**
+  - Durdur butonuna basıldığında aktif süreç ve sinyal dosyaları temizleniyor; yeni tarih/görev verildiğinde eski görevin tekrarlanması sorunu tamamen çözüldü.
+- **Canlı Duraklat / Devam Et (Pause / Resume):**
+  - `pause_signal.txt` tabanlı sinyal döngüsü kuruldu. Tarama sırasında "Duraklat"a basıldığında işçiler mevcut maçı bitirip uykuya geçiyor; "Devam Et"e basıldığında kaldığı maçtan sıfır kayıpla devam ediyor.
+- **Sistemi Kapat (Full Shutdown):**
+  - Node.js sunucusunu, çalışan tüm scraper süreçlerini ve bot için açılmış tüm Chrome tarayıcılarını PowerShell üzerinden tek tıkla kapatan güvenli kapatma mekanizması eklendi.
+- **Gecikmesiz Otomatik Tarayıcı Başlatma (`BPA_Agent_Launcher_GUI.bat`):**
+  - Port açılmadan önce tarayıcının hata vermesi engellendi; port 3000 %100 açıldığı anda panel sayfası otomatik yükleniyor.
+
+## [3.4.0] — 2026-08-25
+### 🛡️ Kalıcı Profil, Oran Filtreleme & İnteraktif Cloudflare Kurtarma (Headless-to-Headful Escalation)
+- **Oransız Maçları Eleme & Numerik Doğrulama:**
+  - `daily_pipeline.js`, `core/daily_discovery.js` ve `daily_crawler.js` modüllerine sayısal oran filtresi (`odd > 1.0`) eklendi.
+  - Oranı açılmamış amatör maçlar taranmadan eleniyor, terminal ve panelde kaç maçın elendiği net Türkçe loglarla gösteriliyor.
+  - Forebet'in hem `<a href>` hem de `<tr onclick>` formatındaki maç linkleri yakalanıyor.
+- **Kalıcı Profil & Otomatik Kurtarma (`core/browser_engine.js`):**
+  - `data/stealth_profile` kalıcı tarayıcı profili mimarisine geçildi, çerez formatı (`loadCachedCookies`) CDP ile tam uyumlu hale getirildi.
+  - **Akıllı İnteraktif Kurtarma (`triggerInteractiveChallenge`):** Arka plan taramasında Cloudflare takılması yaşanırsa bot pes etmez; kullanıcıya otomatik görsel bir Chrome penceresi açar ve sesli sinyal verir. Kullanıcı onayı geçtiği an çerezler kaydedilir, pencere kapanır ve arka plan taraması sıfır veri kaybıyla kaldığı yerden devam eder.
+  - Tek tıkla yetkilendirme için `ONAYLA_VE_BASLAT.bat` ve `tools/auth_interactive.js` araçları eklendi.
+
 ## [3.3.2] — 2026-08-20
 ### 🚀 Temiz Klasör Paketi, Canlı Log Akışı & Çoklu Sunucu Senkronizasyonu
 - **Temiz Paket Oluşturuldu (`temiz_klasor/`):**

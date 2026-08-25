@@ -18,19 +18,14 @@ async function testDailyDiscovery(targetDate = null) {
   console.log('======================================================\n');
 
   const startTime = Date.now();
-  let browser = null;
-
   try {
-    console.log('🚀 Stealth Tarayıcı Başlatılıyor...');
-    browser = await initBrowser(true);
-
     console.log(`🔍 Forebet Tarih Listesi Taranıyor: ${dateStr}...`);
     const discovery = await discoverDailyMatches(dateStr, { headless: 'new' });
     const matches = discovery.matches || [];
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    console.log(`\n✅ Keşif Tamamlandı! Bulunan Toplam Maç: ${discovery.total_matches_in_list || matches.length} (Oranlı: ${matches.length})`);
+    console.log(`\n✅ Keşif Tamamlandı! Bulunan Toplam Maç: ${discovery.total_matches_in_list || matches.length} (Oranlı: ${matches.length}, Oransız: ${discovery.unquoted_count || 0})`);
     console.log(`⏱️  İşlem Süresi: ${elapsed}s\n`);
 
     if (matches.length > 0) {
@@ -40,7 +35,7 @@ async function testDailyDiscovery(targetDate = null) {
         'Ev Sahibi': m.home_team || m.home || '-',
         'Deplasman': m.away_team || m.away || '-',
         'Lig': m.league?.name_hint || m.league_name || '-',
-        'Saat': m.time || '-',
+        'Saat': m.raw_datetime || '-',
         'Tahmin': m.prediction?.pick || '-',
         'Oran': m.prediction?.primary_odd || '-'
       }));
@@ -54,8 +49,6 @@ async function testDailyDiscovery(targetDate = null) {
   } catch (err) {
     console.error(`\n❌ DISCOVERY HATASI: ${err.message}`);
     return { success: false, error: err.message };
-  } finally {
-    if (browser) await closeBrowser(browser).catch(() => {});
   }
 }
 
