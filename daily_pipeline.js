@@ -13,8 +13,38 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createBrowser, closeBrowser, setupPageInterception, navigateWithRetry, triggerInteractiveChallenge, loadCachedCookies } = require('./core/browser_engine');
+const { createBrowser, closeBrowser, setupPageInterception, navigateWithRetry, triggerInteractiveChallenge, loadCachedCookies, waitForInternetConnection } = require('./core/browser_engine');
 const { scrapeMatch } = require('./scrape_match');
+const { uploadMatchesToApex, getApexConfig } = require('./core/apex_uploader');
+
+// 🛡️ Node.js v24 / Puppeteer Global CDP & Unhandled Rejection Kalkanı
+process.on('unhandledRejection', (reason) => {
+  const msg = String(reason?.message || reason || '');
+  if (
+    msg.includes('ProtocolError') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Target.detachFromTarget') ||
+    msg.includes('setExtraHTTPHeaders') ||
+    msg.includes('Execution context was destroyed')
+  ) {
+    return; // Alt-çerçeve krizini izole et, Node.js sürecini öldürme
+  }
+  console.warn('[Pipeline Zırhı] Yakalanmamış Rejection izole edildi:', msg);
+});
+
+process.on('uncaughtException', (err) => {
+  const msg = String(err?.message || err || '');
+  if (
+    msg.includes('ProtocolError') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Target.detachFromTarget')
+  ) {
+    return;
+  }
+  console.error('[Pipeline Zırhı] Beklenmeyen Hata İzole Edildi:', err);
+});
 
 // Tarih Yardımcısı (YYYY-MM-DD)
 const getFormattedDate = (offsetDays = 0) => {
@@ -44,7 +74,7 @@ function log(msg, color = COLORS.reset) {
 // Argüman Ayrıştırma
 const args = process.argv.slice(2);
 let targetDate = getFormattedDate(0);
-let targetUrl = `https://www.forebet.com/en/football-predictions/predictions-1x2/${targetDate}`;
+let explicitUrl = null;
 let workerCount = 4;
 let headlessMode = 'new';
 let onlyWithOdds = true;
@@ -52,24 +82,23 @@ let matchLimit = null;
 let batchDays = null;
 let startDateStr = null;
 let endDateStr = null;
+let autoSyncApex = null;
 
 let isRandom = false;
+let forceRefresh = false;
+let isCron = false;
 
 for (const arg of args) {
   if (arg.startsWith('--url=')) {
-    targetUrl = arg.split('=')[1];
+    explicitUrl = arg.split('=')[1];
   } else if (arg.startsWith('--date=')) {
     targetDate = arg.split('=')[1];
-    targetUrl = `https://www.forebet.com/en/football-predictions/predictions-1x2/${targetDate}`;
   } else if (arg === '--today' || arg === '--mode=today') {
     targetDate = getFormattedDate(0);
-    targetUrl = `https://www.forebet.com/en/football-predictions/predictions-1x2/${targetDate}`;
   } else if (arg === '--tomorrow' || arg === '--mode=tomorrow') {
     targetDate = getFormattedDate(1);
-    targetUrl = `https://www.forebet.com/en/football-predictions/predictions-1x2/${targetDate}`;
   } else if (arg === '--yesterday' || arg === '--mode=yesterday') {
     targetDate = getFormattedDate(-1);
-    targetUrl = `https://www.forebet.com/en/football-predictions/predictions-1x2/${targetDate}`;
   } else if (arg === '--mode=all') {
     batchDays = 3;
   } else if (arg === '--random') {
@@ -89,7 +118,28 @@ for (const arg of args) {
     headlessMode = val === 'true' || val === 'new' ? 'new' : false;
   } else if (arg === '--all' || arg === '--all-matches' || arg === '--only-odds=false') {
     onlyWithOdds = false;
+  } else if (arg === '--sync-apex' || arg === '--sync') {
+    autoSyncApex = true;
+  } else if (arg === '--no-sync-apex' || arg === '--no-sync') {
+    autoSyncApex = false;
+  } else if (arg === '--force' || arg === '--force-refresh' || arg === '--refresh-scores') {
+    forceRefresh = true;
+  } else if (arg === '--cron' || arg === '--scheduled') {
+    isCron = true;
   }
+}
+
+// 🛡️ Otomasyon Kapalı Kontrolü: Zamanlayıcıdan tetiklenmişse ve otomasyon kapalıysa derhal çık
+if (isCron && !forceRefresh) {
+  try {
+    const { getResolvedConfig } = require('./core/scheduler_manager');
+    const liveCfg = getResolvedConfig();
+    if (liveCfg.automation_active === false) {
+      log(`⛔ [ZAMANLAYICI KAPALI] config.json içinde automation_active=false olduğu için otomatik görev çalıştırılmadı.`, COLORS.yellow);
+      log(`💡 Görevi manuel başlatmak için Web UI'ı kullanabilir veya komuta '--force' ekleyebilirsiniz.`, COLORS.cyan);
+      process.exit(0);
+    }
+  } catch (_) {}
 }
 
 // 🎯 Ana Liste Sayfasından Maç Linklerini Çıkar (More Butonuna Tıklayarak Tüm Sayfayı Açar)
@@ -99,43 +149,21 @@ async function getMatchListing(browser, listUrl) {
   await setupPageInterception(page);
 
   let matches = [];
-  const maxListRetries = 5;
-
   try {
-    for (let attempt = 1; attempt <= maxListRetries; attempt++) {
-      try {
-        await page.goto(listUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
-        
-        let title = await page.title().catch(() => '');
-        if (title.includes('Just a moment') || title.includes('Attention Required') || title.includes('Cloudflare') || title === 'www.forebet.com') {
-          log(`  ↳ 🛡️ Liste sayfasında Cloudflare algılandı, bekleniyor (${attempt}/${maxListRetries})...`, COLORS.yellow);
-          await new Promise(r => setTimeout(r, 4000));
-          await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
-          await new Promise(r => setTimeout(r, 3000));
-          
-          title = await page.title().catch(() => '');
-          if ((title.includes('Just a moment') || title.includes('Cloudflare')) && attempt >= 2) {
-            log(`  ↳ 🔔 Cloudflare otomatik geçilemedi, insan onayı penceresi tetikleniyor...`, COLORS.yellow);
-            const manualOk = await triggerInteractiveChallenge(listUrl, (m) => log(`  ↳ ${m}`, COLORS.yellow));
-            if (manualOk) {
-              const cookies = loadCachedCookies();
-              if (cookies.length > 0) await page.setCookie(...cookies).catch(() => {});
-              await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
-            }
-          }
-        }
+    try {
+      log(`  ↳ 🌐 Forebet ana sunucu oturumu kuruluyor...`, COLORS.cyan);
+      await page.goto('https://www.forebet.com/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await new Promise(r => setTimeout(r, 1500));
+    } catch (_) {}
 
-        await page.waitForSelector('.schema, .predict-tables, .rcnt', { timeout: 12000 });
-        await new Promise(r => setTimeout(r, 2000));
-        break;
-      } catch (e) {
-        if (attempt === maxListRetries) {
-          log(`  ↳ ⚠️ Liste sayfası yüklenemedi: ${e.message}`, COLORS.yellow);
-        } else {
-          await new Promise(r => setTimeout(r, 2000));
-        }
-      }
+    const isLoaded = await navigateWithRetry(page, listUrl, (m) => log(`  ↳ ${m}`, COLORS.yellow), 3, 35000);
+    if (!isLoaded) {
+      log(`  ↳ ⚠️ Liste sayfası yüklenemedi (Cloudflare veya ağ engeli).`, COLORS.yellow);
+      return [];
     }
+
+    await page.waitForSelector('.schema, .predict-tables, .rcnt, table.main', { timeout: 20000 }).catch(() => null);
+    await new Promise(r => setTimeout(r, 1500));
 
     // Otomatik "More" Tıklama (Tüm maçları aç)
     let moreClicks = 0;
@@ -168,9 +196,17 @@ async function getMatchListing(browser, listUrl) {
       await new Promise(r => setTimeout(r, 1500));
     }
 
-    // DOM'dan Maç URL'lerini Çıkar (Sadece günün ana tahmin tablosu, sidebar ve ftrd bannerları hariç)
+    // DOM'dan Maç URL'lerini Çıkar
+    const debugInfo = await page.evaluate(() => {
+      const allDivs = document.querySelectorAll('.rcnt').length;
+      const allMatches = document.querySelectorAll('a[href*="/matches/"]').length;
+      const schemaDivs = document.querySelectorAll('.schema .rcnt').length;
+      return { allDivs, allMatches, schemaDivs, title: document.title, url: window.location.href };
+    });
+    log(`  ↳ 🔍 DOM Durumu: ${JSON.stringify(debugInfo)}`, COLORS.cyan);
+
     matches = await page.evaluate(() => {
-      const rows = Array.from(document.querySelectorAll('.schema:not(.ftrd) tr[onclick*="/matches/"], .schema:not(.ftrd) tr.rcnt, div.schema:not(.ftrd) .rcnt, table.main tr[onclick*="/matches/"]'));
+      const rows = Array.from(document.querySelectorAll('.schema:not(.ftrd) tr[onclick*="/matches/"], .schema:not(.ftrd) tr.rcnt, div.schema:not(.ftrd) .rcnt, table.main tr[onclick*="/matches/"], .predict-tables tr[onclick*="/matches/"], tr.rcnt, .schema_h2h tr[onclick*="/matches/"], .rcnt'));
       const list = [];
       const seen = new Set();
 
@@ -254,7 +290,8 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
   log(`🚀 [${dateStr}] 4-SEKMELİ ALTIN STANDART KAZIMA BAŞLATILIYOR...`, COLORS.green);
   log(`================================================================\n`, COLORS.magenta);
 
-  const browser = await createBrowser({ headless: headlessMode, workerId: 1 });
+  let results = [];
+  const browser = await createBrowser({ headless: headlessMode, useTempProfile: false });
 
   try {
     const allMatches = await getMatchListing(browser, listUrl);
@@ -287,14 +324,106 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
       log(`🎯 [Limit Aktif] İlk ${matchLimit} oranlı maç işleme alınıyor.`, COLORS.yellow);
     }
 
-    log(`⚡ İşleme Alınacak Maç Sayısı: ${matchQueue.length} (Kuyruk Başlatılıyor)`, COLORS.cyan);
-
     const dataDir = path.join(__dirname, 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-    const results = [];
+    results = [];
+    const pendingQueue = [];
     let completedCount = 0;
     let errorCount = 0;
+
+    // ⏩ AKILLI DEVAM ETME / ÖNBELLEK KONTROLÜ (Resume & Skip Already Scraped Matches)
+    log(`🔍 [ÖNBELLEK KONTROLÜ] Önceden kazınmış maçlar kontrol ediliyor...`, COLORS.cyan);
+    for (const match of matchQueue) {
+      let slug = '';
+      const urlM = match.url.match(/\/matches\/(.+?)(?:[?#]|$)/);
+      if (urlM) slug = urlM[1].replace(/[\/\\]+/g, '-');
+      let altSlug = '';
+      const urlM2 = match.url.match(/\/matches\/([^\/\?#]+)/);
+      if (urlM2) altSlug = urlM2[1];
+
+      let matchJsonPath = slug ? path.join(__dirname, 'output', slug, 'match_data.json') : null;
+      if (!matchJsonPath || !fs.existsSync(matchJsonPath)) {
+        if (altSlug && fs.existsSync(path.join(__dirname, 'output', altSlug, 'match_data.json'))) {
+          matchJsonPath = path.join(__dirname, 'output', altSlug, 'match_data.json');
+        } else if (slug) {
+          try {
+            const decodedSlug = decodeURIComponent(slug);
+            const altPath = path.join(__dirname, 'output', decodedSlug, 'match_data.json');
+            if (fs.existsSync(altPath)) matchJsonPath = altPath;
+          } catch (_) {}
+        }
+      }
+
+      if (!forceRefresh && matchJsonPath && fs.existsSync(matchJsonPath) && fs.statSync(matchJsonPath).size > 1000) {
+        try {
+          const cached = JSON.parse(fs.readFileSync(matchJsonPath, 'utf-8'));
+          if (cached && cached.hero && cached.hero.homeTeam) {
+            const hero = cached.hero;
+            const todayDateStr = getFormattedDate(0);
+            const isPastOrToday = dateStr <= todayDateStr;
+            const hasFinalScore = (
+              hero.status === 'FT' || 
+              hero.status === 'AET' || 
+              hero.status === 'Pen.' || 
+              (hero.score && hero.score !== '-' && hero.score !== '?' && !hero.score.includes('?'))
+            );
+
+            // 🎯 KRİTİK İŞ MANTIĞI: Geçmiş (Dün) veya bugünün maçı çekiliyorsa ve önbellekteki maç henüz sonuçlanmamışsa (Upcoming / skorsuz):
+            // Bu maç atlanamaz! Biten skorunu, golleri ve kartları almak için Forebet'ten yeniden kazınmalıdır!
+            if (isPastOrToday && !hasFinalScore) {
+              pendingQueue.push(match);
+              continue;
+            }
+
+            results.push(cached);
+            completedCount++;
+            continue;
+          }
+        } catch (_) {}
+      }
+      pendingQueue.push(match);
+    }
+
+    if (completedCount > 0) {
+      const cachedPct = Math.round((completedCount / matchQueue.length) * 100);
+      log(`⏩ [ÖNBELLEK ANALİZİ] ${completedCount} / ${matchQueue.length} maç (%${cachedPct}) zaten KESİN BİTİŞ SKORLU (FT/Pen.) olduğu için korundu ve hafızaya yüklendi.`, COLORS.green);
+      if (pendingQueue.length > 0) {
+        log(`⚡ [SKOR GÜNCELLEME KUYRUĞU] Kalan ${pendingQueue.length} maç önceden skorsuz/oynanmamış kaldığı için Forebet'ten güncel bitiş skorlarıyla çekilmeye başlanıyor...`, COLORS.cyan);
+      }
+    }
+
+    // Eğer bu tarihteki TÜM maçlar zaten kazınmışsa doğrudan günü bitir ve sıradakine geç!
+    if (pendingQueue.length === 0) {
+      log(`🎉 [${dateStr}] Tüm ${matchQueue.length} maç zaten eksiksiz kazınmış! Bu gün tamamlandı, sıradaki tarihe geçiliyor...\n`, COLORS.green);
+      const finalJsonPath = path.join(dataDir, `predictions_${dateStr}.json`);
+      const latestJsonPath = path.join(dataDir, `predictions_latest.json`);
+      fs.writeFileSync(finalJsonPath, JSON.stringify(results, null, 2), 'utf-8');
+      fs.writeFileSync(latestJsonPath, JSON.stringify(results, null, 2), 'utf-8');
+
+      // 🗄️ Yerel Arşivleme (data/archive/YYYY-MM/predictions_YYYY-MM-DD.json)
+      const ym = dateStr.slice(0, 7);
+      const archiveDir = path.join(dataDir, 'archive', ym);
+      if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
+      const archivePath = path.join(archiveDir, `predictions_${dateStr}.json`);
+      fs.writeFileSync(archivePath, JSON.stringify(results, null, 2), 'utf-8');
+      log(`🗄️ [ARŞİV] Günlük veri arşive kaydedildi -> ${archivePath}`, COLORS.green);
+
+      // 🚀 Canlı APEX API Senkronizasyonu
+      const shouldSync = autoSyncApex !== null ? autoSyncApex : getApexConfig().autoSyncApex;
+      if (shouldSync && results.length > 0) {
+        log(`\n🚀 [APEX API AKTARIMI] Önceden hazır ${results.length} maç canlı APEX API'ye aktarılıyor...`, COLORS.magenta);
+        try {
+          await uploadMatchesToApex(results, { dateStr, logger: (m) => log(m, COLORS.cyan) });
+        } catch (uploadErr) {
+          log(`❌ [APEX API HATA] Senkronizasyon hatası: ${uploadErr.message}`, COLORS.red);
+        }
+      }
+
+      return results.length;
+    }
+
+    log(`⚡ Kazınacak Kalan Maç Sayısı: ${pendingQueue.length} (Kuyruk Başlatılıyor: #${completedCount + 1} - #${matchQueue.length})`, COLORS.cyan);
 
     // 4 İşçi Sekmesi Oluştur
     const workers = [];
@@ -311,7 +440,7 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
     async function workerTask(worker) {
       await new Promise(r => setTimeout(r, (worker.id - 1) * 300));
 
-      while (queueIndex < matchQueue.length) {
+      while (queueIndex < pendingQueue.length) {
         if (fs.existsSync(path.join(__dirname, 'stop_signal.txt'))) {
           log(`⛔ [Sekme ${worker.id}] Durdurma sinyali algılandı.`, COLORS.red);
           break;
@@ -330,13 +459,25 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
         if (fs.existsSync(path.join(__dirname, 'stop_signal.txt'))) break;
 
         const currentIndex = queueIndex++;
-        const match = matchQueue[currentIndex];
+        const match = pendingQueue[currentIndex];
         const matchName = `${match.homeTeam || 'Home'} vs ${match.awayTeam || 'Away'}`;
+
+        // Sekme kapalıysa veya çöktüyse hemen yenisini aç
+        if (!worker.page || worker.page.isClosed()) {
+          try {
+            log(`[Sekme ${worker.id}] 🔄 Sekme kapalı tespit edildi, yeni sekme oluşturuluyor...`, COLORS.yellow);
+            worker.page = await browser.newPage();
+            await worker.page.setViewport({ width: 1440, height: 900 });
+            await setupPageInterception(worker.page);
+          } catch (newPageErr) {
+            log(`[Sekme ${worker.id}] ❌ Yeni sekme açılamadı: ${newPageErr.message}`, COLORS.red);
+          }
+        }
 
         try {
           const scrapeRes = await scrapeMatch(match.url, {
             page: worker.page,
-            onLog: (m) => {}
+            onLog: (m) => log(`  ↳ [Sekme ${worker.id}] ${m}`, COLORS.cyan)
           });
 
           if (scrapeRes && scrapeRes.matchData) {
@@ -352,6 +493,14 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
           }
         } catch (err) {
           errorCount++;
+          // Sayfa kapandıysa sekmesini yenile
+          if (worker.page && (worker.page.isClosed() || String(err.message).includes('Target closed') || String(err.message).includes('Session closed'))) {
+            try {
+              worker.page = await browser.newPage();
+              await worker.page.setViewport({ width: 1440, height: 900 });
+              await setupPageInterception(worker.page);
+            } catch (_) {}
+          }
           failedQueue.push(match);
           log(`[Sekme ${worker.id}] ⚠️ 1. Turda Açılamadı: ${matchName} (${err.message}) -> Telafi Havuzuna Alındı.`, COLORS.yellow);
         }
@@ -400,6 +549,33 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
     fs.writeFileSync(finalJsonPath, JSON.stringify(results, null, 2), 'utf-8');
     fs.writeFileSync(latestJsonPath, JSON.stringify(results, null, 2), 'utf-8');
 
+    // 🗄️ Yerel Arşivleme (data/archive/YYYY-MM/predictions_YYYY-MM-DD.json)
+    const ym = dateStr.slice(0, 7);
+    const archiveDir = path.join(dataDir, 'archive', ym);
+    if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
+    const archivePath = path.join(archiveDir, `predictions_${dateStr}.json`);
+    fs.writeFileSync(archivePath, JSON.stringify(results, null, 2), 'utf-8');
+    log(`🗄️ [ARŞİV] Günlük veri arşive yedeklendi -> ${archivePath}`, COLORS.green);
+
+    // 🚀 Canlı APEX API Senkronizasyonu (50'lik Paketler & 3 Retry)
+    const shouldSync = autoSyncApex !== null ? autoSyncApex : getApexConfig().autoSyncApex;
+    if (shouldSync && results.length > 0) {
+      log(`\n🚀 [APEX API AKTARIMI] ${results.length} maç canlı APEX API'ye aktarılıyor...`, COLORS.magenta);
+      try {
+        const syncRes = await uploadMatchesToApex(results, {
+          dateStr,
+          logger: (m) => log(m, COLORS.cyan)
+        });
+        if (syncRes.success) {
+          log(`✅ [APEX API] Toplam ${syncRes.sentMatches} maç sıfır kayıpla aktarıldı.`, COLORS.green);
+        } else {
+          log(`⚠️ [APEX API] Aktarım tamamlandı ancak ${syncRes.failedChunks} paket aktarılamadı (Yerel tampona alındı).`, COLORS.yellow);
+        }
+      } catch (uploadErr) {
+        log(`❌ [APEX API HATA] Senkronizasyon hatası: ${uploadErr.message}`, COLORS.red);
+      }
+    }
+
     const totalDurationSec = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
     const avgSec = (totalDurationSec / (results.length || 1)).toFixed(1);
 
@@ -411,12 +587,13 @@ async function runParallelPipelineForDate(dateStr, listUrl) {
     log(`⏱️ Toplam Süre              : ${Math.floor(totalDurationSec / 60)} dk ${Math.round(totalDurationSec % 60)} sn (Ort. ${avgSec}s / maç)`, COLORS.cyan);
     log(`📁 Tekil Klasörler          : output/<slug>/match_data.json (100KB+ Tam Veri)`, COLORS.green);
     log(`💾 Günlük Master JSON       : ${finalJsonPath}`, COLORS.green);
+    log(`🗄️ Aylık Arşiv Klasörü      : ${archivePath}`, COLORS.green);
     console.log(`${COLORS.magenta}================================================================\n${COLORS.reset}`);
 
     return results.length;
   } catch (err) {
     log(`🚨 Kritik Pipeline Hatası: ${err.message}`, COLORS.red);
-    return results.length;
+    return Array.isArray(results) ? results.length : 0;
   } finally {
     await closeBrowser(browser);
   }
@@ -431,8 +608,8 @@ async function main() {
       dates.push(getFormattedDate(-i));
     }
   } else if (startDateStr && endDateStr) {
-    let cur = new Date(startDateStr);
-    const end = new Date(endDateStr);
+    let cur = new Date(startDateStr + 'T12:00:00');
+    const end = new Date(endDateStr + 'T12:00:00');
     while (cur <= end) {
       const yyyy = cur.getFullYear();
       const mm = String(cur.getMonth() + 1).padStart(2, '0');
@@ -449,7 +626,7 @@ async function main() {
   let totalProcessedAllDays = 0;
   for (let i = 0; i < dates.length; i++) {
     const dStr = dates[i];
-    const url = `https://www.forebet.com/en/football-predictions/predictions-1x2/${dStr}`;
+    let url = (explicitUrl && dates.length === 1) ? explicitUrl : `https://www.forebet.com/en/football-predictions/predictions-1x2/${dStr}`;
     log(`\n▶ [Gün ${i + 1}/${dates.length}] TARİH BAŞLATILIYOR: ${dStr}`, COLORS.magenta);
     const count = await runParallelPipelineForDate(dStr, url);
     totalProcessedAllDays += (count || 0);

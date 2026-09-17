@@ -58,27 +58,48 @@ const path = require('path');
   await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(e => {});
 
   let isDone = false;
+  let consecutivePasses = 0;
   while (!isDone) {
     const title = await page.title().catch(() => '');
-    const isCf = title.includes('Just a moment') || title.includes('Attention Required') || title === 'www.forebet.com' || title === '';
+    const isCfTitle = title.includes('Just a moment') || title.includes('Attention Required') || title.includes('Cloudflare') || title === 'www.forebet.com' || title === '';
 
-    if (!isCf && title.length > 5) {
-      console.log(`\n🎉 BÜLTEN AÇILDI VE CLOUDFLARE GEÇİLDİ!`);
-      console.log(`📄 Sayfa Başlığı: "${title}"`);
+    const cookies = await page.cookies().catch(() => []);
+    const hasCfClearance = cookies.some(c => c.name === 'cf_clearance');
 
-      const cookies = await page.cookies();
-      fs.writeFileSync(cookieFile, JSON.stringify(cookies, null, 2), 'utf-8');
-      console.log(`💾 Toplam ${cookies.length} adet çerez 'data/cf_cookies_cache.json' dosyasına kaydedildi.`);
-      console.log(`🚀 Kalıcı profil 'data/stealth_profile' dizininde hazırlandı.`);
-      console.log('\n✅ İŞLEM TAMAMLANDI! Artık bot bu hafıza ile arka planda çalışacak.');
-      console.log('Pencere 3 saniye sonra otomatik kapanacaktır...');
-      isDone = true;
-      await new Promise(r => setTimeout(r, 3000));
-      break;
+    const hasTable = await page.evaluate(() => {
+      return !!(document.querySelector('.schema, .predict-tables, .rcnt, #m1x2_table, .mrows, .homeTeam') ||
+               (document.body && document.body.innerText.includes('Predictions 1X2')));
+    }).catch(() => false);
+
+    const hasChallengeIframe = await page.evaluate(() => {
+      return !!(document.querySelector('#challenge-stage, #cf-stage, iframe[src*="cloudflare"], iframe[src*="turnstile"]'));
+    }).catch(() => false);
+
+    const isTrulyValid = (hasCfClearance || !hasChallengeIframe) && hasTable && !isCfTitle && title.length > 5;
+
+    if (isTrulyValid) {
+      consecutivePasses++;
+      if (consecutivePasses >= 2) {
+        console.log(`\n🎉 BÜLTEN AÇILDI VE CLOUDFLARE GEÇİLDİ!`);
+        console.log(`📄 Sayfa Başlığı: "${title}"`);
+
+        await new Promise(r => setTimeout(r, 1500));
+        const finalCookies = await page.cookies().catch(() => []);
+        fs.writeFileSync(cookieFile, JSON.stringify(finalCookies, null, 2), 'utf-8');
+        console.log(`💾 Toplam ${finalCookies.length} adet çerez 'data/cf_cookies_cache.json' dosyasına kaydedildi (cf_clearance: ${hasCfClearance ? 'VAR' : 'GEREKMEDİ'}).`);
+        console.log(`🚀 Kalıcı profil 'data/stealth_profile' dizininde hazırlandı.`);
+        console.log('\n✅ İŞLEM TAMAMLANDI! Artık bot bu hafıza ile arka planda çalışacak.');
+        console.log('Pencere 3 saniye sonra otomatik kapanacaktır...');
+        isDone = true;
+        await new Promise(r => setTimeout(r, 3000));
+        break;
+      }
+    } else {
+      consecutivePasses = 0;
     }
 
     // Konsolda durum yaz
-    process.stdout.write(`\r⏳ Güvenlik onayı bekleniyor... (Mevcut Durum: ${title || 'Yükleniyor'}) `);
+    process.stdout.write(`\r⏳ Güvenlik onayı bekleniyor... (Mevcut Durum: ${title || 'Yükleniyor'} | Tablo: ${hasTable ? 'Hazır' : 'Bekleniyor'} | cf_clearance: ${hasCfClearance ? 'Var' : 'Bekleniyor'}) `);
     await new Promise(r => setTimeout(r, 1000));
   }
 

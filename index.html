@@ -32,53 +32,58 @@
 
     /* Header */
     .top-header {
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(14px);
       border-bottom: 1px solid #1e293b;
-      padding: 10px 24px;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
+      padding: 8px 18px;
+      display: flex;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
       position: sticky;
       top: 0;
       z-index: 100;
-      gap: 20px;
+      gap: 10px 16px;
     }
-    .brand-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; white-space: nowrap; }
-    .brand-title i { color: var(--accent-cyan); font-size: 18px; }
-    .badge-gold { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; font-size: 10.5px; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+    .brand-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; white-space: nowrap; flex-shrink: 0; }
+    .brand-title i { color: var(--accent-cyan); font-size: 17px; }
+    .badge-gold { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; font-size: 10px; padding: 2px 6px; border-radius: 5px; font-weight: 700; }
 
     /* Centered Header Metrics Strip */
     .header-center-wrap {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow-x: auto;
     }
     .header-metrics-strip {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 18px;
+      gap: 12px;
       background: #080c14;
       border: 1px solid #22324e;
-      padding: 6px 20px;
-      border-radius: 9px;
-      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 11.5px;
       color: #94a3b8;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+      white-space: nowrap;
     }
-    .metric-badge { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
-    .metric-badge i { font-size: 13.5px; }
-    .metric-badge strong { color: #fff; font-weight: 700; margin-left: 3px; }
-    .metric-sep { width: 1px; height: 14px; background: #1e293b; }
+    .metric-badge { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .metric-badge i { font-size: 12.5px; }
+    .metric-badge strong { color: #fff; font-weight: 700; margin-left: 2px; }
+    .metric-sep { width: 1px; height: 12px; background: #1e293b; }
 
     .header-actions-wrap {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       justify-content: flex-end;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     /* Action Buttons */
@@ -87,63 +92,63 @@
       border: 1px solid rgba(56, 189, 248, 0.5);
       color: #fff;
       font-weight: 700;
-      font-size: 12px;
-      padding: 7px 12px;
-      border-radius: 7px;
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
       transition: all 0.2s ease;
       text-decoration: none;
     }
-    .btn-quick-viewer:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4); color: #fff; }
+    .btn-quick-viewer:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4); color: #fff; }
 
     .btn-quick-forebet {
       background: linear-gradient(135deg, #d97706, #b45309);
       border: 1px solid rgba(245, 158, 11, 0.5);
       color: #fff;
       font-weight: 700;
-      font-size: 12px;
-      padding: 7px 12px;
-      border-radius: 7px;
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
       transition: all 0.2s ease;
       text-decoration: none;
     }
-    .btn-quick-forebet:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); color: #fff; }
+    .btn-quick-forebet:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4); color: #fff; }
 
     .btn-quick-json {
       background: linear-gradient(135deg, #059669, #047857);
       border: 1px solid rgba(16, 185, 129, 0.5);
       color: #fff;
       font-weight: 700;
-      font-size: 12px;
-      padding: 7px 12px;
-      border-radius: 7px;
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
       transition: all 0.2s ease;
       text-decoration: none;
     }
-    .btn-quick-json:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); color: #fff; }
+    .btn-quick-json:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); color: #fff; }
 
     .btn-settings {
       background: #1e293b;
       border: 1px solid #334155;
       color: #f1f5f9;
       font-weight: 600;
-      font-size: 12px;
-      padding: 7px 11px;
-      border-radius: 7px;
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -152,8 +157,75 @@
     }
     .btn-settings:hover { background: #334155; color: var(--accent-cyan); }
 
+    /* 🕒 Header Cron Toggle Button */
+    .btn-cron-toggle {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 5px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-cron-toggle.off {
+      background: rgba(244, 63, 94, 0.12);
+      border-color: rgba(244, 63, 94, 0.35);
+      color: #f43f5e;
+    }
+    .btn-cron-toggle:hover { transform: translateY(-1px); }
+
+    /* 🗔 Desktop Window Controls */
+    .window-ctrl-divider {
+      width: 1px;
+      height: 20px;
+      background: #334155;
+      margin: 0 3px;
+    }
+    .btn-win-ctrl {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      outline: none;
+    }
+    .btn-win-min {
+      background: #1e293b;
+      border-color: #334155;
+      color: #94a3b8;
+    }
+    .btn-win-min:hover {
+      background: #334155;
+      color: #38bdf8;
+      border-color: #38bdf8;
+      transform: scale(1.06);
+    }
+    .btn-win-close {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, 0.4);
+      color: #f43f5e;
+    }
+    .btn-win-close:hover {
+      background: #f43f5e;
+      color: #fff;
+      border-color: #f43f5e;
+      transform: scale(1.06);
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.5);
+    }
+
     /* Main Container */
-    .main-container { max-width: 1440px; margin: 0 auto; padding: 18px 20px; display: flex; flex-direction: column; gap: 18px; }
+    .main-container { width: 100%; max-width: 1600px; margin: 0 auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; }
 
     /* Single Match URL Input Bar */
     .single-url-bar {
@@ -259,21 +331,22 @@
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 10px 14px;
     }
     .btn-ctrl {
       background: #1e293b;
       border: 1px solid #334155;
       color: #f1f5f9;
       font-weight: 600;
-      font-size: 12px;
-      padding: 7px 12px;
-      border-radius: 7px;
+      font-size: 11.5px;
+      padding: 6px 11px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.15s;
+      white-space: nowrap;
     }
     .btn-ctrl:hover { background: #334155; transform: translateY(-1px); }
     .btn-ctrl.primary { background: #0284c7; border-color: #38bdf8; color: #fff; }
@@ -289,27 +362,69 @@
     .btn-ctrl.danger-dark { background: rgba(159, 18, 57, 0.35); border-color: rgba(225, 29, 72, 0.5); color: #fda4af; }
     .btn-ctrl.danger-dark:hover { background: #e11d48; color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); }
 
+    /* Force Refresh Toggle */
+    .force-refresh-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .force-refresh-toggle:hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+    .force-refresh-toggle input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: #f59e0b;
+      width: 14px;
+      height: 14px;
+    }
+
     /* Date Range Box */
     .date-range-box {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       background: #080c14;
       border: 1px solid #334155;
-      padding: 3px 6px;
-      border-radius: 7px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
     }
     .date-range-box input {
       background: #0f172a;
       border: 1px solid #334155;
       color: #fff;
-      padding: 4px 7px;
+      padding: 3px 6px;
       border-radius: 5px;
       font-size: 11px;
     }
 
     /* Two Column Layout */
-    .two-col-layout { display: grid; grid-template-columns: 45% 55%; gap: 18px; }
+    .two-col-layout { display: grid; grid-template-columns: 45% 55%; gap: 16px; }
+
+    @media (max-width: 1366px) {
+      .header-metrics-strip { gap: 8px; padding: 4px 10px; font-size: 11px; }
+      .brand-title { font-size: 14px; }
+      .btn-quick-viewer, .btn-quick-forebet, .btn-quick-json, .btn-settings { font-size: 11px; padding: 5px 8px; }
+      .two-col-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 1150px) {
+      .top-header { flex-direction: column; align-items: stretch; gap: 8px; }
+      .header-center-wrap { order: 3; width: 100%; }
+      .brand-title { justify-content: space-between; }
+      .header-actions-wrap { justify-content: center; }
+    }
 
     /* Left Col: Live Match Feed */
     .feed-card {
@@ -539,6 +654,411 @@
       from { transform: translateX(0); opacity: 1; }
       to { transform: translateX(100%); opacity: 0; }
     }
+
+    /* 🧭 Sub Navigation Tabs */
+    .sub-nav-tabs {
+      background: #0b1220;
+      border-bottom: 1px solid #1e293b;
+      padding: 0 24px;
+      display: flex;
+      gap: 12px;
+      position: sticky;
+      top: 57px;
+      z-index: 90;
+      backdrop-filter: blur(10px);
+    }
+    .nav-tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .nav-tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.03); }
+    .nav-tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+    .tab-badge {
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+    .badge-health-ok { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    /* 📊 Views Container */
+    .main-view { display: none; }
+    .main-view.active { display: block; animation: fadeInView 0.25s ease forwards; }
+    @keyframes fadeInView { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ⚡ Görev Yöneticisi Stilleri */
+    .task-manager-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      padding: 18px 22px;
+      border-radius: 14px;
+    }
+    .btn-emergency-kill {
+      background: linear-gradient(135deg, #e11d48, #9f1239);
+      border: 1px solid rgba(244, 63, 94, 0.6);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 0 25px rgba(225, 29, 72, 0.45);
+      transition: all 0.2s ease;
+      animation: emergencyPulse 2s infinite;
+    }
+    .btn-emergency-kill:hover { transform: scale(1.03); box-shadow: 0 0 35px rgba(225, 29, 72, 0.7); }
+    @keyframes emergencyPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(225, 29, 72, 0.8); }
+    }
+    .kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .kpi-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 22px; font-weight: 900; color: #fff; }
+
+    .tasks-table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .custom-table th { background: #080c14; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border-card); }
+    .custom-table td { padding: 12px 16px; border-bottom: 1px solid #172033; color: #cbd5e1; vertical-align: middle; }
+    .custom-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .btn-kill-sm {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #f43f5e;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-kill-sm:hover { background: #f43f5e; color: #fff; }
+
+    /* 🩺 Sağlık Radarı Stilleri */
+    .health-master-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .health-score-circle {
+      width: 70px; height: 70px; border-radius: 50%;
+      background: #080c14;
+      border: 3px solid #10b981;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: #10b981;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+    }
+    .health-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .health-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .health-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 10px; font-weight: 800; font-size: 14px; }
+    .file-radar-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .file-radar-item {
+      background: #080c14;
+      border: 1px solid #1e293b;
+      padding: 8px 12px;
+      border-radius: 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+    }
+    .status-badge-ok { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10.5px; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+    .status-badge-err { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.4); font-size: 10.5px; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+
+    /* 📟 Canlı Matrix Terminal Stilleri */
+    .terminal-container-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 650px;
+    }
+    .terminal-topbar {
+      background: #080c14;
+      border-bottom: 1px solid var(--border-card);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .terminal-filter-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .terminal-filter-btn:hover { color: #fff; border-color: var(--accent-cyan); }
+    .terminal-filter-btn.active { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; color: #38bdf8; }
+    .terminal-body {
+      background: #040812;
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #7dd3fc;
+      white-space: pre-wrap;
+    }
+
+    /* 📅 5. Sekme: Bülten & APEX Radarı Stilleri */
+    .kpi-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1200px) {
+      .kpi-grid-5 { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .kpi-grid-5 { grid-template-columns: repeat(2, 1fr); }
+    }
+    .bulletin-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      padding: 16px 20px;
+      border-radius: 12px;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .bulletin-search-input {
+      background: #080c14;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 7px;
+      font-size: 12px;
+      outline: none;
+      width: 240px;
+      transition: all 0.2s;
+    }
+    .bulletin-search-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+    .rate-bar-container {
+      width: 90px;
+      height: 7px;
+      background: #1e293b;
+      border-radius: 4px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    .rate-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .btn-action-view {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-action-view:hover { background: #38bdf8; color: #080c14; }
+    .btn-action-sync {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #10b981;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-action-sync:hover { background: #10b981; color: #080c14; }
+    .btn-action-update {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-action-update:hover { background: #f59e0b; color: #080c14; }
+    .btn-action-dl {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #818cf8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.15s;
+    }
+    .btn-action-dl:hover { background: #6366f1; color: #fff; }
+
+    /* Match Inspection Drawer (Açılır Maç Detay Paneli) */
+    .bulletin-drawer {
+      margin-top: 20px;
+      background: #0a0f1d;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      display: none;
+      animation: fadeInView 0.25s ease forwards;
+    }
+    .bulletin-drawer.active { display: block; }
+    .drawer-header {
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .drawer-filter-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .drawer-filter-btn:hover { color: #fff; border-color: var(--accent-cyan); }
+    .drawer-filter-btn.active { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; color: #38bdf8; }
+    .status-badge-ft {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-badge-pending {
+      background: rgba(148, 163, 184, 0.15);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-badge-alarm {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+      animation: pulse 1.8s infinite;
+    }
+    .team-badge-flex {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .team-logo-img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .prob-pill {
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #1e293b;
+      color: #94a3b8;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -620,6 +1140,11 @@
         <i class="fa-solid fa-arrow-up-right-from-square"></i> Forebet Sayfası
       </a>
 
+      <!-- 🕒 Zamanlayıcı Aç / Kapat Butonu -->
+      <button type="button" class="btn-cron-toggle" id="hdr-cron-btn" onclick="toggleCronAutomation()" title="Günlük Otomatik Zamanlayıcıları Aç / Kapat">
+        <i class="fa-solid fa-clock"></i> <span id="hdr-cron-label">Zamanlayıcı: AÇIK</span>
+      </button>
+
       <!-- Ayarlar Butonu -->
       <button onclick="openSettingsModal()" class="btn-settings">
         <i class="fa-solid fa-gear"></i> Ayarlar
@@ -628,20 +1153,55 @@
       <span class="badge-running" id="engine-status" style="padding: 4px 10px; border-radius: 6px; font-size: 11px;">
         <i class="fa-solid fa-circle-check me-1"></i> HAZIR
       </span>
+
+      <div class="window-ctrl-divider"></div>
+
+      <!-- Masaüstü Pencere Kontrolleri (Tepsiye Küçült & Güvenli Kapat) -->
+      <button type="button" class="btn-win-ctrl btn-win-min" onclick="minimizeWindowToTray()" title="Sistem Tepsisine Küçült (Arka Planda Çalışmaya Devam Eder)">
+        <i class="fa-solid fa-minus"></i>
+      </button>
+      <button type="button" class="btn-win-ctrl btn-win-close" onclick="openShutdownConfirmModal()" title="Tüm Sistemi Güvenle Kapat (Node.js & Tarayıcılar Dahil)">
+        <i class="fa-solid fa-power-off"></i>
+      </button>
     </div>
   </header>
+
+  <!-- 🧭 Sub Navigation Tabs -->
+  <nav class="sub-nav-tabs">
+    <button class="nav-tab-btn active" id="btn-view-dashboard" onclick="switchMainView('view-dashboard')">
+      <i class="fa-solid fa-gauge-high"></i> Kontrol İstasyonu
+    </button>
+    <button class="nav-tab-btn" id="btn-view-task-manager" onclick="switchMainView('view-task-manager')">
+      <i class="fa-solid fa-microchip"></i> Görev Yöneticisi & Acil Fren
+      <span class="tab-badge" id="tasks-badge-count">1</span>
+    </button>
+    <button class="nav-tab-btn" id="btn-view-system-health" onclick="switchMainView('view-system-health')">
+      <i class="fa-solid fa-heart-pulse"></i> Sistem Sağlık Radarı
+      <span class="tab-badge badge-health-ok" id="health-badge-score">%100</span>
+    </button>
+    <button class="nav-tab-btn" id="btn-view-live-console" onclick="switchMainView('view-live-console')">
+      <i class="fa-solid fa-terminal"></i> Canlı Terminal & Loglar
+    </button>
+    <button class="nav-tab-btn" id="btn-view-bulletin-tracker" onclick="switchMainView('view-bulletin-tracker')">
+      <i class="fa-solid fa-calendar-days"></i> Bülten & APEX Radarı
+      <span class="tab-badge badge-gold" id="bulletin-badge-count">0 Gün</span>
+    </button>
+  </nav>
 
   <!-- Main Container -->
   <main class="main-container">
 
-    <!-- 🔗 Single Match URL Input Box -->
-    <div class="single-url-bar">
-      <i class="fa-solid fa-link" style="color: var(--accent-cyan); font-size: 15px;"></i>
-      <input type="text" id="single-url-input" class="url-input" placeholder="Forebet Maç Linkini Buraya Yapıştırın (Örn: https://www.forebet.com/en/football/matches/shkendija-79-nk-bravo-2477659)">
-      <button class="btn-scrape-url" onclick="triggerSingleMatchScrape()">
-        <i class="fa-solid fa-bolt"></i> Bu Maçı Çek (1:1 Altın JSON)
-      </button>
-    </div>
+    <!-- 🎮 TAB 1: KONTROL İSTASYONU (DASHBOARD) -->
+    <div id="view-dashboard" class="main-view active">
+
+      <!-- 🔗 Single Match URL Input Box -->
+      <div class="single-url-bar">
+        <i class="fa-solid fa-link" style="color: var(--accent-cyan); font-size: 15px;"></i>
+        <input type="text" id="single-url-input" class="url-input" placeholder="Forebet Maç Linkini Buraya Yapıştırın (Örn: https://www.forebet.com/en/football/matches/shkendija-79-nk-bravo-2477659)">
+        <button class="btn-scrape-url" onclick="triggerSingleMatchScrape()">
+          <i class="fa-solid fa-bolt"></i> Bu Maçı Çek (1:1 Altın JSON)
+        </button>
+      </div>
 
     <!-- Dynamic Workers Grid (Side-by-Side) -->
     <div>
@@ -707,30 +1267,36 @@
 
     <!-- Controls Row (Hızlı Butonlar + Tarih Aralığı Seçici) -->
     <div class="controls-row">
-      <button class="btn-ctrl primary" onclick="triggerScrape('today')">
+      <button class="btn-ctrl primary" onclick="triggerScrape('today', this)">
         <i class="fa-solid fa-bolt"></i> Bugünün Maçlarını Çek
       </button>
 
       <!-- 🎲 Bugünden Rastgele Maç Çek Modu -->
-      <button class="btn-ctrl random" onclick="triggerScrape('random')">
+      <button class="btn-ctrl random" onclick="triggerScrape('random', this)">
         <i class="fa-solid fa-dice"></i> Bugünden Rastgele Maç Çek
       </button>
 
-      <button class="btn-ctrl" onclick="triggerScrape('tomorrow')">
+      <button class="btn-ctrl" onclick="triggerScrape('tomorrow', this)">
         <i class="fa-solid fa-calendar-plus"></i> Yarının Bültenini Çek
       </button>
 
-      <button class="btn-ctrl" onclick="triggerScrape('yesterday')">
+      <button class="btn-ctrl" onclick="triggerScrape('yesterday', this)">
         <i class="fa-solid fa-history"></i> Dünün Maçlarını Çek
       </button>
 
+      <!-- 🔄 Zorla Yenile / Üstüne Yaz Toggle -->
+      <label class="force-refresh-toggle" title="Açıkken önbellek atlanır; tüm maçlar Forebet'ten güncel sonuç ve skorlarıyla baştan çekilip üzerine yazılır.">
+        <input type="checkbox" id="chk-force-refresh">
+        <span><i class="fa-solid fa-arrows-rotate"></i> Zorla Yenile (Üstüne Yaz)</span>
+      </label>
+
       <!-- 🗓️ Seçilen Tarih Aralığına Göre Çekme Kutusu -->
-      <div class="date-range-box" style="margin-left: auto;">
+      <div class="date-range-box">
         <span style="font-size: 10.5px; color: var(--text-dim); font-weight: 700;">ARALIK:</span>
         <input type="date" id="range-start-date" title="Başlangıç Tarihi">
         <span style="color: var(--text-dim);">➔</span>
         <input type="date" id="range-end-date" title="Bitiş Tarihi">
-        <button class="btn-ctrl" onclick="triggerRangeScrape()" style="padding: 4px 8px; font-size: 11px; background: #0284c7; color: #fff;">
+        <button class="btn-ctrl" onclick="triggerRangeScrape(this)" style="padding: 4px 8px; font-size: 11px; background: #0284c7; color: #fff;">
           <i class="fa-solid fa-play"></i> Tarih Aralığını Çek
         </button>
       </div>
@@ -813,6 +1379,336 @@
         </div>
       </div>
 
+    </div> <!-- End two-col-layout -->
+  </div> <!-- End view-dashboard -->
+
+    <!-- ⚡ TAB 2: GÖREV YÖNETİCİSİ & ACİL FREN -->
+    <div id="view-task-manager" class="main-view">
+      <div class="task-manager-header">
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-microchip text-info"></i> BPA Bot Görev Yöneticisi & Süreç Takibi
+          </h2>
+          <p style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">
+            Arka planda çalışan Node.js sunucuları, crawler işçileri ve Puppeteer Chromium sekmeleri.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button onclick="fetchTasks()" class="btn-settings" style="padding: 9px 14px; font-size: 12px;">
+            <i class="fa-solid fa-rotate"></i> Yenile
+          </button>
+          <button onclick="triggerEmergencyKill()" class="btn-emergency-kill">
+            <i class="fa-solid fa-circle-stop fa-lg"></i> ACİL FREN (Tüm Botu Durdur)
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="kpi-grid-4">
+        <div class="kpi-card">
+          <span class="kpi-title">Aktif Bot Süreçleri</span>
+          <span class="kpi-value" id="kpi-task-count">0</span>
+          <span style="font-size: 11px; color: #38bdf8;">Node + Chromium</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Toplam Bellek (RAM)</span>
+          <span class="kpi-value" id="kpi-total-ram">0 MB</span>
+          <span style="font-size: 11px; color: #10b981;">Tüm bot süreçleri toplamı</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Master Control Portu</span>
+          <span class="kpi-value" style="color: #38bdf8;">PORT 3000</span>
+          <span style="font-size: 11px; color: #10b981;">🟢 DİNLİYOR (Hazır)</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Otomasyon Nöbeti</span>
+          <span class="kpi-value" style="color: #fbbf24;">06:00 / 17:00</span>
+          <span style="font-size: 11px; color: #94a3b8;">Windows Task Scheduler</span>
+        </div>
+      </div>
+
+      <!-- Processes Table -->
+      <div class="tasks-table-card">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 80px;">PID</th>
+              <th>İşlem Adı</th>
+              <th>Görev / Açıklama</th>
+              <th style="width: 130px;">Bellek (RAM)</th>
+              <th style="width: 120px;">Durum</th>
+              <th style="width: 140px; text-align: right;">İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="tasks-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 25px; color: var(--text-dim);">
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Süreçler taranıyor...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 🩺 TAB 3: SİSTEM SAĞLIK & TEŞHİS RADARI -->
+    <div id="view-system-health" class="main-view">
+      <!-- Master Health Banner -->
+      <div class="health-master-banner">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="health-score-circle" id="health-master-circle">%100</div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h2 style="font-size: 19px; font-weight: 900; color: #fff;" id="health-master-title">Sistem Durumu: 🟢 MÜKEMMEL</h2>
+              <span class="badge-gold">BPA V4 RADAR</span>
+            </div>
+            <p style="font-size: 12.5px; color: #94a3b8; margin-top: 4px;" id="health-master-desc">
+              Tüm 14 kritik modül sağlam, APEX API bağlantısı aktif ve Forebet Cloudflare çerezi geçerli.
+            </p>
+          </div>
+        </div>
+        <button onclick="fetchHealth()" class="btn-settings" style="padding: 10px 18px; font-size: 12px;">
+          <i class="fa-solid fa-arrows-rotate"></i> Tüm Sistemi Yeniden Tara
+        </button>
+      </div>
+
+      <!-- 4 Diagnostic Cards Grid -->
+      <div class="health-grid-2x2">
+        <!-- Kart 1: Dosya Bütünlüğü -->
+        <div class="health-card">
+          <div class="health-card-header">
+            <span><i class="fa-solid fa-folder-tree text-info me-2"></i> Dosya ve Modül Bütünlüğü</span>
+            <span class="status-badge-ok" id="health-file-score">14 / 14 Tam</span>
+          </div>
+          <div class="file-radar-list" id="health-files-list">
+            <div style="text-align: center; padding: 20px; color: var(--text-dim);"><i class="fa-solid fa-spinner fa-spin me-2"></i> Modüller denetleniyor...</div>
+          </div>
+        </div>
+
+        <!-- Kart 2: APEX Canlı API Radarı -->
+        <div class="health-card">
+          <div class="health-card-header">
+            <span><i class="fa-solid fa-server text-success me-2"></i> Canlı APEX API Radarı</span>
+            <span class="status-badge-ok" id="health-apex-badge">🟢 200 OK</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #080c14; padding: 12px; border-radius: 8px; border: 1px solid #1e293b;">
+              <div style="font-size: 11px; color: var(--text-dim);">Hedef Endpoint URL:</div>
+              <div style="font-size: 12px; font-weight: 700; color: #38bdf8; word-break: break-all;" id="health-apex-url">https://apex-api.playbettingtips.com/api/import.php</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div style="background: #080c14; padding: 10px; border-radius: 8px; border: 1px solid #1e293b;">
+                <div style="font-size: 11px; color: var(--text-dim);">Gecikme (Ping):</div>
+                <div style="font-size: 16px; font-weight: 900; color: #10b981;" id="health-apex-latency">0 ms</div>
+              </div>
+              <div style="background: #080c14; padding: 10px; border-radius: 8px; border: 1px solid #1e293b;">
+                <div style="font-size: 11px; color: var(--text-dim);">Gizli Anahtar:</div>
+                <div style="font-size: 14px; font-weight: 700; color: #fbbf24;" id="health-apex-auth">Doğrulandı</div>
+              </div>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted);" id="health-apex-msg">API aktif ve 50'lik maç paketlerini kabul etmeye hazır.</div>
+          </div>
+        </div>
+
+        <!-- Kart 3: Forebet Cloudflare Çerezi -->
+        <div class="health-card">
+          <div class="health-card-header">
+            <span><i class="fa-solid fa-shield-halved text-warning me-2"></i> Forebet Turnstile & Çerez Radarı</span>
+            <span class="status-badge-ok" id="health-cookie-badge">Aktif</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div style="background: #080c14; padding: 10px; border-radius: 8px; border: 1px solid #1e293b;">
+                <div style="font-size: 11px; color: var(--text-dim);">Çerez Yaşı:</div>
+                <div style="font-size: 16px; font-weight: 900; color: #38bdf8;" id="health-cookie-age">0 Saat</div>
+              </div>
+              <div style="background: #080c14; padding: 10px; border-radius: 8px; border: 1px solid #1e293b;">
+                <div style="font-size: 11px; color: var(--text-dim);">Kayıtlı Güvenlik Çerezi:</div>
+                <div style="font-size: 16px; font-weight: 900; color: #fbbf24;" id="health-cookie-count">0 Adet</div>
+              </div>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted);" id="health-cookie-msg">Cloudflare bypass çerezleri taze ve aktif.</div>
+            <div style="display: flex; justify-content: flex-end;">
+              <button onclick="triggerScrape('today')" class="btn-quick-forebet" style="padding: 8px 14px; font-size: 11.5px;">
+                <i class="fa-solid fa-rotate"></i> Çerezi Test Et / Yenile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kart 4: Windows Görev Zamanlayıcısı & Manuel Tetikleyiciler -->
+        <div class="health-card">
+          <div class="health-card-header">
+            <span><i class="fa-solid fa-calendar-check text-primary me-2"></i> Otomasyon & Zamanlayıcı Radarı</span>
+            <span class="status-badge-ok" id="health-sched-badge">Aktif</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #080c14; padding: 10px 12px; border-radius: 8px; border: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff; font-size: 12.5px;">🌅 Sabah Görevi (Dünün Maçları):</strong>
+                <div style="font-size: 11px; color: var(--text-dim);" id="health-sched-morning-info">Her gün 06:00</div>
+              </div>
+              <button onclick="triggerSchedulerRun('morning')" class="btn-quick-viewer" style="font-size: 11px; padding: 6px 10px;">
+                <i class="fa-solid fa-play"></i> Şimdi Başlat
+              </button>
+            </div>
+            <div style="background: #080c14; padding: 10px 12px; border-radius: 8px; border: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff; font-size: 12.5px;">🌆 Akşam Görevi (Yarının Bülteni):</strong>
+                <div style="font-size: 11px; color: var(--text-dim);" id="health-sched-evening-info">Her gün 17:00</div>
+              </div>
+              <button onclick="triggerSchedulerRun('evening')" class="btn-quick-json" style="font-size: 11px; padding: 6px 10px;">
+                <i class="fa-solid fa-play"></i> Şimdi Başlat
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📟 TAB 4: CANLI MATRIX / DARK LOG TERMİNALİ -->
+    <div id="view-live-console" class="main-view">
+      <div class="terminal-container-card">
+        <div class="terminal-topbar">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-terminal text-info"></i>
+            <strong style="font-size: 13px; color: #fff;">BPA V4 Master Canlı Konsol</strong>
+            <span class="tab-badge" id="terminal-log-count">0 Satır</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="terminal-filter-btn active" onclick="filterLogs('all', this)">Tümü</button>
+            <button class="terminal-filter-btn" onclick="filterLogs('error', this)">🔴 Hatalar</button>
+            <button class="terminal-filter-btn" onclick="filterLogs('apex', this)">📡 APEX API</button>
+            <button class="terminal-filter-btn" onclick="filterLogs('scraper', this)">🕷️ Kazıma</button>
+            <label style="font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; margin-left: 8px;">
+              <input type="checkbox" id="terminal-auto-scroll" checked> Oto-Kaydır
+            </label>
+            <button onclick="clearConsoleLogs()" class="btn-settings" style="padding: 4px 8px; font-size: 11px;">
+              <i class="fa-solid fa-trash"></i> Temizle
+            </button>
+            <button onclick="downloadLogsTxt()" class="btn-settings" style="padding: 4px 8px; font-size: 11px;">
+              <i class="fa-solid fa-download"></i> İndir (.txt)
+            </button>
+          </div>
+        </div>
+        <div class="terminal-body" id="full-terminal-body">Sistem logları yükleniyor...</div>
+      </div>
+    </div>
+
+    <!-- 📅 TAB 5: BÜLTEN & APEX RADARI (TARİH MATRİSİ & ÇEKMECE) -->
+    <div id="view-bulletin-tracker" class="main-view">
+      
+      <!-- Üst Bilgi Başlığı ve Filtreler -->
+      <div class="bulletin-header-bar">
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-calendar-days text-info"></i> Günlük Bülten Arşivi & APEX Eşitleme Radarı
+          </h2>
+          <p style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">
+            Yerel JSON dosyalarının analizi, bitmiş FT vs bekleyen maç oranları ve tek tıkla doğrudan APEX API aktarımı.
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="text" id="bulletin-search-box" class="bulletin-search-input" placeholder="Tarih ara (Örn: 2026-09-15)..." onkeyup="filterBulletinDays(this.value)">
+          <button onclick="fetchBulletinTracker(true)" class="btn-settings" title="Önbelleği zorla temizleyip tüm tarihleri yeniden tara">
+            <i class="fa-solid fa-rotate"></i> Yenile
+          </button>
+        </div>
+      </div>
+
+      <!-- 5 KPI Özeti -->
+      <div class="kpi-grid-5">
+        <div class="kpi-card">
+          <span class="kpi-title"><i class="fa-solid fa-calendar text-primary me-1"></i> Kayıtlı Gün</span>
+          <span class="kpi-value" id="kpi-b-days" style="color: #38bdf8;">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title"><i class="fa-solid fa-folder-open text-info me-1"></i> Yerel Bot (JSON)</span>
+          <span class="kpi-value" id="kpi-b-matches" style="color: #38bdf8;">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title"><i class="fa-solid fa-database text-success me-1"></i> APEX DB (Sistem)</span>
+          <span class="kpi-value" id="kpi-b-apex-matches" style="color: #10b981;">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title"><i class="fa-solid fa-circle-check text-success me-1"></i> Biten Maç (FT)</span>
+          <span class="kpi-value" id="kpi-b-finished" style="color: #10b981;">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title"><i class="fa-solid fa-hourglass-half text-warning me-1"></i> Bekleyen Maç</span>
+          <span class="kpi-value" id="kpi-b-pending" style="color: #fbbf24;">0</span>
+        </div>
+      </div>
+
+      <!-- Günlük Bülten Matrisi Tablosu -->
+      <div class="tasks-table-card">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 130px;">Tarih</th>
+              <th style="width: 105px;">Yerel (Bot)</th>
+              <th style="width: 105px;">APEX (DB)</th>
+              <th style="width: 130px;">Eşleşme Durumu</th>
+              <th style="width: 110px;">🟢 Sonuçlanan</th>
+              <th style="width: 100px;">⏳ Bekleyen</th>
+              <th style="width: 140px;">Bitiş Oranı</th>
+              <th style="text-align: right; min-width: 270px;">Aksiyonlar</th>
+            </tr>
+          </thead>
+          <tbody id="bulletin-table-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Bülten verileri taranıyor...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 👁️ Canlı Maç İnceleme Çekmecesi (Drawer) -->
+      <div class="bulletin-drawer" id="bulletin-drawer-container">
+        <div class="drawer-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-list-check" style="color: var(--accent-cyan); font-size: 16px;"></i>
+            <div>
+              <strong style="color: #fff; font-size: 14px;" id="drawer-date-title">Maç İnceleme: -</strong>
+              <span id="drawer-stats-sub" style="font-size: 11px; color: var(--text-dim); margin-left: 8px;">0 Maç Yüklendi</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="drawer-search-box" class="bulletin-search-input" style="width: 190px; padding: 5px 10px; font-size: 11.5px;" placeholder="Takım veya Lig Ara..." onkeyup="filterDrawerMatches(this.value)">
+            <button class="drawer-filter-btn active" onclick="filterDrawerStatus('all', this)">Tümü</button>
+            <button class="drawer-filter-btn" onclick="filterDrawerStatus('ft', this)">🟢 Bitenler (FT)</button>
+            <button class="drawer-filter-btn" onclick="filterDrawerStatus('pending', this)">⏳ Bekleyenler</button>
+            <button class="drawer-filter-btn" onclick="filterDrawerStatus('overdue', this)">⚠️ Gecikenler</button>
+            <button onclick="closeMatchDrawer()" style="background: none; border: none; color: #f43f5e; font-size: 18px; cursor: pointer; margin-left: 6px;" title="Çekmeceyi Kapat">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div style="max-height: 520px; overflow-y: auto; padding: 0;">
+          <table class="custom-table" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Saat</th>
+                <th style="width: 170px;">Lig / Ülke</th>
+                <th>Karşılaşma</th>
+                <th style="width: 130px;">Skor / Durum</th>
+                <th style="width: 120px;">Tahmin & Oran</th>
+                <th style="width: 140px;">Olasılıklar (1-X-2)</th>
+                <th style="width: 90px; text-align: right;">1:1 Viewer</th>
+              </tr>
+            </thead>
+            <tbody id="drawer-matches-tbody">
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-dim);">Maçlar yükleniyor...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -827,6 +1723,14 @@
         <button onclick="closeSettingsModal()" style="background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer;">
           <i class="fa-solid fa-xmark"></i>
         </button>
+      </div>
+
+      <div class="switch-row" style="border-left: 3px solid #38bdf8;">
+        <div>
+          <strong style="font-size: 12px; color: #fff;"><i class="fa-solid fa-clock text-warning me-1"></i> Günlük Otomatik Zamanlayıcılar (Cron)</strong>
+          <div style="font-size: 10.5px; color: var(--text-dim);">Belirlenen saatlerde (Dün/Bugün/Yarın) arka planda otomatik bülten ve skor taramasını aç/kapat.</div>
+        </div>
+        <input type="checkbox" id="cfg-automation-active" style="width: 18px; height: 18px; cursor: pointer;">
       </div>
 
       <div class="switch-row">
@@ -888,14 +1792,649 @@
     </div>
   </div>
 
+  <!-- 🛑 Güvenli Kapatma Onay Modalı -->
+  <div class="modal-overlay" id="shutdown-confirm-modal">
+    <div class="modal-content" style="max-width: 470px;">
+      <div class="modal-header" style="border-bottom-color: rgba(244, 63, 94, 0.4);">
+        <div class="modal-title" style="color: #f43f5e;">
+          <i class="fa-solid fa-triangle-exclamation text-danger"></i> BPA V4 — Sistemi Tamamen Kapat
+        </div>
+        <button onclick="closeShutdownConfirmModal()" style="background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div style="padding: 12px 0; color: #cbd5e1; font-size: 12.5px; line-height: 1.6;">
+        Arka planda çalışan tüm <strong>Chromium tarayıcı pencereleri</strong>, <strong>Node.js ana motoru</strong>, zamanlayıcılar ve veri senkronizasyonu tamamen sonlandırılacaktır.
+        <div style="margin-top: 10px; padding: 10px 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; color: #7dd3fc; font-size: 11.5px;">
+          <i class="fa-solid fa-circle-info me-1"></i> İpucu: Sistemi kapatmadan sadece pencereyi gizlemek istiyorsanız <strong>Tepsiye Küçült (–)</strong> butonunu kullanabilirsiniz.
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+        <button onclick="closeShutdownConfirmModal()" class="btn-ctrl" style="padding: 7px 14px;">Vazgeç</button>
+        <button onclick="executeSystemShutdown()" class="btn-ctrl" style="background: linear-gradient(135deg, #e11d48, #9f1239); border-color: #f43f5e; color: #fff; font-weight: 700; padding: 7px 16px;">
+          <i class="fa-solid fa-power-off me-1"></i> Evet, Tamamen Kapat
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 🔔 Toast Bildirim Konteyneri -->
   <div class="toast-container" id="toast-container"></div>
 
   <script>
+    let currentMainView = 'view-dashboard';
     let activeTab = 'sessions';
     let currentLatestSlug = null;
     let currentConfig = {};
     let lastRenderedWorkerCount = 0;
+    let fullLogsList = [];
+    let currentLogFilter = 'all';
+
+    // 🧭 Ana Sekme Değiştirici
+    function switchMainView(viewId) {
+      currentMainView = viewId;
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
+
+      const btn = document.getElementById('btn-' + viewId);
+      if (btn) btn.classList.add('active');
+
+      const view = document.getElementById(viewId);
+      if (view) view.classList.add('active');
+
+      if (viewId === 'view-task-manager') fetchTasks();
+      if (viewId === 'view-system-health') fetchHealth();
+      if (viewId === 'view-live-console') fetchLogs();
+      if (viewId === 'view-bulletin-tracker') fetchBulletinTracker();
+    }
+
+    // 📅 Bülten & APEX Radarı Değişkenleri ve Fonksiyonları
+    let allBulletinDays = [];
+    let currentDrawerMatches = [];
+    let currentDrawerFilterStatus = 'all';
+    let isBulletinLoading = false;
+
+    async function fetchBulletinTracker(isForce = false) {
+      if (isBulletinLoading) return;
+      isBulletinLoading = true;
+      const tbody = document.getElementById('bulletin-table-tbody');
+      if (tbody && (!allBulletinDays || allBulletinDays.length === 0)) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-dim);"><i class="fa-solid fa-spinner fa-spin me-2"></i> Bülten verileri taranıyor...</td></tr>';
+      }
+      try {
+        const url = '/api/bulletin_history' + (isForce ? '?force=1' : '');
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success && data.summary) {
+          allBulletinDays = data.days || [];
+          
+          // Update KPIs
+          const kpiDays = document.getElementById('kpi-b-days');
+          const kpiMatches = document.getElementById('kpi-b-matches');
+          const kpiApexMatches = document.getElementById('kpi-b-apex-matches');
+          const kpiFinished = document.getElementById('kpi-b-finished');
+          const kpiPending = document.getElementById('kpi-b-pending');
+          const badgeCount = document.getElementById('bulletin-badge-count');
+
+          if (kpiDays) kpiDays.innerText = (data.summary.totalDays || 0) + ' Gün';
+          if (kpiMatches) kpiMatches.innerText = (data.summary.totalMatches || 0).toLocaleString();
+          if (kpiApexMatches) kpiApexMatches.innerText = (data.summary.totalApexMatches || 0).toLocaleString();
+          if (kpiFinished) kpiFinished.innerText = (data.summary.totalFinished || 0).toLocaleString();
+          if (kpiPending) kpiPending.innerText = (data.summary.totalPending || 0).toLocaleString();
+          if (badgeCount) badgeCount.innerText = (data.summary.totalDays || 0) + ' Gün';
+
+          renderBulletinTable(allBulletinDays);
+          if (isForce) {
+            showToast('info', 'Bülten Arşivi Yenilendi', `${data.summary.totalDays} gün ve ${data.summary.totalMatches} maç yeniden indekslendi.`);
+          }
+        }
+      } catch (err) {
+        console.error('Bülten geçmişi hatası:', err);
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px; color: #f43f5e;"><i class="fa-solid fa-triangle-exclamation me-2"></i> Bülten verileri alınamadı: ' + err.message + '</td></tr>';
+        }
+      } finally {
+        isBulletinLoading = false;
+      }
+    }
+
+    function renderBulletinTable(days) {
+      const tbody = document.getElementById('bulletin-table-tbody');
+      if (!tbody) return;
+
+      if (!days || days.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-dim);"><i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 8px; opacity: 0.5;"></i><br>Kayıtlı bülten verisi bulunamadı.</td></tr>';
+        return;
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      tbody.innerHTML = days.map(d => {
+        const isToday = d.date === todayStr;
+        const dateDisplay = isToday 
+          ? `<strong style="color: #38bdf8;">${d.date}</strong> <span class="badge-gold" style="font-size: 9px; margin-left: 4px;">BUGÜN</span>`
+          : `<strong style="color: #fff;">${d.date}</strong>`;
+
+        const rate = d.settledPct !== undefined ? d.settledPct : (d.finishRate || 0);
+
+        let barColor = '#38bdf8';
+        if (rate >= 90) barColor = '#10b981';
+        else if (rate >= 50) barColor = '#f59e0b';
+
+        // APEX & Bot Eşleşme Durumu
+        let syncBadge = '';
+        if (d.matchSyncStatus === 'equal') {
+          syncBadge = `<span class="status-badge-ok" title="Bot JSON ve APEX Veritabanı Tam Eşit"><i class="fa-solid fa-check"></i> Eşit (${d.totalMatches})</span>`;
+        } else if (d.matchSyncStatus === 'missing_local') {
+          const missing = Math.abs(d.matchSyncDiff || 0);
+          syncBadge = `<span class="status-badge-alarm" style="background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.5); padding: 3px 7px; border-radius: 5px; font-size: 11px; font-weight: 800; cursor: help;" title="APEX veritabanında ${d.apexMatches} maç var ancak yerel dosyada ${d.totalMatches} maç var (${missing} maç eksik!)"><i class="fa-solid fa-triangle-exclamation"></i> ⚠️ ${missing} Eksik</span>`;
+        } else if (d.matchSyncStatus === 'more_local') {
+          syncBadge = `<span class="badge-gold" style="font-size: 11px; padding: 3px 7px; cursor: help;" title="Botta ${d.matchSyncDiff} yeni/güncel maç var (APEX: ${d.apexMatches}, Bot: ${d.totalMatches})"><i class="fa-solid fa-arrow-up"></i> +${d.matchSyncDiff} Yeni</span>`;
+        } else {
+          syncBadge = `<span class="status-badge-err">Aktarılmadı</span>`;
+        }
+
+        return `
+          <tr>
+            <td>${dateDisplay}</td>
+            <td><strong style="color: #38bdf8; font-size: 13px;">${d.totalMatches}</strong></td>
+            <td><strong style="color: #10b981; font-size: 13px;">${d.apexMatches !== undefined ? d.apexMatches : '-'}</strong></td>
+            <td>${syncBadge}</td>
+            <td><span style="color: #10b981; font-weight: 700;">🟢 ${d.finishedMatches}</span></td>
+            <td><span style="color: ${d.pendingMatches > 0 ? '#fbbf24' : '#64748b'};">⏳ ${d.pendingMatches}</span></td>
+            <td>
+              <div class="rate-bar-container">
+                <div class="rate-bar-fill" style="width: ${rate}%; background: ${barColor};"></div>
+              </div>
+              <strong style="font-size: 11px; color: ${barColor};">%${rate}</strong>
+            </td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button class="btn-action-view" onclick="openMatchDrawer('${d.date}')" title="Maçları ve Tahminleri İncele">
+                <i class="fa-solid fa-eye"></i> İncele
+              </button>
+              <button class="btn-action-sync" onclick="triggerSyncDateApex('${d.date}', this)" title="Tek Tıkla APEX API'ye Aktar (Offline Sync)">
+                <i class="fa-solid fa-satellite-dish"></i> APEX'e Aktar
+              </button>
+              <button class="btn-action-update" onclick="triggerUpdateFinishedScores('${d.date}')" title="Forebet'ten Sonuçları Baştan Çek & Eksikleri Tamamla">
+                <i class="fa-solid fa-arrows-rotate"></i> ${d.matchSyncStatus === 'missing_local' ? 'Eksikleri Çek' : 'Güncelle'}
+              </button>
+              <button class="btn-action-dl" onclick="downloadBulletinJson('${d.date}')" title="predictions_${d.date}.json Dosyasını İndir">
+                <i class="fa-solid fa-download"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterBulletinDays(val) {
+      const q = (val || '').toLowerCase().trim();
+      if (!q) {
+        renderBulletinTable(allBulletinDays);
+        return;
+      }
+      const filtered = allBulletinDays.filter(d => d.date.toLowerCase().includes(q));
+      renderBulletinTable(filtered);
+    }
+
+    async function openMatchDrawer(dateStr) {
+      const drawer = document.getElementById('bulletin-drawer-container');
+      const title = document.getElementById('drawer-date-title');
+      const sub = document.getElementById('drawer-stats-sub');
+      const tbody = document.getElementById('drawer-matches-tbody');
+
+      if (!drawer) return;
+      drawer.classList.add('active');
+      title.innerText = `Maç İnceleme: ${dateStr}`;
+      sub.innerText = 'Yükleniyor...';
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-dim);"><i class="fa-solid fa-spinner fa-spin me-2"></i> ${dateStr} bülteni maçları yükleniyor...</td></tr>`;
+      
+      drawer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      try {
+        const res = await fetch(`/api/bulletin_matches?date=${dateStr}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.matches)) {
+          currentDrawerMatches = data.matches;
+          const ftCount = data.matches.filter(m => m.isFinished || m.status === 'FT').length;
+          const pendingCount = data.matches.length - ftCount;
+          sub.innerText = `${data.matches.length} Maç (${ftCount} FT, ${pendingCount} Bekleyen)`;
+          renderDrawerMatches(currentDrawerMatches);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 25px; color: #f43f5e;">Hata: ${data.error || 'Maç verisi bulunamadı.'}</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 25px; color: #f43f5e;">Yükleme başarısız: ${err.message}</td></tr>`;
+      }
+    }
+
+    function closeMatchDrawer() {
+      const drawer = document.getElementById('bulletin-drawer-container');
+      if (drawer) drawer.classList.remove('active');
+    }
+
+    function renderDrawerMatches(matches) {
+      const tbody = document.getElementById('drawer-matches-tbody');
+      if (!tbody) return;
+
+      if (!matches || matches.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-dim);">Filtreye uygun maç bulunamadı.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = matches.map(m => {
+        const isFt = m.isFinished || m.status === 'FT';
+        let statusBadge = '';
+        if (isFt) {
+          const sc = (m.score && m.score !== '-') ? m.score : (m.finalScore || '');
+          statusBadge = `<span class="status-badge-ft"><i class="fa-solid fa-check"></i> FT ${sc}</span>`;
+        } else {
+          if (m.isOverdue) {
+            statusBadge = `<span class="status-badge-alarm" title="Maç saati geçti ancak skor henüz FT olarak güncellenmedi!">⚠️ GECİKTİ</span>`;
+          } else {
+            statusBadge = `<span class="status-badge-pending"><i class="fa-solid fa-clock"></i> ${m.matchTime || m.time || 'Yaklaşan'}</span>`;
+          }
+        }
+
+        const pick1X2 = m.pick1X2 || m.pred_1x2 || '-';
+        const odd1X2 = m.odd1X2 || m.odd_1x2 || '-';
+        const pickBadge = pick1X2 !== '-' 
+          ? `<span class="badge-gold" style="font-weight: 800; font-size: 11px;">${pick1X2}</span> <strong style="color: #38bdf8; margin-left: 4px;">@${odd1X2}</strong>`
+          : `<span style="color: var(--text-dim);">-</span>`;
+
+        const uoPick = m.pickUnderOver ? `<span style="font-size: 10px; color: #94a3b8; margin-left: 4px;">(U/O: ${m.pickUnderOver})</span>` : '';
+
+        const viewerLink = m.slug 
+          ? `<a href="/output/${m.slug}/viewer.html" target="_blank" class="btn-action-view" style="padding: 2px 6px; font-size: 10.5px;"><i class="fa-solid fa-eye"></i> 1:1</a>`
+          : (m.forebetUrl ? `<a href="${m.forebetUrl}" target="_blank" class="btn-action-view" style="padding: 2px 6px; font-size: 10.5px;"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : `<span style="color: var(--text-dim); font-size: 10px;">-</span>`);
+
+        const homeLogo = m.homeLogo ? `<img src="${m.homeLogo}" class="team-logo-img" alt="" onerror="this.style.display='none'">` : '';
+        const awayLogo = m.awayLogo ? `<img src="${m.awayLogo}" class="team-logo-img" alt="" onerror="this.style.display='none'">` : '';
+
+        const timeDisplay = m.matchTime || m.time || '--:--';
+
+        return `
+          <tr>
+            <td><strong style="color: var(--accent-cyan); font-family: monospace;">${timeDisplay}</strong></td>
+            <td>
+              <div style="font-weight: 600; color: #94a3b8; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="${m.league}">
+                ${m.country ? `<span style="color: var(--text-dim);">${m.country} - </span>` : ''}${m.league || '-'}
+              </div>
+            </td>
+            <td>
+              <div class="team-badge-flex">
+                ${homeLogo}<span>${m.homeTeam}</span>
+                <span style="color: var(--text-dim); font-weight: 400; margin: 0 3px;">vs</span>
+                ${awayLogo}<span>${m.awayTeam}</span>
+              </div>
+            </td>
+            <td>${statusBadge}</td>
+            <td>${pickBadge} ${uoPick}</td>
+            <td>
+              <span class="prob-pill" title="BTTS">${m.pickBTTS ? 'KG: ' + m.pickBTTS : '1X2'}</span>
+              <span class="prob-pill" style="color: #38bdf8;">${m.htScore ? 'İY: ' + m.htScore : ''}</span>
+            </td>
+            <td style="text-align: right;">${viewerLink}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterDrawerMatches(term) {
+      applyDrawerFilters();
+    }
+
+    function filterDrawerStatus(status, btnEl) {
+      currentDrawerFilterStatus = status;
+      document.querySelectorAll('.drawer-filter-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      applyDrawerFilters();
+    }
+
+    function applyDrawerFilters() {
+      const term = (document.getElementById('drawer-search-box')?.value || '').toLowerCase().trim();
+      let filtered = currentDrawerMatches;
+
+      if (currentDrawerFilterStatus === 'ft') {
+        filtered = filtered.filter(m => m.isFinished || m.status === 'FT');
+      } else if (currentDrawerFilterStatus === 'pending') {
+        filtered = filtered.filter(m => !m.isFinished && m.status !== 'FT');
+      } else if (currentDrawerFilterStatus === 'overdue') {
+        filtered = filtered.filter(m => m.isOverdue);
+      }
+
+      if (term) {
+        filtered = filtered.filter(m => 
+          (m.homeTeam && m.homeTeam.toLowerCase().includes(term)) ||
+          (m.awayTeam && m.awayTeam.toLowerCase().includes(term)) ||
+          (m.league && m.league.toLowerCase().includes(term)) ||
+          (m.country && m.country.toLowerCase().includes(term))
+        );
+      }
+
+      renderDrawerMatches(filtered);
+    }
+
+    async function triggerSyncDateApex(dateStr, btnEl) {
+      if (!confirm(`${dateStr} tarihli bülteni yeniden APEX API veritabanına aktarmak istiyor musunuz?`)) return;
+
+      const originalHtml = btnEl ? btnEl.innerHTML : '';
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Aktarılıyor...';
+      }
+
+      showToast('info', '📡 APEX Senkronizasyonu Başladı', `${dateStr} bülteni APEX API'ye aktarılıyor...`);
+
+      try {
+        const res = await fetch(`/api/sync_date_to_apex?date=${dateStr}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('success', '✔ APEX Eşitleme Tamamlandı', `${dateStr} bülteninden ${data.sentMatches} maç APEX veritabanına başarıyla aktarıldı.`);
+          fetchBulletinTracker(true);
+        } else {
+          showToast('error', 'Aktarım Hatası', data.error || 'APEX API aktarımı başarısız oldu.');
+        }
+      } catch (err) {
+        showToast('error', 'Hata', err.message);
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    function triggerUpdateFinishedScores(dateStr) {
+      if (!confirm(`${dateStr} tarihli maçları güncel skor ve sonuçlarıyla Forebet'ten zorla yenilemek istiyor musunuz?`)) return;
+      
+      const chk = document.getElementById('chk-force-refresh');
+      if (chk) chk.checked = true;
+
+      const start = document.getElementById('range-start-date');
+      const end = document.getElementById('range-end-date');
+      if (start && end) {
+        start.value = dateStr;
+        end.value = dateStr;
+      }
+
+      switchMainView('view-dashboard');
+      showToast('info', 'Zorla Yenileme Başlatılıyor', `${dateStr} için maç skorları baştan taranıyor...`);
+      
+      setTimeout(() => {
+        const btnRange = document.querySelector('button[onclick*="triggerRangeScrape"]');
+        if (btnRange) btnRange.click();
+      }, 300);
+    }
+
+    function downloadBulletinJson(dateStr) {
+      window.open(`/api/download_bulletin?date=${dateStr}`, '_blank');
+    }
+
+    // ⚡ Görev Yöneticisi Fonksiyonları
+    async function fetchTasks() {
+      try {
+        const res = await fetch('/api/tasks');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.tasks)) {
+          renderTasks(data.tasks);
+        }
+      } catch (err) {
+        console.warn('Görevler alınamadı:', err);
+      }
+    }
+
+    function renderTasks(tasks) {
+      const tbody = document.getElementById('tasks-tbody');
+      const countEl = document.getElementById('kpi-task-count');
+      const ramEl = document.getElementById('kpi-total-ram');
+      const badgeEl = document.getElementById('tasks-badge-count');
+
+      if (countEl) countEl.innerText = tasks.length;
+      if (badgeEl) badgeEl.innerText = tasks.length;
+
+      let totalRam = 0;
+      tasks.forEach(t => totalRam += (t.memoryMb || 0));
+      if (ramEl) ramEl.innerText = totalRam + ' MB';
+
+      if (!tbody) return;
+
+      if (tasks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 25px; color: var(--text-dim);">Aktif bot süreci bulunamadı.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = tasks.map(t => {
+        const typeBadges = {
+          agent: '<span class="status-badge-ok">ANA AJAN</span>',
+          crawler: '<span class="badge-gold">CRAWLER</span>',
+          worker: '<span class="badge-gold">WORKER</span>',
+          cron: '<span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">CRON</span>',
+          browser: '<span style="background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">CHROMIUM</span>',
+          app_window: '<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">APP PENCERESİ</span>'
+        };
+
+        const actionBtn = t.isMaster 
+          ? '<span style="font-size: 11px; color: #10b981; font-weight: 700;"><i class="fa-solid fa-lock"></i> Korumalı</span>'
+          : `<button onclick="killSingleTask(${t.pid})" class="btn-kill-sm"><i class="fa-solid fa-xmark"></i> Sonlandır</button>`;
+
+        return `
+          <tr>
+            <td><strong style="color: #38bdf8; font-family: monospace;">${t.pid}</strong></td>
+            <td>
+              <div style="font-weight: 700; color: #fff;">${t.name}</div>
+              <div style="font-size: 10.5px; color: var(--text-dim);">${t.command || ''}</div>
+            </td>
+            <td>${typeBadges[t.type] || '<span class="badge-gold">BOT</span>'}</td>
+            <td><strong style="color: #fff;">${t.memoryMb || 0} MB</strong></td>
+            <td><span style="color: #10b981; font-size: 11px; font-weight: 700;">● ${t.status}</span></td>
+            <td style="text-align: right;">${actionBtn}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function triggerEmergencyKill() {
+      if (!confirm('Tüm bot kazıma motorları ve Puppeteer Chromium sekmeleri anında sonlandırılsın mı?')) return;
+      try {
+        const res = await fetch('/api/tasks/kill-all', { method: 'POST' });
+        const data = await res.json();
+        showToast('error', '🛑 ACİL FREN DEVREDE', data.message || 'Tüm bot süreçleri ve tarayıcılar durduruldu.');
+        fetchTasks();
+      } catch (err) {
+        showToast('error', 'Hata', err.message);
+      }
+    }
+
+    async function killSingleTask(pid) {
+      try {
+        const res = await fetch('/api/tasks/kill?pid=' + pid, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('info', 'Süreç Sonlandırıldı', `PID ${pid} başarıyla kapatıldı.`);
+          fetchTasks();
+        } else {
+          showToast('warning', 'Uyarı', data.error || 'Süreç kapatılamadı.');
+        }
+      } catch (err) {
+        showToast('error', 'Hata', err.message);
+      }
+    }
+
+    // 🩺 Sistem Sağlık Radarı Fonksiyonları
+    async function fetchHealth() {
+      try {
+        const res = await fetch('/api/system-health');
+        const data = await res.json();
+        renderHealth(data);
+      } catch (err) {
+        console.warn('Sağlık verisi alınamadı:', err);
+      }
+    }
+
+    function renderHealth(data) {
+      if (!data) return;
+
+      // Master Score
+      const scoreCircle = document.getElementById('health-master-circle');
+      const scoreTitle = document.getElementById('health-master-title');
+      const scoreDesc = document.getElementById('health-master-desc');
+      const badgeScore = document.getElementById('health-badge-score');
+
+      if (scoreCircle) {
+        scoreCircle.innerText = '%' + data.overallScore;
+        scoreCircle.style.borderColor = data.overallScore >= 90 ? '#10b981' : (data.overallScore >= 70 ? '#f59e0b' : '#f43f5e');
+        scoreCircle.style.color = scoreCircle.style.borderColor;
+      }
+      if (badgeScore) {
+        badgeScore.innerText = '%' + data.overallScore;
+        badgeScore.className = 'tab-badge ' + (data.overallScore >= 90 ? 'badge-health-ok' : (data.overallScore >= 70 ? 'badge-gold' : 'status-badge-err'));
+      }
+      if (scoreTitle) scoreTitle.innerText = 'Sistem Durumu: ' + data.statusText;
+      if (scoreDesc) scoreDesc.innerText = `${data.integrity?.intactCount || 0}/${data.integrity?.totalFiles || 0} Kritik Modül Sağlam | APEX API: ${data.apex?.message || '-'} | Çerez: ${data.cookies?.message || '-'}`;
+
+      // 1. Files Integrity List
+      const filesList = document.getElementById('health-files-list');
+      const fileScoreBadge = document.getElementById('health-file-score');
+      if (data.integrity) {
+        if (fileScoreBadge) fileScoreBadge.innerText = `${data.integrity.intactCount} / ${data.integrity.totalFiles} Tam`;
+        if (filesList && Array.isArray(data.integrity.files)) {
+          filesList.innerHTML = data.integrity.files.map(f => `
+            <div class="file-radar-item">
+              <div>
+                <strong style="color: #fff;">${f.name}</strong>
+                <span style="color: var(--text-dim); margin-left: 6px; font-family: monospace;">(${f.relPath})</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: #38bdf8; font-size: 11px;">${f.sizeKb > 0 ? f.sizeKb + ' KB' : '-'}</span>
+                <span class="${f.exists ? 'status-badge-ok' : 'status-badge-err'}">${f.exists ? '✔ TAM' : '✖ EKSİK'}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 2. APEX API Radar
+      if (data.apex) {
+        const apexBadge = document.getElementById('health-apex-badge');
+        const apexUrl = document.getElementById('health-apex-url');
+        const apexLatency = document.getElementById('health-apex-latency');
+        const apexAuth = document.getElementById('health-apex-auth');
+        const apexMsg = document.getElementById('health-apex-msg');
+
+        if (apexBadge) {
+          apexBadge.className = data.apex.online ? 'status-badge-ok' : 'status-badge-err';
+          apexBadge.innerText = data.apex.online ? '🟢 200 OK' : '🔴 BAĞLANTI YOK';
+        }
+        if (apexUrl) apexUrl.innerText = data.apex.targetUrl;
+        if (apexLatency) apexLatency.innerText = data.apex.latencyMs + ' ms';
+        if (apexAuth) {
+          apexAuth.innerText = data.apex.authorized ? 'Doğrulandı' : 'Hatalı Key';
+          apexAuth.style.color = data.apex.authorized ? '#10b981' : '#f43f5e';
+        }
+        if (apexMsg) apexMsg.innerText = data.apex.message;
+      }
+
+      // 3. Cloudflare Cookie Radar
+      if (data.cookies) {
+        const cBadge = document.getElementById('health-cookie-badge');
+        const cAge = document.getElementById('health-cookie-age');
+        const cCount = document.getElementById('health-cookie-count');
+        const cMsg = document.getElementById('health-cookie-msg');
+
+        if (cBadge) {
+          cBadge.className = data.cookies.exists ? (data.cookies.status === 'valid' ? 'status-badge-ok' : 'badge-gold') : 'status-badge-err';
+          cBadge.innerText = data.cookies.exists ? (data.cookies.status === 'valid' ? 'Aktif' : 'Eski') : 'Eksik';
+        }
+        if (cAge) cAge.innerText = data.cookies.exists ? `${data.cookies.ageHours} Saat (${data.cookies.ageDays} Gün)` : 'Yok';
+        if (cCount) cCount.innerText = `${data.cookies.cookieCount || 0} Adet Token`;
+        if (cMsg) cMsg.innerText = data.cookies.message;
+      }
+
+      // 4. Windows Scheduler Radar
+      if (data.scheduler) {
+        const sBadge = document.getElementById('health-sched-badge');
+        const mInfo = document.getElementById('health-sched-morning-info');
+        const eInfo = document.getElementById('health-sched-evening-info');
+
+        const allActive = data.scheduler.morning?.active && data.scheduler.evening?.active;
+        if (sBadge) {
+          sBadge.className = allActive ? 'status-badge-ok' : 'badge-gold';
+          sBadge.innerText = allActive ? 'Aktif (2 Görev)' : 'Kısmi / Kayıtsız';
+        }
+        if (mInfo) mInfo.innerText = data.scheduler.morning?.active ? `Her gün 06:00 (Sonraki: ${data.scheduler.morning.nextRun})` : 'Windows görevi bulunamadı';
+        if (eInfo) eInfo.innerText = data.scheduler.evening?.active ? `Her gün 17:00 (Sonraki: ${data.scheduler.evening.nextRun})` : 'Windows görevi bulunamadı';
+      }
+    }
+
+    async function triggerSchedulerRun(target) {
+      try {
+        const res = await fetch('/api/scheduler/run-now?target=' + target, { method: 'POST' });
+        const data = await res.json();
+        showToast('info', 'Zamanlayıcı Tetiklendi', (target === 'morning' ? 'Sabah Görevi (Dünün Maçları)' : 'Akşam Görevi (Yarının Bülteni)') + ' başlatıldı.');
+      } catch (err) {
+        showToast('error', 'Hata', err.message);
+      }
+    }
+
+    // 📟 Canlı Terminal Fonksiyonları
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.logs)) {
+          fullLogsList = data.logs;
+          renderTerminalLogs();
+        }
+      } catch (err) {}
+    }
+
+    function filterLogs(filterType, btnEl) {
+      currentLogFilter = filterType;
+      document.querySelectorAll('.terminal-filter-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      renderTerminalLogs();
+    }
+
+    function renderTerminalLogs() {
+      const box = document.getElementById('full-terminal-body');
+      const countBadge = document.getElementById('terminal-log-count');
+      if (!box) return;
+
+      let filtered = fullLogsList;
+      if (currentLogFilter === 'error') {
+        filtered = fullLogsList.filter(l => l.includes('HATA') || l.includes('Error') || l.includes('error') || l.includes('❌'));
+      } else if (currentLogFilter === 'apex') {
+        filtered = fullLogsList.filter(l => l.includes('APEX') || l.includes('Uploader') || l.includes('Senkronizasyon') || l.includes('200 OK'));
+      } else if (currentLogFilter === 'scraper') {
+        filtered = fullLogsList.filter(l => l.includes('Forebet') || l.includes('Maç') || l.includes('Sekme') || l.includes('Worker') || l.includes('Crawler'));
+      }
+
+      if (countBadge) countBadge.innerText = filtered.length + ' Satır';
+      box.innerText = filtered.length > 0 ? filtered.join('\n') : 'Filtreye uygun log satırı bulunamadı.';
+
+      const autoScroll = document.getElementById('terminal-auto-scroll');
+      if (autoScroll && autoScroll.checked) {
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
+    function clearConsoleLogs() {
+      fullLogsList = [];
+      renderTerminalLogs();
+      showToast('info', 'Konsol Temizlendi', 'Ekrandaki log geçmişi temizlendi.');
+    }
+
+    function downloadLogsTxt() {
+      const text = fullLogsList.join('\n');
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'bpa_bot_logs_' + new Date().toISOString().slice(0, 10) + '.txt';
+      a.click();
+    }
 
     function switchTab(tab) {
       activeTab = tab;
@@ -933,9 +2472,14 @@
       }, 3500);
     }
 
-    function triggerScrape(mode) {
+    async function triggerScrape(mode, btnEl) {
       const workers = document.getElementById('worker-concurrency-select').value;
-      fetch('/api/trigger?mode=' + mode + '&workers=' + workers);
+      const isForce = document.getElementById('chk-force-refresh')?.checked;
+      const originalText = btnEl ? btnEl.innerHTML : null;
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Başlatılıyor...';
+      }
       
       const modeTitles = {
         today: 'Bugünün Maçları',
@@ -943,19 +2487,62 @@
         yesterday: 'Dünün Maçları',
         random: 'Rastgele Maç'
       };
-      showToast('info', 'Tarama Başlatıldı', (modeTitles[mode] || mode.toUpperCase()) + ' (' + workers + ' Sekme) kazınmaya başlandı...');
+
+      try {
+        const forceParam = isForce ? '&force=true' : '';
+        const res = await fetch('/api/trigger?mode=' + mode + '&workers=' + workers + forceParam);
+        const data = await res.json();
+        if (data.success) {
+          const forceLabel = isForce ? ' [⚡ Zorla Yenile / Üstüne Yaz]' : '';
+          showToast('info', 'Tarama Başlatıldı', (modeTitles[mode] || mode.toUpperCase()) + ' (' + workers + ' Sekme)' + forceLabel + ' kazınmaya başlandı...');
+        } else {
+          showToast('warning', 'Uyarı', data.error || 'Tarama başlatılamadı.');
+        }
+      } catch (e) {
+        showToast('error', 'Hata', 'Sunucuya bağlanılamadı: ' + e.message);
+      } finally {
+        if (btnEl && originalText) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = originalText;
+        }
+      }
     }
 
-    function triggerRangeScrape() {
+    async function triggerRangeScrape(btnEl) {
       const start = document.getElementById('range-start-date').value;
       const end = document.getElementById('range-end-date').value;
       const workers = document.getElementById('worker-concurrency-select').value;
+      const isForce = document.getElementById('chk-force-refresh')?.checked;
       if (!start || !end) {
         showToast('warning', 'Tarih Seçilmedi', 'Lütfen geçerli bir Başlangıç ve Bitiş tarihi seçin.');
         return;
       }
-      fetch('/api/trigger?mode=range&start=' + encodeURIComponent(start) + '&end=' + encodeURIComponent(end) + '&workers=' + workers);
-      showToast('info', 'Tarih Aralığı Başlatıldı', start + ' ➔ ' + end + ' aralığındaki tüm günler taranıyor...');
+
+      const targetBtn = btnEl || document.querySelector('.date-range-box button');
+      const originalText = targetBtn ? targetBtn.innerHTML : null;
+      if (targetBtn) {
+        targetBtn.disabled = true;
+        targetBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Başlatılıyor...';
+      }
+
+      try {
+        const forceParam = isForce ? '&force=true' : '';
+        const res = await fetch('/api/trigger?mode=range&start=' + encodeURIComponent(start) + '&end=' + encodeURIComponent(end) + '&workers=' + workers + forceParam);
+        const data = await res.json();
+        if (data.success) {
+          const forceLabel = isForce ? ' [⚡ Zorla Yenile / Üstüne Yaz]' : '';
+          showToast('info', 'Tarih Aralığı Başlatıldı', start + ' ➔ ' + end + forceLabel + ' aralığındaki tüm günler taranıyor...');
+        } else {
+          showToast('warning', 'Uyarı', data.error || 'Tarama başlatılamadı.');
+        }
+      } catch (e) {
+        showToast('error', 'Hata', 'Sunucuya bağlanılamadı: ' + e.message);
+      } finally {
+        if (targetBtn && originalText) {
+          targetBtn.disabled = false;
+          targetBtn.innerHTML = originalText;
+        }
+      }
     }
 
     function changeConcurrency(val) {
@@ -1105,6 +2692,7 @@
 
     // ⚙️ Ayarlar Modalı Kontrolleri
     function openSettingsModal() {
+      document.getElementById('cfg-automation-active').checked = Boolean(currentConfig.automation_active !== false);
       document.getElementById('cfg-auto-sync').checked = Boolean(currentConfig.autoSyncApex);
       document.getElementById('cfg-concurrency').value = String(currentConfig.concurrency || 4);
       document.getElementById('cfg-apex-url').value = currentConfig.apexImportUrl || 'http://localhost/apex-api/api/import.php';
@@ -1122,6 +2710,7 @@
 
     async function saveSettings() {
       const payload = {
+        automation_active: document.getElementById('cfg-automation-active').checked,
         autoSyncApex: document.getElementById('cfg-auto-sync').checked,
         concurrency: parseInt(document.getElementById('cfg-concurrency').value, 10) || 4,
         apexImportUrl: document.getElementById('cfg-apex-url').value.trim(),
@@ -1138,12 +2727,73 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        currentConfig.automation_active = payload.automation_active;
+        updateCronBadge(payload.automation_active);
         document.getElementById('worker-concurrency-select').value = String(payload.concurrency);
         closeSettingsModal();
-        showToast('success', 'Ayarlar Kaydedildi', 'APEX ve sistem ayarları başarıyla güncellendi.');
+        showToast('success', 'Ayarlar Kaydedildi', 'APEX, zamanlayıcı ve sistem ayarları başarıyla güncellendi.');
       } catch (e) {
         showToast('error', 'Hata Oluştu', 'Ayarlar kaydedilemedi: ' + e.message);
       }
+    }
+
+    // 🕒 Zamanlayıcı Rozeti & Toggle Kontrolü
+    function updateCronBadge(isActive) {
+      const btn = document.getElementById('hdr-cron-btn');
+      const label = document.getElementById('hdr-cron-label');
+      if (!btn || !label) return;
+      if (isActive) {
+        btn.className = 'btn-cron-toggle';
+        label.innerText = 'Zamanlayıcı: AÇIK';
+        btn.title = 'Günlük Otomatik Zamanlayıcılar (Cron) Aktif. Kapatmak için tıklayın.';
+      } else {
+        btn.className = 'btn-cron-toggle off';
+        label.innerText = 'Zamanlayıcı: KAPALI';
+        btn.title = 'Günlük Otomatik Zamanlayıcılar (Cron) Durduruldu. Açmak için tıklayın.';
+      }
+    }
+
+    async function toggleCronAutomation() {
+      try {
+        const res = await fetch('/api/toggle_automation').then(r => r.json());
+        if (res && res.success) {
+          currentConfig.automation_active = res.automation_active;
+          updateCronBadge(res.automation_active);
+          showToast(res.automation_active ? 'success' : 'warning', 'Zamanlayıcı Durumu', res.automation_active ? 'Otomatik zamanlayıcılar AKTİF edildi.' : 'Otomatik zamanlayıcılar DURDURULDU (KAPATILDI).');
+        }
+      } catch (e) {
+        showToast('error', 'Hata', 'Zamanlayıcı değiştirilemedi: ' + e.message);
+      }
+    }
+
+    // 🗔 Masaüstü Pencere Kontrolleri (Tepsiye Küçült & Güvenli Kapat)
+    async function minimizeWindowToTray() {
+      showToast('info', 'Sistem Tepsisine Alındı', 'BPA V4 arka planda çalışmaya devam ediyor. Açmak için Windows saat yanındaki simgeye çift tıklayın.');
+      try {
+        await fetch('/api/window/minimize');
+      } catch (_) {}
+      setTimeout(() => {
+        window.close();
+      }, 350);
+    }
+
+    function openShutdownConfirmModal() {
+      document.getElementById('shutdown-confirm-modal').classList.add('show');
+    }
+
+    function closeShutdownConfirmModal() {
+      document.getElementById('shutdown-confirm-modal').classList.remove('show');
+    }
+
+    async function executeSystemShutdown() {
+      closeShutdownConfirmModal();
+      showToast('warning', 'Sistem Kapatılıyor', 'Tüm Chromium tarayıcıları ve Node.js sunucusu sonlandırılıyor...');
+      try {
+        await fetch('/api/shutdown');
+      } catch (_) {}
+      setTimeout(() => {
+        window.close();
+      }, 400);
     }
 
     async function cleanStorage() {
@@ -1175,8 +2825,11 @@
       }).join('');
     }
 
-    // Canlı Durum Polling
+    // Canlı Durum Polling (In-Flight Kilidi & Hafif Döngü)
+    let isDashboardUpdating = false;
     async function updateDashboard() {
+      if (isDashboardUpdating) return;
+      isDashboardUpdating = true;
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
@@ -1185,6 +2838,7 @@
         if (currentConfig.concurrency) {
           document.getElementById('worker-concurrency-select').value = String(currentConfig.concurrency);
         }
+        updateCronBadge(currentConfig.automation_active !== false);
 
         // Header Metrics Strip
         const storage = data.storage || {};
@@ -1396,11 +3050,22 @@
 
         // Terminal Logs
         if (data.logs && data.logs.length > 0) {
+          fullLogsList = data.logs;
           const box = document.getElementById('console-box');
-          box.innerText = data.logs.join('\n');
-          if (document.getElementById('auto-scroll-check').checked) {
-            box.scrollTop = box.scrollHeight;
+          if (box) {
+            box.innerText = data.logs.join('\n');
+            if (document.getElementById('auto-scroll-check')?.checked) {
+              box.scrollTop = box.scrollHeight;
+            }
           }
+          if (currentMainView === 'view-live-console') {
+            renderTerminalLogs();
+          }
+        }
+
+        // Aktif sekme denetimi
+        if (currentMainView === 'view-task-manager') {
+          fetchTasks();
         }
 
       } catch (e) {
@@ -1427,10 +3092,12 @@
           taskEl.style.color = '#f43f5e';
         }
         document.getElementById('active-workers-count').innerText = '0 / 0 Sekme Aktif';
+      } finally {
+        isDashboardUpdating = false;
       }
     }
 
-    setInterval(updateDashboard, 1000);
+    setInterval(updateDashboard, 2000);
     updateDashboard();
 
     // Default Date Range to (Yesterday -> Tomorrow)

@@ -2,6 +2,189 @@
 
 Tüm önemli değişiklikler, yeni modüller ve hata düzeltmeleri bu dosyada [Semantic Versioning](https://semver.org/) kurallarına göre tutulur.
 
+## [4.0.6] — 2026-09-17
+### 🕒 Windows Görev Zamanlayıcısı Otomatik Silme, Çift Kalkanlı Cron Koruması & Tam Sistem Yedeği
+- **Windows Görev Zamanlayıcısı Otomatik Silme (`core/scheduler_manager.js`):**
+  - Panelden veya `config.json` / `bpa_local_config.json` üzerinden zamanlayıcı kapatıldığında (`automation_active: false`), Windows Görev Zamanlayıcısı'nda kayıtlı `BPA_Bot_Morning` ve `BPA_Bot_Evening` görevleri anında `schtasks /delete` ile işletim sisteminden silinir.
+  - Zamanlayıcı tekrar açıldığında (`automation_active: true`) görevler otomatik olarak oluşturulur ve belirlenen saatlere senkronize edilir.
+  - Bağımsız CLI aracı `tools/remove_tasks_cli.js` ve güncellenen `remove_windows_tasks.bat` ile tek tıkla görev silme altyapısı sağlandı.
+- **`--cron` Koruma Kalkanı (`daily_pipeline.js`, `RUN_EVENING_1700.bat`, `RUN_MORNING_0600.bat`):**
+  - Windows bat betiklerine `--cron` bayrağı entegre edildi.
+  - `daily_pipeline.js` başlatılırken `--cron` bayrağı varsa ve `automation_active === false` ise Chromium tarayıcı pencereleri açılmadan ve bellek harcanmadan anında (0.2 saniyede) bilgilendirme mesajıyla çıkış yapılır.
+- **Git Deposu & .gitignore İyileştirmesi:**
+  - `data/` yerel taranmış veri klasörü, geçici ekran görüntüleri ve sinyal dosyaları `.gitignore` ile izole edilerek temiz kaynak kod, araçlar ve başlatıcılar git'e hazır hale getirildi.
+
+## [4.0.5] — 2026-09-16
+### 🛡️ BPA Control Center v4.5: Kendi Kendini Onaran Watchdog, Mutex Zombi Kalkanı & Canlı Dağıtım Paketi Güncellemesi
+- **Kendi Kendini Onaran Başlatıcı Mimarisi (`BPA_Control_Center.cs` & `BPA_Control_Center.exe`):**
+  - Arka planda kilitli kalan veya zombi olan eski `BPA_Control_Center` süreçleri için akıllı sağlık denetimi eklendi.
+  - Bota tekrar tıklandığında eğer port 3000 kapalıysa (Node.js düşmüşse), eski askıda kalmış süreçler otomatik temizlenir ve sunucu sıfırdan ayağa kaldırılır.
+  - 5 saniyelik **Sağlık Bekçisi (Watchdog)** arka plan thread'i entegre edildi: Node.js herhangi bir sebeple kapandığında 5 saniye içinde kendi kendini yeniden başlatır.
+  - Tarayıcı App penceresi (`OpenAppTab`), backend `HTTP 200` vermeden asla açılmaz; `ERR_CONNECTION_REFUSED` ekranı tamamen engellendi.
+- **Canlı Dağıtım Paketi (`BPA_V4_APEX_DEPLOY.zip`):**
+  - 7 Eylül tekil gün tarih aralığı düzeltmesi (`daily_pipeline.js`), yeni `BPA_Control_Center.exe`, Windows görev zamanlayıcıları ve canlı APEX API ayarlarıyla sıfırdan paketlendi.
+
+## [4.0.4] — 2026-09-16
+### 🐛 Kritik Düzeltme: Tarih Aralığı (Date Range) Tek Gün Kazıma URL Çakışması
+- **Kök Neden Tespiti:**
+  - `daily_pipeline.js` dosyasında `targetUrl` değişkeni başlatılırken günün varsayılan tarihiyle (`.../predictions-1x2/YYYY-MM-DD` - Bugün) dolduruluyordu.
+  - Arayüzden tek bir gün için tarih aralığı girildiğinde (`07.09.2026 -> 07.09.2026`), `dates.length === 1` koşulu doğru dönüyor ve `daily_pipeline.js` satır 617'deki `(targetUrl && dates.length === 1)` mantığı nedeniyle hedeflenen geçmiş tarih yerine bugünün (16 Eylül) Forebet sayfası açılıyordu.
+  - Bot 16 Eylül maçlarını kazıyıp `predictions_2026-09-07.json` adıyla diske kaydediyor ve APEX API'ye iletiyordu. APEX API ise maçların içindeki gerçek maç tarihini (`16/09/2026`) okuduğu için maçları 16 Eylül tablosuna kaydediyor, 7 Eylül panelde boş (0 maç) kalıyordu.
+- **Çözüm:**
+  - `daily_pipeline.js` içinde `explicitUrl` mimarisine geçildi. Yalnızca kullanıcı komut satırından açıkça `--url=...` parametresi geçtiğinde özel URL kullanılır; tarih aralığı veya tekil tarih taramalarında URL her zaman kesin olarak `https://www.forebet.com/en/football-predictions/predictions-1x2/${dStr}` formatında dinamik üretilir.
+  - Böylece arayüzden veya cron'dan hangi tarih veya tarih aralığı verilirse verilsin her zaman tam doğru günün Forebet sayfasına gidilmesi garantilendi.
+
+## [4.0.3] — 2026-09-16
+### 🛡️ BPA Control Center v4.3: Temiz Başlangıç Kalkanı, Sistem Tepsisine Küçültme, Güvenli Kapatma & Zamanlayıcı (Cron) Toggle
+- **Temiz Başlangıç & `ERR_CONNECTION_REFUSED` Kalkanı (`BPA_Control_Center.cs` & `BPA_Control_Center.exe`):**
+  - EXE açıldığında arkada askıda kalan eski zombi süreçler ve port 3000'i bloke eden süreçler otomatik temizlenir.
+  - `node bpa_desktop_agent.js` başlatıldıktan sonra `http://localhost:3000/api/status` adresinden geçerli `HTTP 200 OK` yanıtı alınana kadar (100ms aralıklarla) beklenir; pencere sunucu hazır olmadan asla açılmaz.
+  - Böylece kullanıcının `localhost bağlanmayı reddetti` beyaz/siyah ekranıyla karşılaşması engellendi.
+  - İzole Edge profil klasörü (`temp_profiles/bpa_app_profile`) ile ana Edge tarayıcısından bağımsız, kendi PID'sine sahip gerçek bir masaüstü penceresi garantilendi.
+- **Sistem Tepsisine (System Tray) Küçültme (`_` Butonu & Tray Menüsü):**
+  - Panel başlığına `🗕` (Tepsiye Küçült) butonu eklendi.
+  - Tıklandığında pencere görev çubuğundan ve ekrandan gizlenip Windows saat yanındaki bildirim alanına (System Tray) alınır.
+  - Windows bildirim balonu ile bilgi verilir; tepsi simgesine çift tıklandığında veya menüden tıklandığında pencere anında geri yüklenir (`SW_RESTORE` + `SetForegroundWindow`).
+- **Onaylı ve Güvenli Sistem Kapatma (Zero-Zombie Full Shutdown):**
+  - Kapatma butonuna (`X` veya Çıkış) basıldığında estetik onay modalı ("Tüm sistemi kapatmak istediğinize emin misiniz?") çıkarılır.
+  - Onay verildiğinde `/api/shutdown` tetiklenir; tüm Chromium tarayıcı pencereleri, Node.js ana motoru ve scraper işçileri temizce kapatılır; arkada sıfır zombi süreç bırakılır.
+- **Tek Tıkla Otomatik Zamanlayıcı (Cron) Aç/Kapat Desteği:**
+  - Panel üst başlığına `🕒 Zamanlayıcı: AÇIK / KAPALI` durum butonu eklendi; tek tıkla zamanlayıcılar anında durdurulabilir veya açılabilir.
+  - Ayarlar modalına `Günlük Otomatik Zamanlayıcılar (Cron)` switch'i entegre edildi.
+  - Sistem Tepsisi (Tray) sağ tık menüsüne `⏰ Otomatik Zamanlayıcıyı Değiştir` kısayolu eklendi.
+- **Canlı Bülten Senkronizasyonu & APEX Durum Çelişkisi Teşhisi:**
+  - Dünün bülteninden 194 maçın Forebet'ten kazınarak APEX canlı API'sine başarıyla aktarılması.
+  - Canlı oynanırken kazınmış maçların (`49 (Live)`) APEX panelinde "Bekleyenler: 0" iken tabloda "Bekliyor" rozetine düşmesine yol açan `master-bulletin.js` (Satır 421) ve `Importer.php` çelişkisinin kök neden tespiti ve APEX geliştiricisine iletilecek hazır teknik prompt hazırlandı.
+
+## [4.0.2] — 2026-09-16
+### 📅 5. Ana Navigasyon Sekmesi: Bülten & APEX Radarı, Günlük Tarih Matrisi & Maç İnceleme Çekmecesi
+- **5. Ana Navigasyon Sekmesi Eklendi (`index.html`):**
+  - Üst gezinme çubuğuna `📅 Bülten & APEX Radarı` sekmesi eklendi.
+  - Tıklandığında anında `view-bulletin-tracker` görünümüne geçiş yapılır.
+- **5 KPI Özet Göstergeleri:**
+  - `Kayıtlı Gün (54 Gün)`, `Toplam Maç (20.364)`, `🟢 Biten Maç (17.614 FT)`, `⏳ Bekleyen Maç (2.750)`, `📡 APEX Eşitleme (%100)` sayaçları eklendi.
+- **Günlük Bülten Tarih Matrisi Tablosu:**
+  - `data/` ve `data/archive/` altındaki tüm bültenleri kronolojik olarak sıralar.
+  - Bitiş Oranı renkli progress barı (`%100`, `%85`, vb.) ve APEX aktarım durum rozetleri (`✔ Eşitlendi`, `🔴 Aktarılmadı`) görüntüler.
+- **Hızlı Satır İçi Aksiyonlar:**
+  - `👁️ İncele`: Tarihin tüm maçlarını sayfa altındaki çekmecede anında açar.
+  - `📡 APEX'e Aktar`: Forebet'e gitmeden doğrudan yerel JSON'u canlı APEX API'ye aktarır (Offline Sync).
+  - `🔄 Güncelle`: Forebet'ten skor ve sonuçları zorla yenileyerek baştan çeker.
+  - `📥 JSON`: `predictions_YYYY-MM-DD.json` dosyasını tarayıcıdan indirir.
+- **Anlık Arama & Filtrelemeli Maç İnceleme Çekmecesi (Drawer):**
+  - Takım adı, ülke veya lige göre harf harf anlık arama desteği.
+  - `Tümü`, `🟢 Bitenler (FT)`, `⏳ Bekleyenler`, `⚠️ Gecikenler` hızlı filtre butonları.
+  - Maç saati geçtiği halde skoru gelmeyen karşılaşmalar için otomatik `⚠️ GECİKTİ` alarmları.
+  - Takım logoları, FT skorları, 1X2 tahmin ve oranları, ilk yarı (İY) skorları ve 1:1 Canlı Viewer butonları eklendi.
+- **5 Dakikalık Akıllı Bellek Önbelleği (`bpa_desktop_agent.js`):**
+  - 54 gün ve 20.364 maçlık JSON verisi RAM'de 300 saniye önbelleğe alınarak sekme geçişleri ve sayfa yenilemeleri <1 milisaniyeye indirildi.
+- **Dağıtım Paketi Güncellendi:**
+  - `BPA_V4_APEX_DEPLOY.zip` (0.29 MB) tüm yeniliklerle güncellendi.
+
+## [4.0.1] — 2026-09-16
+### 🎨 UI Responsive Ölçeklendirme, Boş Sekme (DOM) Onarımı & Biten Maçları Akıllı Yenileme
+- **Mükerrer Tarayıcı Sekmesi Kapatıldı (`bpa_desktop_agent.js`):**
+  - `BPA_Control_Center.exe` başlatıldığında hem native masaüstü penceresi hem de harici tarayıcıda `localhost:3000` sekmesinin açılmasına yol açan otomatik `exec('start http://localhost:${PORT}')` komutu kaldırıldı. Artık yalnızca bağımsız uygulama penceresi açılır.
+- **Boş Sekmeler DOM Hiyerarşisi Onarımı (`index.html`):**
+  - "Görev Yöneticisi & Acil Fren", "Sistem Sağlık Radarı" ve "Canlı Terminal & Loglar" sekmelerinin tıklandığında siyah/boş ekran vermesine neden olan `#view-dashboard` kapanış tagi eksikliği giderildi. Tüm sekmeler `<main>` altında bağımsız birinci sınıf görünümlere kavuşturuldu.
+- **100% Zoom & Yüksek DPI Responsive Ölçeklendirme (`index.html`):**
+  - Üst başlık şeridi (`.top-header`), canlı metrikler (`.header-metrics-strip`) ve kontrol butonları (`.controls-row`) esnek flex-wrap yapısına geçirildi.
+  - Windows %125 ve %150 ekran ölçeklendirmelerinde butonların ve metriklerin sağa taşması engellendi.
+  - `date-range-box` üzerindeki sağa itme (`margin-left: auto`) kaldırılarak butonların temiz ve hizalı satır atlaması sağlandı.
+  - 1366px ve 1150px için responsive `@media` kuralları eklendi.
+- **Biten Maçları Otomatik & Akıllı Yeniden Kazıma (`daily_pipeline.js`, `bpa_desktop_agent.js`):**
+  - Dünün veya geçmiş günlerin maçları daha önce oynanmadan (skorsuz/Upcoming) çekilmiş olsa bile, önbellek kontrolünde `isPastOrToday && !hasFinalScore` kuralı uygulandı.
+  - Skorsuz/bitmemiş maçlar asla atlanmaz; Forebet'ten güncel bitiş skorları (`FT`), ilk yarı skorları (`HT`), kartlar ve kornerlerle yeniden çekilerek önbelleğin ve `output/` dizininin üzerine yazılır.
+- **Zorla Yenile / Üstüne Yaz Toggle Seçeneği (`chk-force-refresh` & `--force-refresh`):**
+  - Arayüze "🔄 Zorla Yenile (Üstüne Yaz)" anahtarı eklendi. İşaretlendiğinde önbellek tamamen bypass edilir, dünün ya da seçilen aralıktaki tüm maçlar Forebet'ten sıfırdan çekilip güncellenir ve APEX API'ye aktarılır.
+- **Dağıtım Paketi Güncellendi:**
+  - `BPA_V4_APEX_DEPLOY.zip` (0.28 MB) tüm düzeltmelerle yeniden paketlendi.
+
+## [4.0.0] — 2026-09-16
+### 💎 BPA V4 Enterprise Desktop Control Center (.EXE), Görev Yöneticisi & Sistem Sağlık Radarı
+- **Bağımsız Windows Masaüstü Programı (`BPA_Control_Center.exe` - 10.5 KB):**
+  - C# ve Windows'un dahili `csc.exe` derleyicisi kullanılarak sıfır harici kütüphaneyle derlendi.
+  - Siyah CMD pencereleri tamamen kaldırıldı (`CreateNoWindow = true`, `WindowStyle = Hidden`).
+  - Edge/Chrome App Mode entegrasyonu ile çerçevesiz, sekmesiz, tam bir yerel masaüstü uygulaması penceresi (`1440x900`) olarak açılır.
+  - Windows Sistem Tepsisine (System Tray) yerleşir: "Paneli Aç", "Görev Yöneticisi", "Sistem Sağlığı", "Acil Fren", "Çıkış" menüleri eklendi.
+  - Tek oturum kalkanı (`BPA_V4_MASTER_CONTROL_CENTER_MUTEX`) ile mükerrer açılmalar engellendi.
+  - `Masaustune_Kisayol_Olustur.bat` ile masaüstüne tek tıkla ikon oluşturma sağlandı.
+- **Dahili Bot Görev Yöneticisi & Acil Fren (`core/task_monitor.js` & `/api/tasks`):**
+  - Sistemde bota ve Puppeteer'a ait tüm `node.exe` ve `chrome.exe` süreçlerini anlık olarak PID, RAM tüketimi ve rollerine göre listeler.
+  - Ana sunucu sürecini (`Port 3000`) korumalı tutar.
+  - `🛑 ACİL FREN` butonu ile arkada unutulmuş tüm crawler ve Puppeteer sekmelerini tek tıkla temizler.
+- **Sistem Sağlık ve Teşhis Radarı (`core/system_health.js` & `/api/system-health`):**
+  - **14 Kritik Dosya Bütünlüğü:** Tüm parser, stealth, uploader ve konfigürasyon dosyalarını tarar (`%100 MÜKEMMEL`).
+  - **Canlı APEX API Radarı:** `https://apex-api.playbettingtips.com/api/import.php` adresine anlık istek atarak milisaniye gecikme ve yetkilendirme doğrulaması yapar.
+  - **Forebet Cloudflare Çerezi:** `cf_cookies_cache.json` yaşını ve token sayısını denetler.
+  - **Windows Görev Zamanlayıcısı:** 06:00 ve 17:00 kayıtlarını izler ve arayüzden tek tıkla manuel çalıştırma imkanı sunar.
+- **Entegre Canlı Matrix Terminal:**
+  - Siyah konsol yerine arayüze entegre, JetBrains Mono fontlu karanlık mod akıcı log terminali.
+  - `[Tümü]` `[Hatalar]` `[APEX]` `[Kazıma]` filtreleri, otomatik kaydırma ve `.txt` dışa aktarma eklendi.
+- **Hafif Dağıtım Paketi:**
+  - `BPA_V4_APEX_DEPLOY.zip` dosyası yalnızca **0.28 MB** boyutunda güncellendi.
+
+## [3.5.0] — 2026-09-15
+### 🌐 Canlı APEX API Entegrasyonu, Akıllı Arşivleme, Dinamik Zamanlayıcı & Dağıtım Paketi
+- **Canlı APEX API HTTP Uploader (`core/apex_uploader.js`):**
+  - Hedef endpoint: `https://apex-api.playbettingtips.com/api/import.php` (HTTPS POST, `X-Apex-Secret: apex_secret_key_2026`).
+  - **50'şerli Paketleme (Chunks of 50):** Yüzlerce maç tek bir dev istek yerine 50'lik gruplar halinde sıralı (`sequential for...of` ve `await`) aktarılır.
+  - **Otomatik Yeniden Deneme (Retry Logic):** Ağ hatası veya 5xx sunucu hatasında 5 saniye arayla 3 kez otomatik tekrar denenir; başarısızlık halinde veri kaybı olmaması için `data/sync_failed_<tarih>.json` yerel tamponuna alınır.
+  - Canlı sunucuda 99 maçlık test paketi başarıyla gönderildi ve `HTTP 200 OK` yanıtı doğrulandı.
+- **Yerel Aylık Arşivleme Mimarisi (`daily_pipeline.js`):**
+  - Her kazınan bülten yerelde `data/predictions_YYYY-MM-DD.json` dosyasına yazıldığı gibi, otomatik olarak `data/archive/YYYY-MM/predictions_YYYY-MM-DD.json` dizinine arşivlenir. On binlerce klasör kirliliği önlenirken geçmiş veri güvenceye alınır.
+- **Otomatik Zamanlayıcı & Dinamik Ayar Senkronizasyonu (`cron_scheduler.js`, `core/scheduler_manager.js`):**
+  - **Sabah 06:00 Görevi:** Dünün tüm biten maçlarını (`status: FT`, final skorlar) kazıyıp kupon sonuçlandırma için APEX API'ye aktarır.
+  - **Akşam 17:00 Görevi:** Yarının tüm bültenini (tahminler, oranlar, analizler) kazıyıp saat 21:00'deki VIP kupon üretimi için APEX API'ye aktarır.
+  - **Dinamik Windows Task Scheduler Senkronizasyonu:** `config.json` veya Web UI üzerinden saatler güncellendiği an `syncWindowsTasks` fonksiyonu Windows Görev Zamanlayıcısındaki (`BPA_Bot_Morning` ve `BPA_Bot_Evening`) saatleri anında `schtasks /change /st` ile yeniden yapılandırır; yeniden başlatma gerektirmez.
+- **Hafif ve Temiz Dağıtım Paketi (`BPA_V4_APEX_DEPLOY.zip` - 0.25 MB):**
+  - `tools/create_deploy_package.js` geliştirildi. `node_modules/`, `output/`, devasa test JSON'ları ve loglar filtrelenerek sadece 250 KB'lık saf üretim paketi üretildi.
+  - `README_DEPLOY.md` kapsamlı kurulum kılavuzu pakete eklendi.
+
+## [3.4.4] — 2026-09-15
+### ⚡ Akıllı Devam Etme (Fast Resume), Inactivity-Based Watchdog & Exit Code 1 Otomatik Kurtarma Kalkanı
+- **Kaldığı Yerden Devam Etme & Sıfır Mükerrer Kazıma (`daily_pipeline.js`):**
+  - Bot veya gün yeniden başlatıldığında, günün bültenindeki maçlar taranmadan önce `output/<slug>/match_data.json` dizinleri saniyenin onda biri sürede taranır.
+  - Önceden başarıyla kazınmış olan maçlar anında önbellekten hafızaya (`results`) yüklenir ve sekme açmadan atlanır (`pendingQueue`).
+  - Tarama örneğin 786. maçta kesildiyse, ilk 786 maç 0.1 saniyede yüklenir ve işçiler doğrudan 787. maçtan kazımaya başlar.
+  - Günün tüm maçları zaten kazınmışsa günü 0.1 saniyede tamamlayıp doğrudan sıradaki tarihe geçer.
+- **Süre Temelli Değil Hareketsizlik Temelli Watchdog (`bpa_desktop_agent.js`):**
+  - 120 dakikalık sert süreç süresi sınırı (`maxProcessExecutionMinutes`) kaldırıldı. 5 günlük veya binlerce maçlık taramaların 2 saatten uzun sürdüğü için sebepsiz yere öldürülmesi (`Tarama Süreci 1 Koduyla Sona Erdi`) kökten çözüldü.
+  - Watchdog artık gerçek hareketsizliği (`lastActivityTime`) ölçer. Bot log üretip maç kazıdığı sürece tarama 10-24 saat de sürse süreç asla öldürülmez. Yalnızca 15 dakika boyunca tek bir satır dahi log üretilmeyen gerçek donma durumlarında yeniden başlatma tetiklenir.
+- **Exit Code 1 & Beklenmedik Kapanma Otomatik Kurtarma Kalkanı (`bpa_desktop_agent.js`):**
+  - Kullanıcının manuel "Durdur" basmadığı tüm durumlarda (Windows bellek kesmesi, beklenmedik hata veya exit code 1), bot 5 saniye soğuma süresiyle son parametreleri (`mode`, `date`, `range`, `workers`) hatırlayarak otomatik olarak kaldığı yerden yeniden başlar.
+- **Kesintisiz Konsol Döngüsü (`BPA_Agent_Launcher_GUI.bat`):**
+  - Batch dosyası döngüsel yapıya kavuşturuldu; sunucu kapansa bile pencere kaybolmaz, otomatik olarak taze süreç başlatılır.
+
+## [3.4.3] — 2026-09-11
+### 🛡️ Ağ Kesintisi Dayanıklılığı, Cloudflare Turnstile OOPIF & CDP ProtocolError Zırhı
+- **Cloudflare Turnstile Iframe `ProtocolError` Çözümü (`core/browser_engine.js`, `daily_crawler.js`):**
+  - Sayfaya global `setExtraHTTPHeaders` uygulanması kaldırıldı. Cloudflare Turnstile'ın dinamik açtığı güvenlik çerçevelerine (OOPIF) Puppeteer'ın zorla CDP başlığı göndermeye çalışıp zaman aşımına uğraması (`Network.setExtraHTTPHeaders timed out`) kökünden engellendi.
+  - Dil başlığı Chromium başlatma bayraklarındaki `--lang=en-US,en` ile yerel olarak sağlandı, `protocolTimeout: 180000` eklenerek CDP oturumları güçlendirildi.
+- **Node.js v24 Unhandled Rejection Süreç Kalkanı:**
+  - `core/browser_engine.js`, `daily_pipeline.js`, `scrape_match.js`, `bpa_desktop_agent.js` ve `daily_crawler.js` dosyalarına global `unhandledRejection` ve `uncaughtException` zırhı eklendi.
+  - Puppeteer'ın iç `FrameManager` katmanından gelen yakalanmamış CDP veya hedef kapanma hatalarının Node.js sürecini `exit code 1` ile fatal crash etmesi kesin olarak engellendi.
+- **Akıllı Ağ / İnternet Kesintisi Algılama & Otomatik Bekleme (`waitForInternetConnection`):**
+  - `net::ERR_INTERNET_DISCONNECTED`, `net::ERR_NAME_NOT_RESOLVED`, `ERR_NETWORK_CHANGED` ve `ERR_CONNECTION_RESET` hataları tespit edildiğinde scraper deneme hakkını tüketmez veya maçı başarısız saymaz.
+  - Ortak ağ kilidi devreye girer, işçiler beklemeye alınır ve her 3 saniyede bir DNS/ping testi yapılır. İnternet geri geldiği anda tarama sıfır kayıpla kaldığı maçtan devam eder.
+- **Chromium Sekme Çökmesi Otomatik Kurtarma (`daily_pipeline.js`):**
+  - İşçi döngüsünde sekmenin kapanması (`page.isClosed()`) veya `Target closed` durumunda işçi ölmez; anında temiz bir yeni sekme (`browser.newPage()`) oluşturup sıradaki maçı kazımayı sürdürür.
+
+## [3.4.2] — 2026-09-11
+### ⚡ Event Loop & Disk I/O Optimizasyonu (5 Dk Başlangıç Donması & Kilitlenme Çözüldü)
+- **16.793 Maç Klasörünün Senkron Taranmasının Önlenmesi (`bpa_desktop_agent.js`):**
+  - Sunucu ilk açılırken `output/` altındaki 16.793 klasörün ve içlerindeki 1.6 GB JSON verisinin `fs.readFileSync` ile senkron parse edilerek Node.js'i 5 dakika kilitlemesi sorunu tamamen giderildi.
+  - Sadece en son eklenen 50 maçı okuyan hafif ve akıllı tarama algoritmasına geçildi. Başlatma süresi 5 dakikadan **1.2 saniyeye** indi.
+- **Depolama Metrikleri Asenkron Önbellekleme (`cachedStorageMetrics`):**
+  - Her saniye 40.000 dosyanın (16.793 output + 22.502 stealth profil dosyası) rekürsif `statSync` ile taranması durduruldu.
+  - Boyutlar 60 saniyede bir arka planda asenkron güncelleniyor; yeni maç kazındıkça sayaç hafızada anında artırılıyor.
+  - `/api/status` yanıt süresi 25+ saniyelik kilitlenmelerden **65 milisaniyeye** düşürüldü.
+- **Tetikleme Uç Noktası & Buton Geri Bildirimi (`index.html`):**
+  - "Tarih Aralığını Çek" butonu tıklandığında `await fetch(...)` ile sunucu yanıtı bekleniyor, buton anında spinner durumuna geçiyor.
+  - Polling aralığı 2 saniyeye çıkarıldı ve `isDashboardUpdating` in-flight kilidi eklenerek tarayıcı ve sunucu üzerindeki yük sıfırlandı.
+- **Tarih Aralığı Döngü Güvenliği (`daily_pipeline.js`):**
+  - Tarih ayrıştırmalarında saat dilimi ve DST (yaz saati) kaymalarını önlemek için `T12:00:00` midday standardı getirildi.
+
 ## [3.4.1] — 2026-08-25
 ### ⏹️ Gelişmiş Görev Yaşam Döngüsü, Duraklat / Devam Et & Sistemi Kapat
 - **Görevi İptal Et / Durdur Düzeltmesi (`bpa_desktop_agent.js`):**

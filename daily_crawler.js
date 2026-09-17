@@ -23,6 +23,35 @@ puppeteer.use(StealthPlugin());
 const fs = require('fs');
 const path = require('path');
 
+// 🛡️ Node.js v24 / Puppeteer Global CDP & Unhandled Rejection Kalkanı
+process.on('unhandledRejection', (reason) => {
+  const msg = String(reason?.message || reason || '');
+  if (
+    msg.includes('ProtocolError') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Target.detachFromTarget') ||
+    msg.includes('setExtraHTTPHeaders') ||
+    msg.includes('Execution context was destroyed')
+  ) {
+    return;
+  }
+  console.warn('[Crawler Zırhı] Yakalanmamış Rejection izole edildi:', msg);
+});
+
+process.on('uncaughtException', (err) => {
+  const msg = String(err?.message || err || '');
+  if (
+    msg.includes('ProtocolError') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Target.detachFromTarget')
+  ) {
+    return;
+  }
+  console.error('[Crawler Zırhı] Beklenmeyen Hata İzole Edildi:', err);
+});
+
 // Dinamik Tarih Fonksiyonu (YYYY-MM-DD)
 const getFormattedDate = (offsetDays = 0) => {
   const d = new Date();
@@ -181,6 +210,7 @@ async function createBrowserInstance() {
     defaultViewport: { width: 1440, height: 900 },
     userDataDir: tempUserDataDir,
     ignoreHTTPSErrors: true,
+    protocolTimeout: 180000,
     executablePath: chromePath,
     args: [
       '--no-sandbox',
@@ -239,13 +269,7 @@ async function setupPageInterception(page) {
     });
 
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
-    await page.setExtraHTTPHeaders({
-      'Accept-Language': 'en-US,en;q=0.9,tr;q=0.8',
-      'Upgrade-Insecure-Requests': '1',
-      'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-      'Sec-Ch-Ua-Mobile': '?0',
-      'Sec-Ch-Ua-Platform': '"Windows"'
-    });
+    // NOT: page.setExtraHTTPHeaders kaldırıldı (Cloudflare Turnstile iframe CDP ProtocolError kilitlenmesini engellemek için)
 
     // Hazırda geçerli bir Cloudflare çerezi varsa sayfaya hemen enjekte et
     const cachedCookies = loadCachedCookies();

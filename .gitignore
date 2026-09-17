@@ -4,20 +4,22 @@ package-lock.json
 
 # Scraped Output, Large Cache & Assets
 output/
+output2/
 archive/
 temp_profiles/
 scratch/
 gereksiz/
 assets/
 
-# Cloudflare Cookies & State (Do not commit active session tokens)
-data/cf_cookies_cache.json
-data/*.json
-data/stealth_profile/
-data/worker_profile_*/
+# Runtime Data, Cloudflare Profiles & Cookies
+data/
 program/data/
 program/output/
 temiz_klasor/output/
+
+# Process Signals & Temp Packages
+*_signal.txt
+*.zip
 
 # Environment variables & secrets
 .env
@@ -30,8 +32,8 @@ logs/
 npm-debug.log*
 
 # Temporary Screenshots & Dumps
-test_*.png
-test_*.jpg
+*.png
+*.jpg
 scratch_*.html
 *.tmp
 

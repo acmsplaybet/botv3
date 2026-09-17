@@ -62,15 +62,35 @@ const path = require('path');
   console.log('⏳ Doğrulama bekleniyor (Maksimum 60 saniye)...');
 
   let verified = false;
-  for (let sec = 1; sec <= 60; sec++) {
+  let consecutivePasses = 0;
+  for (let sec = 1; sec <= 120; sec++) {
     const title = await page.title().catch(() => '');
-    const isCf = title.includes('Just a moment') || title.includes('Attention Required') || title === 'www.forebet.com' || title === '';
+    const isCfTitle = title.includes('Just a moment') || title.includes('Attention Required') || title.includes('Cloudflare') || title === 'www.forebet.com' || title === '';
 
-    if (!isCf && title.length > 5) {
-      verified = true;
-      console.log(`\n🎉 HARİKA! CLOUDFLARE DOĞRULAMASI GEÇİLDİ!`);
-      console.log(`📄 Sayfa Başlığı: "${title}"`);
-      break;
+    const cookies = await page.cookies().catch(() => []);
+    const hasCfClearance = cookies.some(c => c.name === 'cf_clearance');
+
+    const hasTable = await page.evaluate(() => {
+      return !!(document.querySelector('.schema, .predict-tables, .rcnt, #m1x2_table, .mrows, .homeTeam') ||
+               (document.body && document.body.innerText.includes('Predictions 1X2')));
+    }).catch(() => false);
+
+    const hasChallengeIframe = await page.evaluate(() => {
+      return !!(document.querySelector('#challenge-stage, #cf-stage, iframe[src*="cloudflare"], iframe[src*="turnstile"]'));
+    }).catch(() => false);
+
+    const isTrulyValid = (hasCfClearance || !hasChallengeIframe) && hasTable && !isCfTitle && title.length > 5;
+
+    if (isTrulyValid) {
+      consecutivePasses++;
+      if (consecutivePasses >= 2) {
+        verified = true;
+        console.log(`\n🎉 HARİKA! CLOUDFLARE DOĞRULAMASI GEÇİLDİ!`);
+        console.log(`📄 Sayfa Başlığı: "${title}"`);
+        break;
+      }
+    } else {
+      consecutivePasses = 0;
     }
 
     // Otomatik tıklama denemesi (Eğer görünürse)

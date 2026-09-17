@@ -15,6 +15,35 @@ const fs = require('fs');
 
 const { createBrowser, closeBrowser, setupPageInterception, navigateWithRetry } = require('./core/browser_engine');
 const { parseHero } = require('./parsers/parse_hero');
+
+// 🛡️ Node.js v24 / Puppeteer Global CDP & Unhandled Rejection Kalkanı
+process.on('unhandledRejection', (reason) => {
+  const msg = String(reason?.message || reason || '');
+  if (
+    msg.includes('ProtocolError') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Target.detachFromTarget') ||
+    msg.includes('setExtraHTTPHeaders') ||
+    msg.includes('Execution context was destroyed')
+  ) {
+    return;
+  }
+  console.warn('[ScrapeMatch Zırhı] Yakalanmamış Rejection izole edildi:', msg);
+});
+
+process.on('uncaughtException', (err) => {
+  const msg = String(err?.message || err || '');
+  if (
+    msg.includes('ProtocolError') ||
+    msg.includes('Target closed') ||
+    msg.includes('Session closed') ||
+    msg.includes('Target.detachFromTarget')
+  ) {
+    return;
+  }
+  console.error('[ScrapeMatch Zırhı] Beklenmeyen Hata İzole Edildi:', err);
+});
 const { parseMarkets } = require('./parsers/parse_markets');
 const { parseH2HAndIntro } = require('./parsers/parse_h2h_intro');
 const { parseDistance } = require('./parsers/parse_distance');
@@ -65,7 +94,7 @@ async function scrapeMatch(url, options = {}) {
     }
 
     // 2. Navigate to match page
-    await navigateWithRetry(page, url, (m) => logger(m, COLORS.yellow), 2, 12000);
+    await navigateWithRetry(page, url, (m) => logger(m, COLORS.yellow), 2, 35000);
 
     // 3. Step 1: Parse Hero & Base Info
     const hero = await parseHero(page, url);
@@ -141,9 +170,9 @@ async function scrapeMatch(url, options = {}) {
 
     // 6. Save JSON and HTML Viewer
     let slug = '';
-    const urlMatch = url.match(/\/matches\/([^\/\?#]+)/);
+    const urlMatch = url.match(/\/matches\/(.+?)(?:[?#]|$)/);
     if (urlMatch) {
-      slug = urlMatch[1];
+      slug = urlMatch[1].replace(/[\/\\]+/g, '-');
     } else {
       slug = `${hero.homeTeam}-${hero.awayTeam}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
